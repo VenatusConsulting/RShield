@@ -471,6 +471,10 @@ footer{border-top:0.5px solid var(--b);padding:32px 48px;display:flex;align-item
               <div class="mc-ticker-inner" id="mc-ticker"></div>
             </div>
           </div>
+          <div style="margin-top:10px;font-size:9.5px;color:var(--g2);display:flex;align-items:center;gap:5px">
+            <svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="6" cy="6" r="5"/><path d="M6 5v4M6 4v.01"/></svg>
+            Identités des marchands partiellement masquées — confidentialité RGPD
+          </div>
 
         </div>
       </div>
@@ -758,20 +762,21 @@ setTimeout(()=>{
 
 // ── METRICS CARD ANIMATION ────────────────────────────────
 
-// Boutiques françaises avec vrais noms de domaine crédibles
+// Boutiques françaises anonymisées — partiellement masquées
+// Format : premières lettres visibles + *** + extension
 const SHOPS = [
-  {shop:'modemaison.fr',   amounts:[89,129,179,239], color:'#E8281A'},
-  {shop:'electrocity.fr',  amounts:[299,349,449,199],color:'#E8281A'},
-  {shop:'sportrunner.fr',  amounts:[89,129,65,99],   color:'#F59E0B'},
-  {shop:'luxboutique.fr',  amounts:[449,599,299,379],color:'#E8281A'},
-  {shop:'bioessen.fr',     amounts:[45,65,79,55],    color:'#F59E0B'},
-  {shop:'techdeals.fr',    amounts:[199,249,179,299],color:'#E8281A'},
-  {shop:'kidsplanet.fr',   amounts:[79,99,129,65],   color:'#F59E0B'},
-  {shop:'decormaison.fr',  amounts:[239,189,149,279],color:'#E8281A'},
-  {shop:'prosport24.fr',   amounts:[349,279,199,319],color:'#E8281A'},
-  {shop:'naturbeauty.fr',  amounts:[59,79,89,69],    color:'#F59E0B'},
-  {shop:'gadgetstore.fr',  amounts:[149,199,129,179],color:'#E8281A'},
-  {shop:'vetemoda.fr',     amounts:[99,139,79,119],  color:'#F59E0B'},
+  {shop:'mo***maison.fr',   amounts:[89,129,179,239], color:'#E8281A'},
+  {shop:'ele***city.fr',    amounts:[299,349,449,199],color:'#E8281A'},
+  {shop:'sp***runner.fr',   amounts:[89,129,65,99],   color:'#F59E0B'},
+  {shop:'lux***tique.fr',   amounts:[449,599,299,379],color:'#E8281A'},
+  {shop:'bi***ssen.fr',     amounts:[45,65,79,55],    color:'#F59E0B'},
+  {shop:'tec***eals.fr',    amounts:[199,249,179,299],color:'#E8281A'},
+  {shop:'ki***lanet.fr',    amounts:[79,99,129,65],   color:'#F59E0B'},
+  {shop:'de***maison.fr',   amounts:[239,189,149,279],color:'#E8281A'},
+  {shop:'pr***port24.fr',   amounts:[349,279,199,319],color:'#E8281A'},
+  {shop:'na***beauty.fr',   amounts:[59,79,89,69],    color:'#F59E0B'},
+  {shop:'ga***store.fr',    amounts:[149,199,129,179],color:'#E8281A'},
+  {shop:'ve***moda.fr',     amounts:[99,139,79,119],  color:'#F59E0B'},
 ];
 
 // Ticker items list — rebuilt dynamically when new fraud is added
