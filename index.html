@@ -677,7 +677,7 @@ footer{border-top:0.5px solid var(--b);padding:32px 48px;display:flex;align-item
           <div class="roi-plan" id="rp-p" onclick="rPlan('p',79)"><div class="roi-plan-name">Pro</div><div class="roi-plan-price">79€/mois</div></div>
           <div class="roi-plan" id="rp-b" onclick="rPlan('b',199)"><div class="roi-plan-name">Business</div><div class="roi-plan-price">199€/mois</div></div>
         </div>
-        <div id="roi-plan-label" style="font-size:10.5px;color:var(--g2);margin-bottom:6px;margin-top:-4px">Starter — boutique &lt;500 cmds/mois</div>
+        <div id="roi-plan-label" style="font-size:11px;color:var(--g1);margin-bottom:6px;margin-top:-4px;font-weight:500">Starter — boutique &lt;500 cmds/mois</div>
         <div class="roi-field"><label>Commandes / mois</label><input type="number" id="ro" value="300" oninput="autoSwitchPlan(this.value);calcROI()"></div>
         <div class="roi-field"><label>Panier moyen (€)</label><input type="number" id="ra" value="65" oninput="calcROI()"></div>
         <div class="roi-field"><label>Taux retour (%)</label><input type="number" id="rr" value="8" oninput="calcROI()"></div>
@@ -1184,9 +1184,8 @@ function rPlan(n,p){
   const d = PLAN_DEFAULTS[n];
   document.getElementById('ro').value = d.orders;
   document.getElementById('ra').value = d.aov;
-  // Afficher un label contextuel sous le sélecteur
   const lbl = document.getElementById('roi-plan-label');
-  if(lbl) lbl.textContent = d.label;
+  if(lbl) updatePlanLabel(n);
   calcROI();
 }
 function fmt(n){return new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(Math.round(n))}
@@ -1197,9 +1196,15 @@ function autoSwitchPlan(orders){
   if(rp !== prices[n]){
     rp = prices[n];
     ['s','p','b'].forEach(x => document.getElementById('rp-'+x).classList.toggle('active', x===n));
-    const lbl = document.getElementById('roi-plan-label');
-    if(lbl) lbl.textContent = PLAN_DEFAULTS[n].label;
+    updatePlanLabel(n);
   }
+}
+
+function updatePlanLabel(n){
+  const lbl = document.getElementById('roi-plan-label');
+  if(!lbl) return;
+  lbl.textContent = PLAN_DEFAULTS[n].label;
+  lbl.style.color = n === 's' ? 'var(--g1)' : n === 'p' ? 'var(--red)' : 'var(--amber)';
 }
 
 function calcROI(){
