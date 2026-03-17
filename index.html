@@ -3,220 +3,250 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RefundShield — Dashboard</title>
+<title>RefundShield — Dashboard Marchand</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <style>
-:root {
-  --red: #E8281A; --red-d: #B01E14; --red-dim: rgba(232,40,26,0.1); --red-border: rgba(232,40,26,0.25);
-  --bg: #0A0A0A; --s1: #111111; --s2: #161616; --s3: #1C1C1C; --card: #181818;
-  --b: rgba(255,255,255,0.07); --b2: rgba(255,255,255,0.12);
-  --w: #FFFFFF; --g1: #AAAAAA; --g2: #666666; --g3: #444444;
-  --green: #22C55E; --green-d: rgba(34,197,94,0.12); --green-b: rgba(34,197,94,0.25);
-  --amber: #F59E0B; --amber-d: rgba(245,158,11,0.12);
-  --blue: #3B82F6; --blue-d: rgba(59,130,246,0.12);
+:root{
+  --red:#E8281A;--red-d:#B01E14;--red-dim:rgba(232,40,26,0.1);--red-border:rgba(232,40,26,0.25);
+  --bg:#0A0A0A;--s1:#111111;--s2:#161616;--s3:#1C1C1C;--card:#181818;
+  --b:rgba(255,255,255,0.07);--b2:rgba(255,255,255,0.12);--b3:rgba(255,255,255,0.18);
+  --w:#FFFFFF;--g1:#AAAAAA;--g2:#666666;--g3:#444444;
+  --green:#22C55E;--gd:rgba(34,197,94,0.12);--gb:rgba(34,197,94,0.25);
+  --amber:#F59E0B;--ad:rgba(245,158,11,0.12);
+  --blue:#3B82F6;--bd:rgba(59,130,246,0.12);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--w);display:flex;height:100vh;overflow:hidden;-webkit-font-smoothing:antialiased}
+html,body{height:100%;overflow:hidden}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--w);display:flex;-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--g3);border-radius:2px}
 
 /* SIDEBAR */
-.sidebar{width:220px;flex-shrink:0;background:var(--s1);border-right:0.5px solid var(--b);display:flex;flex-direction:column;padding:0;height:100vh;overflow:hidden}
-.sb-logo{padding:20px 20px 16px;border-bottom:0.5px solid var(--b);display:flex;align-items:center;gap:10px}
-.sb-logo svg{width:28px;height:28px}
-.sb-logo-text{font-family:'Syne',sans-serif;font-weight:800;font-size:16px;letter-spacing:-0.02em}
+.sidebar{width:220px;flex-shrink:0;background:var(--s1);border-right:0.5px solid var(--b);display:flex;flex-direction:column;height:100vh}
+.sb-logo{padding:18px 18px 14px;border-bottom:0.5px solid var(--b);display:flex;align-items:center;gap:9px}
+.sb-logo svg{width:26px;height:26px}
+.sb-logo-text{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;letter-spacing:-0.02em}
 .sb-logo-text span{color:var(--red)}
-.sb-shop{padding:12px 16px;margin:8px 12px;background:var(--s2);border:0.5px solid var(--b);border-radius:10px;cursor:pointer}
+.sb-shop{padding:10px 14px;margin:8px 10px;background:var(--s2);border:0.5px solid var(--b);border-radius:9px;cursor:pointer;transition:border-color .15s}
+.sb-shop:hover{border-color:var(--b2)}
 .sb-shop-name{font-size:12px;font-weight:500;margin-bottom:2px}
-.sb-shop-status{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--green)}
-.sb-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
-.sb-nav{padding:8px 12px;flex:1}
-.sb-section{font-size:10px;font-weight:500;letter-spacing:.08em;color:var(--g2);text-transform:uppercase;padding:12px 8px 6px}
-.sb-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--g1);transition:all .15s;margin-bottom:2px}
+.sb-shop-status{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--green)}
+.sb-dot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.sb-nav{padding:6px 10px;flex:1;overflow-y:auto}
+.sb-section{font-size:9px;font-weight:600;letter-spacing:.1em;color:var(--g2);text-transform:uppercase;padding:12px 8px 4px}
+.sb-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:7px;cursor:pointer;font-size:12px;color:var(--g1);transition:all .15s;margin-bottom:1px;user-select:none}
 .sb-item:hover{background:var(--s2);color:var(--w)}
 .sb-item.active{background:var(--red-dim);color:var(--w);border:0.5px solid var(--red-border)}
-.sb-item svg{width:15px;height:15px;flex-shrink:0}
-.sb-item .badge{margin-left:auto;background:var(--red);color:var(--w);font-size:10px;font-weight:600;padding:1px 6px;border-radius:8px}
-.sb-bottom{padding:12px;border-top:0.5px solid var(--b)}
-.sb-user{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;cursor:pointer;transition:background .15s}
+.sb-item svg{width:14px;height:14px;flex-shrink:0}
+.sb-item .badge{margin-left:auto;background:var(--red);color:var(--w);font-size:9px;font-weight:700;padding:1px 5px;border-radius:6px}
+.sb-item .badge-g{margin-left:auto;background:var(--gd);color:var(--green);font-size:9px;font-weight:700;padding:1px 5px;border-radius:6px;border:0.5px solid var(--gb)}
+.sb-bottom{padding:10px;border-top:0.5px solid var(--b)}
+.sb-user{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:7px;cursor:pointer;transition:background .15s}
 .sb-user:hover{background:var(--s2)}
-.sb-avatar{width:30px;height:30px;border-radius:50%;background:var(--red-dim);border:1px solid var(--red-border);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:var(--red);flex-shrink:0}
+.sb-avatar{width:28px;height:28px;border-radius:50%;background:var(--red-dim);border:1px solid var(--red-border);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:10px;font-weight:700;color:var(--red);flex-shrink:0}
 .sb-user-name{font-size:12px;font-weight:500}
 .sb-user-plan{font-size:10px;color:var(--g2)}
 
 /* MAIN */
-.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
-.topbar{height:56px;border-bottom:0.5px solid var(--b);display:flex;align-items:center;justify-content:space-between;padding:0 28px;flex-shrink:0;background:var(--s1)}
-.topbar-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700}
-.topbar-right{display:flex;align-items:center;gap:10px}
-.topbar-btn{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:7px;border:0.5px solid var(--b2);background:transparent;color:var(--g1);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .15s}
-.topbar-btn:hover{background:var(--s2);color:var(--w)}
-.topbar-btn.primary{background:var(--red);border-color:var(--red);color:var(--w)}
-.topbar-btn.primary:hover{background:var(--red-d)}
-.notif-btn{width:34px;height:34px;border-radius:8px;border:0.5px solid var(--b);background:transparent;color:var(--g1);cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;transition:all .15s}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.topbar{height:52px;border-bottom:0.5px solid var(--b);display:flex;align-items:center;justify-content:space-between;padding:0 24px;flex-shrink:0;background:var(--s1)}
+.tb-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;letter-spacing:-.01em}
+.tb-right{display:flex;align-items:center;gap:8px}
+.tb-btn{display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:6px;border:0.5px solid var(--b2);background:transparent;color:var(--g1);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;transition:all .15s}
+.tb-btn:hover{background:var(--s2);color:var(--w)}
+.tb-btn.p{background:var(--red);border-color:var(--red);color:var(--w)}
+.tb-btn.p:hover{background:var(--red-d)}
+.notif-btn{width:32px;height:32px;border-radius:7px;border:0.5px solid var(--b);background:transparent;color:var(--g1);cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;transition:all .15s}
 .notif-btn:hover{background:var(--s2);color:var(--w)}
-.notif-dot{position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:var(--red);border:1.5px solid var(--s1)}
-.content{flex:1;overflow-y:auto;padding:24px 28px}
-.content::-webkit-scrollbar{width:4px}
-.content::-webkit-scrollbar-track{background:transparent}
-.content::-webkit-scrollbar-thumb{background:var(--g3);border-radius:2px}
+.notif-dot{position:absolute;top:5px;right:5px;width:6px;height:6px;border-radius:50%;background:var(--red);border:1.5px solid var(--s1)}
 
-/* VIEWS */
-.view{display:none}
-.view.active{display:block}
-
-/* METRICS ROW */
-.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
-.metric{background:var(--card);border:0.5px solid var(--b);border-radius:12px;padding:18px 20px;position:relative;overflow:hidden;transition:border-color .2s}
-.metric:hover{border-color:var(--b2)}
-.metric-label{font-size:11px;color:var(--g1);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
-.metric-val{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;line-height:1;margin-bottom:6px}
-.metric-val.red{color:var(--red)}
-.metric-val.green{color:var(--green)}
-.metric-val.amber{color:var(--amber)}
-.metric-change{font-size:11px;display:flex;align-items:center;gap:4px}
-.up{color:var(--green)}.down{color:var(--red)}
-.metric-icon{position:absolute;right:16px;top:50%;transform:translateY(-50%);opacity:.08}
-.metric-icon svg{width:48px;height:48px}
-
-/* GRID 2COL */
-.grid2{display:grid;grid-template-columns:1.6fr 1fr;gap:16px;margin-bottom:20px}
-.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:20px}
-
-/* CARDS */
-.card{background:var(--card);border:0.5px solid var(--b);border-radius:14px;overflow:hidden}
-.card-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:0.5px solid var(--b)}
-.card-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700}
-.card-action{font-size:11px;color:var(--g1);cursor:pointer;transition:color .15s;background:transparent;border:none;font-family:'DM Sans',sans-serif}
-.card-action:hover{color:var(--w)}
-.card-body{padding:16px 20px}
-
-/* TABLE */
-.rtable{width:100%;border-collapse:collapse}
-.rtable th{font-size:10px;font-weight:500;color:var(--g2);text-transform:uppercase;letter-spacing:.06em;padding:8px 12px;text-align:left;border-bottom:0.5px solid var(--b)}
-.rtable td{padding:11px 12px;font-size:12px;border-bottom:0.5px solid rgba(255,255,255,0.04);vertical-align:middle}
-.rtable tr:last-child td{border-bottom:none}
-.rtable tr{cursor:pointer;transition:background .12s}
-.rtable tr:hover td{background:rgba(255,255,255,0.02)}
-.rtable tr.selected td{background:rgba(232,40,26,0.05)}
-
-/* SCORE PILL */
-.score-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;font-family:'Syne',sans-serif}
-.score-pill.low{background:var(--green-d);color:var(--green);border:0.5px solid var(--green-b)}
-.score-pill.med{background:var(--amber-d);color:var(--amber);border:0.5px solid rgba(245,158,11,0.25)}
-.score-pill.high{background:var(--red-dim);color:var(--red);border:0.5px solid var(--red-border)}
-.score-pill-dot{width:5px;height:5px;border-radius:50%;background:currentColor}
-
-/* ACTION PILL */
-.action-pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500}
-.ap-approve{background:var(--green-d);color:var(--green)}
-.ap-review{background:var(--amber-d);color:var(--amber)}
-.ap-block{background:var(--red-dim);color:var(--red)}
-.ap-pending{background:rgba(255,255,255,0.06);color:var(--g1)}
-
-/* DETAIL PANEL */
-.detail-panel{background:var(--s2);border-left:0.5px solid var(--b);width:340px;flex-shrink:0;height:100%;overflow-y:auto;display:none;flex-direction:column}
-.detail-panel.open{display:flex}
-.detail-panel::-webkit-scrollbar{width:3px}
-.detail-panel::-webkit-scrollbar-thumb{background:var(--g3)}
-.dp-head{padding:18px 20px;border-bottom:0.5px solid var(--b);display:flex;align-items:center;justify-content:space-between}
-.dp-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700}
-.dp-close{background:transparent;border:none;color:var(--g1);cursor:pointer;font-size:18px;line-height:1;transition:color .15s}
-.dp-close:hover{color:var(--w)}
-.dp-body{padding:20px;flex:1}
-.dp-score-hero{text-align:center;padding:20px 0 24px;border-bottom:0.5px solid var(--b);margin-bottom:20px}
-.dp-score-ring{position:relative;width:100px;height:100px;margin:0 auto 12px}
-.dp-score-ring svg{width:100%;height:100%}
-.dp-score-num{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Syne',sans-serif;font-size:26px;font-weight:800}
-.dp-verdict{font-size:13px;font-weight:500;padding:5px 16px;border-radius:20px;display:inline-block;margin-bottom:8px}
-.dp-action-label{font-size:11px;color:var(--g1)}
-.dp-section{margin-bottom:20px}
-.dp-section-title{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--g2);margin-bottom:10px}
-.dp-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:0.5px solid rgba(255,255,255,0.04)}
-.dp-row:last-child{border-bottom:none}
-.dp-row-label{font-size:12px;color:var(--g1)}
-.dp-row-val{font-size:12px;font-weight:500;text-align:right;max-width:160px}
-.signal-bar-row{margin-bottom:8px}
-.signal-bar-label{display:flex;justify-content:space-between;font-size:11px;color:var(--g1);margin-bottom:4px}
-.signal-bar-label span{font-weight:500;color:var(--w)}
-.signal-bar-track{height:5px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden}
-.signal-bar-fill{height:100%;border-radius:3px;transition:width .6s ease}
-.dp-actions{display:flex;flex-direction:column;gap:8px;padding:0 20px 20px}
-.dp-act-btn{padding:10px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;border:0.5px solid var(--b2);background:transparent;color:var(--w);transition:all .15s}
-.dp-act-btn:hover{background:var(--s3)}
-.dp-act-btn.primary{background:var(--green);border-color:var(--green);color:#0a2010}
-.dp-act-btn.primary:hover{background:#1aad4e}
-.dp-act-btn.danger{background:var(--red-dim);border-color:var(--red-border);color:var(--red)}
-.dp-act-btn.danger:hover{background:rgba(232,40,26,0.2)}
-
-/* CHART */
-.chart-wrap{padding:16px 20px 12px}
-.mini-chart{display:flex;align-items:flex-end;gap:3px;height:60px}
-.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
-.bar-fill{width:100%;border-radius:3px 3px 0 0;min-height:4px;transition:height .3s}
-.bar-label{font-size:9px;color:var(--g2)}
-.chart-legend{display:flex;gap:16px;padding:8px 20px 4px}
-.legend-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--g1)}
-.legend-dot{width:7px;height:7px;border-radius:50%}
-
-/* SCORE DISTRIBUTION */
-.dist-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
-.dist-label{font-size:11px;color:var(--g1);width:80px;flex-shrink:0}
-.dist-track{flex:1;height:7px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden}
-.dist-fill{height:100%;border-radius:4px}
-.dist-count{font-size:11px;font-weight:500;width:30px;text-align:right}
-
-/* ALERTS */
-.alert-item{display:flex;gap:12px;padding:12px 0;border-bottom:0.5px solid rgba(255,255,255,0.04);cursor:pointer;transition:opacity .15s}
-.alert-item:hover{opacity:.8}
-.alert-item:last-child{border-bottom:none}
-.alert-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.alert-content{flex:1}
-.alert-title{font-size:12px;font-weight:500;margin-bottom:3px}
-.alert-sub{font-size:11px;color:var(--g1)}
-.alert-time{font-size:10px;color:var(--g2);flex-shrink:0;margin-top:2px}
-
-/* REALTIME DOT */
-.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite;display:inline-block;margin-right:5px}
-
-/* TAGS */
-.tag{display:inline-block;font-size:10px;padding:2px 7px;border-radius:10px;margin:1px}
-.tag-red{background:var(--red-dim);color:var(--red)}
-.tag-amber{background:var(--amber-d);color:var(--amber)}
-.tag-green{background:var(--green-d);color:var(--green)}
-.tag-gray{background:rgba(255,255,255,0.06);color:var(--g1)}
-.tag-blue{background:var(--blue-d);color:var(--blue)}
-
-/* NAV TABS */
-.tabs{display:flex;gap:4px;padding:0 28px;border-bottom:0.5px solid var(--b);background:var(--s1);flex-shrink:0}
-.tab{padding:12px 16px;font-size:13px;color:var(--g1);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;font-family:'DM Sans',sans-serif;background:none;border-top:none;border-left:none;border-right:none}
+/* TABS */
+.tabs{display:flex;gap:0;padding:0 24px;border-bottom:0.5px solid var(--b);background:var(--s1);flex-shrink:0}
+.tab{padding:11px 14px;font-size:12px;color:var(--g1);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;font-family:'DM Sans',sans-serif;background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap}
 .tab:hover{color:var(--w)}
 .tab.active{color:var(--w);border-bottom-color:var(--red)}
 
-/* MAIN+PANEL LAYOUT */
+/* CONTENT */
 .content-wrap{flex:1;display:flex;overflow:hidden}
-.content-main{flex:1;overflow-y:auto;padding:24px 28px}
-.content-main::-webkit-scrollbar{width:4px}
-.content-main::-webkit-scrollbar-thumb{background:var(--g3);border-radius:2px}
+.content-main{flex:1;overflow-y:auto;padding:20px 24px}
 
-/* EMPTY */
-.empty{text-align:center;padding:40px;color:var(--g1);font-size:13px}
+/* VIEWS */
+.view{display:none}.view.active{display:block}
 
-/* FINGERPRINT VISUAL */
-.fp-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.fp-item{background:var(--s1);border:0.5px solid var(--b);border-radius:8px;padding:8px 12px}
-.fp-key{font-size:10px;color:var(--g2);margin-bottom:2px}
-.fp-val{font-size:11px;font-weight:500;font-family:'DM Mono',monospace}
+/* METRICS */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.metric{background:var(--card);border:0.5px solid var(--b);border-radius:11px;padding:16px 18px;position:relative;overflow:hidden;transition:border-color .2s}
+.metric:hover{border-color:var(--b2)}
+.metric-label{font-size:10px;color:var(--g1);margin-bottom:7px;display:flex;align-items:center;justify-content:space-between}
+.metric-val{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;line-height:1;margin-bottom:5px}
+.metric-val.red{color:var(--red)}.metric-val.green{color:var(--green)}.metric-val.amber{color:var(--amber)}
+.metric-change{font-size:10px;display:flex;align-items:center;gap:3px}
+.up{color:var(--green)}.down{color:var(--red)}.neu{color:var(--g1)}
+.metric-icon{position:absolute;right:14px;top:50%;transform:translateY(-50%);opacity:.06}
+.metric-icon svg{width:44px;height:44px}
 
-/* TIMELINE */
-.timeline{position:relative;padding-left:20px}
-.timeline::before{content:'';position:absolute;left:6px;top:4px;bottom:4px;width:1px;background:var(--b)}
-.tl-item{position:relative;margin-bottom:14px}
-.tl-item::before{content:'';position:absolute;left:-17px;top:4px;width:7px;height:7px;border-radius:50%;background:var(--s1);border:1.5px solid var(--g3)}
-.tl-item.danger::before{border-color:var(--red);background:var(--red-dim)}
-.tl-item.warn::before{border-color:var(--amber)}
-.tl-time{font-size:10px;color:var(--g2);margin-bottom:2px}
-.tl-text{font-size:12px;color:var(--g1);line-height:1.4}
+/* GRID */
+.g2{display:grid;grid-template-columns:1.6fr 1fr;gap:12px;margin-bottom:12px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px}
+
+/* CARD */
+.card{background:var(--card);border:0.5px solid var(--b);border-radius:12px;overflow:hidden;margin-bottom:12px}
+.ch{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:0.5px solid var(--b)}
+.ct{font-family:'Syne',sans-serif;font-size:12px;font-weight:700}
+.ca{font-size:10px;color:var(--g1);cursor:pointer;background:transparent;border:none;font-family:'DM Sans',sans-serif;transition:color .15s}
+.ca:hover{color:var(--w)}
+.cb{padding:14px 16px}
+
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{font-size:9px;font-weight:600;color:var(--g2);text-transform:uppercase;letter-spacing:.07em;padding:7px 10px;text-align:left;border-bottom:0.5px solid var(--b)}
+.tbl td{padding:10px 10px;font-size:11px;border-bottom:0.5px solid rgba(255,255,255,.03);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr.data-row{cursor:pointer;transition:background .1s}
+.tbl tr.data-row:hover td{background:rgba(255,255,255,.02)}
+
+/* PILLS */
+.pill{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:600}
+.pill-dot{width:4px;height:4px;border-radius:50%;background:currentColor}
+.pill-red{background:var(--red-dim);color:var(--red);border:0.5px solid var(--red-border)}
+.pill-green{background:var(--gd);color:var(--green);border:0.5px solid var(--gb)}
+.pill-amber{background:var(--ad);color:var(--amber);border:0.5px solid rgba(245,158,11,.2)}
+.pill-blue{background:var(--bd);color:var(--blue);border:0.5px solid rgba(59,130,246,.2)}
+.pill-gray{background:rgba(255,255,255,.05);color:var(--g1);border:0.5px solid var(--b2)}
+
+/* DETAIL PANEL */
+.dp{background:var(--s2);border-left:0.5px solid var(--b);width:320px;flex-shrink:0;height:100%;overflow-y:auto;display:none;flex-direction:column}
+.dp.open{display:flex}
+.dp-head{padding:16px 18px;border-bottom:0.5px solid var(--b);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.dp-title{font-family:'Syne',sans-serif;font-size:12px;font-weight:700}
+.dp-close{background:transparent;border:none;color:var(--g1);cursor:pointer;font-size:17px;line-height:1;transition:color .15s;padding:2px 6px;border-radius:4px}
+.dp-close:hover{color:var(--w);background:var(--s3)}
+.dp-body{padding:18px;flex:1}
+.dp-score-hero{text-align:center;padding:16px 0 20px;border-bottom:0.5px solid var(--b);margin-bottom:16px}
+.dp-ring{position:relative;width:90px;height:90px;margin:0 auto 10px}
+.dp-ring svg{width:100%;height:100%}
+.dp-ring-num{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Syne',sans-serif;font-size:24px;font-weight:800}
+.dp-verdict{font-size:12px;font-weight:500;padding:4px 14px;border-radius:20px;display:inline-block;margin-bottom:6px}
+.dp-verdict-action{font-size:10px;color:var(--g1)}
+.dp-section{margin-bottom:16px}
+.dp-section-title{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--g2);margin-bottom:8px}
+.dp-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:0.5px solid rgba(255,255,255,.03)}
+.dp-row:last-child{border-bottom:none}
+.dp-row-label{font-size:11px;color:var(--g1)}
+.dp-row-val{font-size:11px;font-weight:500;text-align:right;max-width:150px}
+.tl{position:relative;padding-left:18px}
+.tl::before{content:'';position:absolute;left:5px;top:4px;bottom:4px;width:1px;background:var(--b)}
+.tl-item{position:relative;margin-bottom:10px}
+.tl-item::before{content:'';position:absolute;left:-15px;top:3px;width:6px;height:6px;border-radius:50%;background:var(--s1);border:1.5px solid var(--g3)}
+.tl-item.d::before{border-color:var(--red);background:var(--red-dim)}
+.tl-item.w::before{border-color:var(--amber)}
+.tl-text{font-size:11px;color:var(--g1);line-height:1.4}
 .tl-text strong{color:var(--w);font-weight:500}
+.dp-actions{display:flex;flex-direction:column;gap:6px;padding:0 18px 18px;flex-shrink:0}
+.dp-btn{padding:9px;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;border:0.5px solid var(--b2);background:transparent;color:var(--w);transition:all .15s;text-align:center}
+.dp-btn:hover{background:var(--s3)}
+.dp-btn.danger{background:var(--red-dim);border-color:var(--red-border);color:var(--red)}
+.dp-btn.danger:hover{background:rgba(232,40,26,.18)}
+.dp-btn.success{background:var(--gd);border-color:var(--gb);color:var(--green)}
+.dp-btn.success:hover{background:rgba(34,197,94,.18)}
+
+/* CHART */
+.chart-wrap{padding:14px 16px 10px}
+.mini-chart{display:flex;align-items:flex-end;gap:2px;height:56px}
+.bc{flex:1;border-radius:2px 2px 0 0;min-height:3px}
+.chart-legend{display:flex;gap:14px;padding:6px 16px 4px}
+.legend-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--g1)}
+.legend-dot{width:6px;height:6px;border-radius:50%}
+
+/* DIST */
+.dist-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.dist-label{font-size:10px;color:var(--g1);width:78px;flex-shrink:0}
+.dist-track{flex:1;height:6px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden}
+.dist-fill{height:100%;border-radius:3px}
+.dist-count{font-size:10px;font-weight:500;width:24px;text-align:right}
+
+/* SIGNAL BARS */
+.sig-row{margin-bottom:7px}
+.sig-label{display:flex;justify-content:space-between;font-size:10px;color:var(--g1);margin-bottom:3px}
+.sig-label span{font-weight:500;color:var(--w)}
+.sig-track{height:4px;background:rgba(255,255,255,.05);border-radius:2px;overflow:hidden}
+.sig-fill{height:100%;border-radius:2px}
+
+/* ALERT ITEM */
+.alert-item{display:flex;gap:10px;padding:10px 0;border-bottom:0.5px solid rgba(255,255,255,.03);cursor:pointer;transition:opacity .15s}
+.alert-item:hover{opacity:.8}
+.alert-item:last-child{border-bottom:none}
+.ai-icon{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ai-title{font-size:11px;font-weight:500;margin-bottom:2px}
+.ai-sub{font-size:10px;color:var(--g1)}
+.ai-time{font-size:9px;color:var(--g2);flex-shrink:0;margin-top:2px}
+
+/* LIVE DOT */
+.live{width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;margin-right:4px;animation:pulse 1.5s infinite}
+
+/* MODAL OVERLAY */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--s1);border:0.5px solid var(--b2);border-radius:14px;width:480px;max-width:90vw;overflow:hidden}
+.modal-head{padding:18px 20px;border-bottom:0.5px solid var(--b);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700}
+.modal-close{background:transparent;border:none;color:var(--g1);cursor:pointer;font-size:18px;line-height:1;padding:2px 6px;border-radius:4px;transition:all .15s}
+.modal-close:hover{color:var(--w);background:var(--s3)}
+.modal-body{padding:20px}
+.modal-footer{padding:14px 20px;border-top:0.5px solid var(--b);display:flex;gap:8px;justify-content:flex-end}
+
+/* FORM */
+.form-group{margin-bottom:14px}
+.form-label{font-size:11px;color:var(--g1);margin-bottom:5px;display:block}
+.form-input{width:100%;background:var(--s2);border:0.5px solid var(--b2);border-radius:7px;padding:9px 12px;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--w);outline:none;transition:border-color .15s}
+.form-input:focus{border-color:var(--b3)}
+.form-input::placeholder{color:var(--g2)}
+select.form-input option{background:var(--s2)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-row{display:flex;gap:8px}
+
+/* BUTTONS */
+.btn{padding:8px 16px;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;border:0.5px solid var(--b2);background:transparent;color:var(--w);transition:all .15s}
+.btn:hover{background:var(--s2)}
+.btn.primary{background:var(--red);border-color:var(--red);color:var(--w)}
+.btn.primary:hover{background:var(--red-d)}
+.btn.success{background:var(--gd);border-color:var(--gb);color:var(--green)}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--s1);border:0.5px solid var(--b2);border-radius:10px;padding:12px 16px;font-size:12px;color:var(--w);z-index:300;transform:translateY(80px);opacity:0;transition:all .3s;max-width:320px;display:flex;align-items:center;gap:8px}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.success{border-color:var(--gb)}
+.toast.danger{border-color:var(--red-border)}
+
+/* EMPTY STATE */
+.empty{text-align:center;padding:48px 24px;color:var(--g1)}
+.empty-icon{width:44px;height:44px;margin:0 auto 12px;opacity:.3}
+.empty-title{font-size:14px;font-weight:500;color:var(--g1);margin-bottom:6px}
+.empty-sub{font-size:12px;color:var(--g2)}
+
+/* SETTINGS */
+.settings-section{background:var(--card);border:0.5px solid var(--b);border-radius:12px;padding:20px;margin-bottom:14px}
+.settings-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:14px;padding-bottom:10px;border-bottom:0.5px solid var(--b)}
+.settings-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid rgba(255,255,255,.03)}
+.settings-row:last-child{border-bottom:none}
+.settings-label{font-size:12px;font-weight:500}
+.settings-sub{font-size:10px;color:var(--g2);margin-top:2px}
+.toggle{position:relative;width:34px;height:18px;border-radius:9px;background:var(--g3);cursor:pointer;transition:background .2s;flex-shrink:0}
+.toggle.on{background:var(--green)}
+.toggle-thumb{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:white;transition:transform .2s}
+.toggle.on .toggle-thumb{transform:translateX(16px)}
+.threshold-row{display:flex;align-items:center;gap:10px;margin-top:6px}
+.threshold-val{font-size:13px;font-weight:700;font-family:'Syne',sans-serif;min-width:28px;text-align:center}
+
+/* TAG */
+.tag{display:inline-block;font-size:9px;padding:1px 6px;border-radius:8px;margin:1px}
+.tag-red{background:var(--red-dim);color:var(--red)}
+.tag-amber{background:var(--ad);color:var(--amber)}
+.tag-green{background:var(--gd);color:var(--green)}
+.tag-gray{background:rgba(255,255,255,.05);color:var(--g1)}
+.tag-blue{background:var(--bd);color:var(--blue)}
 </style>
 </head>
 <body>
@@ -224,51 +254,56 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--w);displa
 <!-- SIDEBAR -->
 <div class="sidebar">
   <div class="sb-logo">
-    <svg viewBox="0 0 28 28" fill="none">
-      <rect width="28" height="28" rx="7" fill="#E8281A"/>
-      <path d="M14 8.5L9.5 11V15.5C9.5 17.9 11.5 20.1 14 20.7C16.5 20.1 18.5 17.9 18.5 15.5V11L14 8.5Z" fill="white"/>
-      <path d="M11.5 15L13.2 16.7L16.5 13" stroke="#E8281A" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <svg viewBox="0 0 26 26" fill="none">
+      <rect width="26" height="26" rx="6" fill="#E8281A"/>
+      <path d="M13 7L8.5 9.8V14C8.5 17 10.5 19.5 13 20.3C15.5 19.5 17.5 17 17.5 14V9.8L13 7Z" fill="white"/>
+      <path d="M10.5 13.5L12.2 15.2L15.5 11.5" stroke="#E8281A" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
     <span class="sb-logo-text">Refund<span>Shield</span></span>
   </div>
-  <div style="padding:10px 12px">
-    <div class="sb-shop">
-      <div class="sb-shop-name">ModeMaison.fr</div>
-      <div class="sb-shop-status"><span class="sb-dot"></span>Actif — Plan Pro</div>
+
+  <div style="padding:8px 10px">
+    <div class="sb-shop" id="sb-shop-display">
+      <div class="sb-shop-name" id="sb-shop-name">ModeMaison.fr</div>
+      <div class="sb-shop-status"><span class="sb-dot"></span><span id="sb-shop-plan">Actif — Plan Pro</span></div>
     </div>
   </div>
+
   <div class="sb-nav">
     <div class="sb-section">Principal</div>
-    <div class="sb-item active" onclick="switchView('dashboard')">
+    <div class="sb-item active" onclick="nav('dashboard',this)">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/></svg>
       Vue d'ensemble
     </div>
-    <div class="sb-item" onclick="switchView('alerts')">
+    <div class="sb-item" onclick="nav('alerts',this)">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2a4 4 0 0 1 4 4c0 3 1.5 4 1.5 4h-11s1.5-1 1.5-4a4 4 0 0 1 4-4z"/><path d="M6.5 13a1.5 1.5 0 0 0 3 0"/></svg>
-      Alertes <span class="badge">3</span>
+      Alertes <span class="badge" id="sb-alert-badge">0</span>
     </div>
-    <div class="sb-item" onclick="switchView('returns')">
+    <div class="sb-item" onclick="nav('returns',this)">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12M2 8h8M2 12h5"/></svg>
       Retours analysés
     </div>
     <div class="sb-section">Outils</div>
-    <div class="sb-item" onclick="switchView('database')">
+    <div class="sb-item" onclick="nav('database',this)">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><ellipse cx="8" cy="4" rx="6" ry="2"/><path d="M2 4v4c0 1.1 2.69 2 6 2s6-.9 6-2V4"/><path d="M2 8v4c0 1.1 2.69 2 6 2s6-.9 6-2V8"/></svg>
       Base mutualisée
     </div>
-    <div class="sb-item">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg>
-      Historique
+    <div class="sb-item" onclick="nav('analyse',this)">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12l4-4 3 3 5-6"/></svg>
+      Analyser un retour
     </div>
-    <div class="sb-item">
+    <div class="sb-item" onclick="nav('settings',this)">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.22 3.22l1.42 1.42M11.36 11.36l1.42 1.42M3.22 12.78l1.42-1.42M11.36 4.64l1.42-1.42"/></svg>
       Paramètres
     </div>
   </div>
   <div class="sb-bottom">
     <div class="sb-user">
-      <div class="sb-avatar">JD</div>
-      <div><div class="sb-user-name">Jean Dupont</div><div class="sb-user-plan">Plan Pro · 79€/mois</div></div>
+      <div class="sb-avatar" id="sb-avatar">JD</div>
+      <div>
+        <div class="sb-user-name" id="sb-username">Jean Dupont</div>
+        <div class="sb-user-plan" id="sb-userplan">Plan Pro · 79€/mois</div>
+      </div>
     </div>
   </div>
 </div>
@@ -276,177 +311,114 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--w);displa
 <!-- MAIN -->
 <div class="main">
   <div class="topbar">
-    <div class="topbar-title" id="topbar-title">Vue d'ensemble</div>
-    <div class="topbar-right">
-      <select style="background:var(--s2);border:0.5px solid var(--b2);color:var(--g1);padding:6px 12px;border-radius:7px;font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer">
-        <option>30 derniers jours</option><option>7 derniers jours</option><option>Ce mois</option>
+    <div class="tb-title" id="tb-title">Vue d'ensemble</div>
+    <div class="tb-right">
+      <select class="tb-btn" style="border:0.5px solid var(--b2);color:var(--g1);padding:6px 10px;border-radius:6px;font-size:11px;background:var(--s2)" onchange="filterPeriod(this.value)">
+        <option value="30">30 derniers jours</option>
+        <option value="7">7 derniers jours</option>
+        <option value="90">Ce trimestre</option>
       </select>
-      <button class="notif-btn" onclick="switchView('alerts')">
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2a4 4 0 0 1 4 4c0 3 1.5 4 1.5 4h-11s1.5-1 1.5-4a4 4 0 0 1 4-4z"/><path d="M6.5 13a1.5 1.5 0 0 0 3 0"/></svg>
-        <div class="notif-dot"></div>
+      <button class="notif-btn" onclick="nav('alerts',document.querySelectorAll('.sb-item')[1])">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2a4 4 0 0 1 4 4c0 3 1.5 4 1.5 4h-11s1.5-1 1.5-4a4 4 0 0 1 4-4z"/><path d="M6.5 13a1.5 1.5 0 0 0 3 0"/></svg>
+        <div class="notif-dot" id="notif-dot"></div>
       </button>
-      <button class="topbar-btn primary" onclick="switchView('returns')">
-        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3v10M3 8l5 5 5-5"/></svg>
-        Analyser un retour
-      </button>
+      <button class="tb-btn p" onclick="openModal('modal-analyse')">+ Analyser un retour</button>
     </div>
   </div>
 
   <div class="tabs">
-    <button class="tab active" onclick="switchView('dashboard')">Dashboard</button>
-    <button class="tab" onclick="switchView('returns')">Retours</button>
-    <button class="tab" onclick="switchView('alerts')">Alertes <span style="background:var(--red);color:white;font-size:9px;padding:1px 5px;border-radius:8px;margin-left:4px">3</span></button>
-    <button class="tab" onclick="switchView('database')">Base mutualisée</button>
+    <button class="tab active" onclick="nav('dashboard',null,this)">Dashboard</button>
+    <button class="tab" onclick="nav('returns',null,this)">Retours</button>
+    <button class="tab" onclick="nav('alerts',null,this)">Alertes <span id="tab-alert-badge" style="background:var(--red);color:white;font-size:9px;padding:1px 5px;border-radius:6px;margin-left:3px">0</span></button>
+    <button class="tab" onclick="nav('database',null,this)">Base mutualisée</button>
+    <button class="tab" onclick="nav('analyse',null,this)">Analyser</button>
+    <button class="tab" onclick="nav('settings',null,this)">Paramètres</button>
   </div>
 
   <div class="content-wrap">
-    <div class="content-main" id="main-content">
+    <div class="content-main" id="content-main">
 
-      <!-- DASHBOARD VIEW -->
+      <!-- DASHBOARD -->
       <div id="view-dashboard" class="view active">
-        <div class="metrics">
-          <div class="metric">
-            <div class="metric-label">Fraudes bloquées <span style="color:var(--green);font-size:10px">ce mois</span></div>
-            <div class="metric-val green">24</div>
-            <div class="metric-change up">↑ +6 vs mois dernier</div>
-            <div class="metric-icon"><svg viewBox="0 0 48 48" fill="none" stroke="white" stroke-width="2"><path d="M24 4L8 12v14c0 10 7 19 16 22 9-3 16-12 16-22V12L24 4z"/></svg></div>
-          </div>
-          <div class="metric">
-            <div class="metric-label">Économies générées</div>
-            <div class="metric-val green">1 847€</div>
-            <div class="metric-change up">↑ +312€ vs mois dernier</div>
-            <div class="metric-icon"><svg viewBox="0 0 48 48" fill="none" stroke="white" stroke-width="2"><circle cx="24" cy="24" r="18"/><path d="M24 14v20M18 18h9a3 3 0 0 1 0 6h-6a3 3 0 0 0 0 6h9"/></svg></div>
-          </div>
-          <div class="metric">
-            <div class="metric-label">Retours analysés</div>
-            <div class="metric-val">187</div>
-            <div class="metric-change" style="color:var(--g1)">→ Taux fraude : 12.8%</div>
-            <div class="metric-icon"><svg viewBox="0 0 48 48" fill="none" stroke="white" stroke-width="2"><rect x="8" y="8" width="32" height="32" rx="4"/><path d="M16 24h16M16 32h10"/></svg></div>
-          </div>
-          <div class="metric">
-            <div class="metric-label">Alertes en attente</div>
-            <div class="metric-val red">3</div>
-            <div class="metric-change down">↑ Action requise</div>
-            <div class="metric-icon"><svg viewBox="0 0 48 48" fill="none" stroke="white" stroke-width="2"><path d="M24 8a12 12 0 0 1 12 12c0 9 4.5 12 4.5 12h-33s4.5-3 4.5-12A12 12 0 0 1 24 8z"/><path d="M19 40a5 5 0 0 0 10 0"/></svg></div>
-          </div>
-        </div>
-
-        <div class="grid2">
+        <div class="metrics" id="dash-metrics"></div>
+        <div class="g2">
           <div class="card">
-            <div class="card-head">
-              <span class="card-title">Activité des 30 derniers jours</span>
-              <span style="font-size:11px;color:var(--g1)"><span class="live-dot"></span>Temps réel</span>
-            </div>
-            <div class="chart-wrap">
-              <div class="mini-chart" id="main-chart"></div>
-            </div>
+            <div class="ch"><span class="ct">Activité des 30 derniers jours</span><span style="font-size:10px;color:var(--g1)"><span class="live"></span>Temps réel</span></div>
+            <div class="chart-wrap"><div class="mini-chart" id="main-chart"></div></div>
             <div class="chart-legend">
               <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Fraudes bloquées</div>
-              <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Remboursements approuvés</div>
+              <div class="legend-item"><div class="legend-dot" style="background:rgba(34,197,94,.5)"></div>Remboursements auto</div>
+              <div class="legend-item"><div class="legend-dot" style="background:rgba(245,158,11,.5)"></div>Preuves demandées</div>
             </div>
           </div>
           <div class="card">
-            <div class="card-head"><span class="card-title">Distribution des scores</span></div>
-            <div class="card-body">
-              <div style="margin-bottom:16px">
-                <div class="dist-row"><span class="dist-label" style="color:var(--green)">Faible (0–25)</span><div class="dist-track"><div class="dist-fill" style="width:58%;background:var(--green)"></div></div><span class="dist-count" style="color:var(--green)">109</span></div>
-                <div class="dist-row"><span class="dist-label" style="color:var(--amber)">Modéré (26–50)</span><div class="dist-track"><div class="dist-fill" style="width:20%;background:var(--amber)"></div></div><span class="dist-count" style="color:var(--amber)">37</span></div>
-                <div class="dist-row"><span class="dist-label" style="color:#f97316">Élevé (51–75)</span><div class="dist-track"><div class="dist-fill" style="width:14%;background:#f97316"></div></div><span class="dist-count" style="color:#f97316">17</span></div>
-                <div class="dist-row"><span class="dist-label" style="color:var(--red)">Critique (76–100)</span><div class="dist-track"><div class="dist-fill" style="width:13%;background:var(--red)"></div></div><span class="dist-count" style="color:var(--red)">24</span></div>
-              </div>
-              <div style="background:var(--s1);border-radius:8px;padding:10px 12px;font-size:11px;color:var(--g1);line-height:1.5">
-                <span style="color:var(--green);font-weight:500">12.8%</span> des retours présentent un score critique — taux supérieur à la moyenne nationale (10%)
-              </div>
-            </div>
+            <div class="ch"><span class="ct">Distribution des scores</span></div>
+            <div class="cb" id="score-dist"></div>
           </div>
         </div>
-
-        <div class="card" style="margin-bottom:20px">
-          <div class="card-head">
-            <span class="card-title">Derniers retours analysés</span>
-            <button class="card-action" onclick="switchView('returns')">Voir tout →</button>
-          </div>
-          <div style="padding:0 4px">
-            <table class="rtable">
-              <thead><tr>
-                <th>Client</th><th>Produit</th><th>Montant</th><th>Score</th><th>Signaux clés</th><th>Action</th><th>Date</th>
-              </tr></thead>
-              <tbody id="recent-table"></tbody>
-            </table>
-          </div>
+        <div class="card">
+          <div class="ch"><span class="ct">Derniers retours analysés</span><button class="ca" onclick="nav('returns',null)">Voir tout →</button></div>
+          <table class="tbl"><thead><tr><th>Client</th><th>Produit</th><th>Montant</th><th>Score</th><th>Signaux</th><th>Action</th><th>Date</th></tr></thead>
+          <tbody id="recent-tbody"></tbody></table>
         </div>
-
-        <div class="grid3">
+        <div class="g3">
           <div class="card">
-            <div class="card-head"><span class="card-title">Alertes récentes</span><button class="card-action" onclick="switchView('alerts')">Voir tout</button></div>
-            <div class="card-body" style="padding:8px 16px" id="alerts-preview"></div>
+            <div class="ch"><span class="ct">Alertes récentes</span><button class="ca" onclick="nav('alerts',null)">Voir tout</button></div>
+            <div class="cb" style="padding:8px 14px" id="alerts-preview"></div>
           </div>
           <div class="card">
-            <div class="card-head"><span class="card-title">Top signaux détectés</span></div>
-            <div class="card-body">
-              <div class="signal-bar-row"><div class="signal-bar-label">Fingerprint connu <span>38%</span></div><div class="signal-bar-track"><div class="signal-bar-fill" style="width:38%;background:var(--red)"></div></div></div>
-              <div class="signal-bar-row"><div class="signal-bar-label">Email jetable <span>27%</span></div><div class="signal-bar-track"><div class="signal-bar-fill" style="width:27%;background:#f97316"></div></div></div>
-              <div class="signal-bar-row"><div class="signal-bar-label">VPN détecté <span>21%</span></div><div class="signal-bar-track"><div class="signal-bar-fill" style="width:21%;background:var(--amber)"></div></div></div>
-              <div class="signal-bar-row"><div class="signal-bar-label">Délai &lt; 2h <span>18%</span></div><div class="signal-bar-track"><div class="signal-bar-fill" style="width:18%;background:var(--amber)"></div></div></div>
-              <div class="signal-bar-row"><div class="signal-bar-label">Base mutualisée <span>14%</span></div><div class="signal-bar-track"><div class="signal-bar-fill" style="width:14%;background:var(--red)"></div></div></div>
-              <div class="signal-bar-row"><div class="signal-bar-label">Récidive locale <span>9%</span></div><div class="signal-bar-track"><div class="signal-bar-fill" style="width:9%;background:var(--green)"></div></div></div>
-            </div>
+            <div class="ch"><span class="ct">Top signaux détectés</span></div>
+            <div class="cb" id="top-signals"></div>
           </div>
           <div class="card">
-            <div class="card-head"><span class="card-title">ROI ce mois</span></div>
-            <div class="card-body">
-              <div style="text-align:center;padding:12px 0 20px">
-                <div style="font-family:'Syne',sans-serif;font-size:48px;font-weight:800;color:var(--green);line-height:1">23×</div>
-                <div style="font-size:12px;color:var(--g1);margin-top:4px">retour sur investissement</div>
-              </div>
-              <div class="dp-row"><span class="dp-row-label">Abonnement</span><span class="dp-row-val" style="color:var(--g1)">79€/mois</span></div>
-              <div class="dp-row"><span class="dp-row-label">Fraudes bloquées</span><span class="dp-row-val" style="color:var(--green)">+1 847€</span></div>
-              <div class="dp-row" style="border-bottom:none"><span class="dp-row-label" style="font-weight:500;color:var(--w)">Gain net</span><span class="dp-row-val" style="color:var(--green);font-family:'Syne',sans-serif;font-weight:700;font-size:16px">+1 768€</span></div>
-            </div>
+            <div class="ch"><span class="ct">ROI ce mois</span></div>
+            <div class="cb" id="roi-card"></div>
           </div>
         </div>
       </div>
 
-      <!-- RETURNS VIEW -->
+      <!-- RETURNS -->
       <div id="view-returns" class="view">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
           <div>
-            <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:4px">Retours analysés</div>
-            <div style="font-size:12px;color:var(--g1)">187 retours ce mois · cliquez pour voir le détail</div>
+            <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:3px">Retours analysés</div>
+            <div style="font-size:11px;color:var(--g1)" id="returns-count">0 retours ce mois</div>
           </div>
-          <div style="display:flex;gap:8px">
-            <select style="background:var(--s2);border:0.5px solid var(--b2);color:var(--g1);padding:7px 12px;border-radius:7px;font-size:12px;font-family:'DM Sans',sans-serif">
-              <option>Tous les scores</option><option>Critiques uniquement</option><option>À examiner</option>
+          <div style="display:flex;gap:8px;align-items:center">
+            <select class="tb-btn" id="filter-score" onchange="renderReturns()" style="background:var(--s2);border:0.5px solid var(--b2);color:var(--g1);padding:6px 10px;border-radius:6px;font-size:11px">
+              <option value="all">Tous les scores</option>
+              <option value="high">Critiques (76–100)</option>
+              <option value="med">Modérés (26–75)</option>
+              <option value="low">Faibles (0–25)</option>
             </select>
+            <button class="tb-btn p" onclick="openModal('modal-analyse')">+ Nouveau retour</button>
           </div>
         </div>
-        <div class="card">
-          <table class="rtable" style="width:100%">
-            <thead><tr>
-              <th>Client</th><th>Produit</th><th>Montant</th><th>Score risque</th><th>Signaux détectés</th><th>Action recommandée</th><th>Date</th>
-            </tr></thead>
-            <tbody id="full-table"></tbody>
+        <div class="card" style="margin-bottom:0">
+          <table class="tbl">
+            <thead><tr><th>Client</th><th>Produit</th><th>Montant</th><th>Score risque</th><th>Signaux détectés</th><th>Action recommandée</th><th>Date</th></tr></thead>
+            <tbody id="full-tbody"></tbody>
           </table>
         </div>
       </div>
 
-      <!-- ALERTS VIEW -->
+      <!-- ALERTS -->
       <div id="view-alerts" class="view">
-        <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:4px">Alertes en attente</div>
-        <div style="font-size:12px;color:var(--g1);margin-bottom:20px">3 alertes nécessitent votre attention</div>
-        <div id="alerts-list"></div>
+        <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:4px">Alertes en attente</div>
+        <div style="font-size:11px;color:var(--g1);margin-bottom:16px" id="alerts-count-label">0 alertes</div>
+        <div id="alerts-full"></div>
       </div>
 
-      <!-- DATABASE VIEW -->
+      <!-- DATABASE -->
       <div id="view-database" class="view">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
           <div>
-            <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:4px">Base mutualisée</div>
-            <div style="font-size:12px;color:var(--g1)">Profils frauduleux partagés par <strong style="color:var(--w)">342 marchands</strong> RefundShield</div>
+            <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:3px">Base mutualisée</div>
+            <div style="font-size:11px;color:var(--g1)">Profils frauduleux partagés par <strong style="color:var(--w)" id="db-merchant-count">342</strong> marchands RefundShield</div>
           </div>
-          <div style="background:var(--green-d);border:0.5px solid var(--green-b);border-radius:10px;padding:10px 18px;text-align:center">
-            <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--green)">4 821</div>
-            <div style="font-size:11px;color:var(--green)">profils signalés</div>
+          <div style="background:var(--gd);border:0.5px solid var(--gb);border-radius:9px;padding:8px 16px;text-align:center">
+            <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--green)" id="db-total">4 821</div>
+            <div style="font-size:10px;color:var(--green)">profils signalés</div>
           </div>
         </div>
         <div class="metrics" style="grid-template-columns:repeat(3,1fr)">
@@ -454,25 +426,196 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--w);displa
           <div class="metric"><div class="metric-label">Adresses signalées</div><div class="metric-val amber">1 876</div></div>
           <div class="metric"><div class="metric-label">Téléphones hashés</div><div class="metric-val" style="color:var(--blue)">604</div></div>
         </div>
-        <div class="card">
-          <div class="card-head"><span class="card-title">Derniers profils ajoutés à la base</span><span style="font-size:11px;color:var(--green)"><span class="live-dot"></span>Mis à jour en temps réel</span></div>
-          <table class="rtable">
-            <thead><tr><th>Type</th><th>Identifiant (anonymisé)</th><th>Nb marchands touchés</th><th>Montant total fraudé</th><th>Dernier signalement</th><th>Statut</th></tr></thead>
-            <tbody>
-              <tr><td><span class="tag tag-red">Fingerprint</span></td><td style="font-family:monospace;font-size:11px;color:var(--g1)">fp_a3f9...c821</td><td style="color:var(--red);font-weight:500">7 marchands</td><td style="color:var(--red)">1 240€</td><td style="color:var(--g1)">Il y a 2h</td><td><span class="score-pill high">Confirmé</span></td></tr>
-              <tr><td><span class="tag tag-amber">Adresse</span></td><td style="font-family:monospace;font-size:11px;color:var(--g1)">12 rue des Lilas, 75011...</td><td style="color:var(--amber);font-weight:500">3 marchands</td><td style="color:var(--amber)">420€</td><td style="color:var(--g1)">Il y a 5h</td><td><span class="score-pill med">Suspect</span></td></tr>
-              <tr><td><span class="tag tag-blue">Téléphone</span></td><td style="font-family:monospace;font-size:11px;color:var(--g1)">hash_7b2e...9f44</td><td style="color:var(--amber);font-weight:500">2 marchands</td><td style="color:var(--amber)">310€</td><td style="color:var(--g1)">Hier</td><td><span class="score-pill med">Suspect</span></td></tr>
-              <tr><td><span class="tag tag-red">Fingerprint</span></td><td style="font-family:monospace;font-size:11px;color:var(--g1)">fp_8d12...e304</td><td style="color:var(--red);font-weight:500">12 marchands</td><td style="color:var(--red)">3 860€</td><td style="color:var(--g1)">Hier</td><td><span class="score-pill high">Réseau confirmé</span></td></tr>
-              <tr><td><span class="tag tag-amber">Adresse</span></td><td style="font-family:monospace;font-size:11px;color:var(--g1)">8 av. Victor Hugo, 69002...</td><td style="color:var(--g1);font-weight:500">1 marchand</td><td style="color:var(--g1)">89€</td><td style="color:var(--g1)">Il y a 2j</td><td><span class="score-pill low">En observation</span></td></tr>
-            </tbody>
+        <div class="card" style="margin-bottom:0">
+          <div class="ch"><span class="ct">Derniers profils ajoutés</span><span style="font-size:10px;color:var(--green)"><span class="live"></span>Temps réel</span></div>
+          <table class="tbl">
+            <thead><tr><th>Type</th><th>Identifiant</th><th>Marchands touchés</th><th>Montant fraudé</th><th>Dernier signalement</th><th>Statut</th></tr></thead>
+            <tbody id="db-tbody"></tbody>
           </table>
+        </div>
+      </div>
+
+      <!-- ANALYSER -->
+      <div id="view-analyse" class="view">
+        <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:4px">Analyser un retour</div>
+        <div style="font-size:11px;color:var(--g1);margin-bottom:20px">Entrez les informations du client pour obtenir un score de risque instantané.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div>
+            <div class="card" style="margin-bottom:0">
+              <div class="ch"><span class="ct">Informations client</span></div>
+              <div class="cb">
+                <div class="form-group">
+                  <label class="form-label">Nom du client</label>
+                  <input class="form-input" id="a-name" placeholder="ex: Jean Dupont" oninput="liveScore()">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Adresse email</label>
+                  <input class="form-input" id="a-email" placeholder="ex: client@email.com" oninput="liveScore()">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Produit retourné</label>
+                  <input class="form-input" id="a-product" placeholder="ex: Robe midi fleurie">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Montant de la commande (€)</label>
+                  <input class="form-input" id="a-amount" type="number" placeholder="ex: 89">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Motif déclaré</label>
+                  <select class="form-input" id="a-reason" onchange="liveScore()">
+                    <option value="">Sélectionner...</option>
+                    <option value="empty">Colis vide / manquant</option>
+                    <option value="notreceived">Jamais reçu</option>
+                    <option value="damaged">Produit endommagé</option>
+                    <option value="wrong">Mauvais article reçu</option>
+                    <option value="size">Mauvaise taille</option>
+                    <option value="notwanted">Ne convient plus</option>
+                  </select>
+                </div>
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label class="form-label">Délai depuis livraison</label>
+                    <select class="form-input" id="a-delay" onchange="liveScore()">
+                      <option value="fast">Moins de 2h</option>
+                      <option value="same">Même journée</option>
+                      <option value="few">2–5 jours</option>
+                      <option value="normal" selected>5–14 jours</option>
+                      <option value="late">Plus de 14 jours</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Nb retours précédents</label>
+                    <select class="form-input" id="a-history" onchange="liveScore()">
+                      <option value="0">0 (premier retour)</option>
+                      <option value="1">1 retour</option>
+                      <option value="2">2 retours</option>
+                      <option value="3">3+ retours</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-group" style="margin-bottom:0">
+                  <label class="form-label">Signaux supplémentaires</label>
+                  <div style="display:flex;flex-direction:column;gap:6px;margin-top:2px">
+                    <label style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--g1);cursor:pointer"><input type="checkbox" id="a-vpn" onchange="liveScore()" style="accent-color:var(--red)"> VPN / Proxy détecté</label>
+                    <label style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--g1);cursor:pointer"><input type="checkbox" id="a-known" onchange="liveScore()" style="accent-color:var(--red)"> Profil dans base mutualisée</label>
+                    <label style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--g1);cursor:pointer"><input type="checkbox" id="a-copypaste" onchange="liveScore()" style="accent-color:var(--red)"> Message copier-coller Telegram</label>
+                    <label style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--g1);cursor:pointer"><input type="checkbox" id="a-returnedbefore" onchange="liveScore()" style="accent-color:var(--red)"> Retour de politique consulté avant achat</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="card" style="margin-bottom:12px">
+              <div class="ch"><span class="ct">Score de risque</span></div>
+              <div class="cb" style="text-align:center;padding:24px 20px">
+                <div style="position:relative;width:120px;height:120px;margin:0 auto 14px">
+                  <svg viewBox="0 0 120 120" width="120" height="120">
+                    <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="8"/>
+                    <circle id="analyse-arc" cx="60" cy="60" r="50" fill="none" stroke="#22C55E" stroke-width="8"
+                      stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="314"
+                      transform="rotate(-90 60 60)" style="transition:all .4s"/>
+                  </svg>
+                  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center">
+                    <div style="font-family:'Syne',sans-serif;font-size:30px;font-weight:800" id="analyse-score">0</div>
+                  </div>
+                </div>
+                <div class="pill pill-green" id="analyse-verdict" style="font-size:12px;padding:5px 16px;margin-bottom:8px">Faible risque</div>
+                <div style="font-size:11px;color:var(--g1)" id="analyse-action">Remboursement automatique recommandé</div>
+              </div>
+            </div>
+            <div class="card" style="margin-bottom:12px">
+              <div class="ch"><span class="ct">Détail des signaux</span></div>
+              <div class="cb" id="analyse-breakdown"></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <button class="btn primary" onclick="submitAnalyse()">Enregistrer ce retour</button>
+              <button class="btn danger" style="border-color:var(--red-border);color:var(--red);background:var(--red-dim)" onclick="blockAndReport()">Bloquer & signaler dans la base</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div id="view-settings" class="view">
+        <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:16px">Paramètres</div>
+
+        <div class="settings-section">
+          <div class="settings-title">Informations boutique</div>
+          <div class="form-grid">
+            <div class="form-group"><label class="form-label">Nom de la boutique</label><input class="form-input" id="set-shop-name" value="ModeMaison.fr"></div>
+            <div class="form-group"><label class="form-label">URL boutique</label><input class="form-input" id="set-shop-url" value="https://modemaison.fr"></div>
+            <div class="form-group"><label class="form-label">Plateforme</label>
+              <select class="form-input" id="set-platform">
+                <option>Shopify</option><option>PrestaShop</option><option>WooCommerce</option>
+              </select>
+            </div>
+            <div class="form-group"><label class="form-label">Email de contact</label><input class="form-input" id="set-email" value="contact@modemaison.fr"></div>
+          </div>
+          <button class="btn primary" onclick="saveSettings()">Sauvegarder</button>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-title">Règles de scoring automatique</div>
+          <div class="settings-row">
+            <div><div class="settings-label">Remboursement automatique si score bas</div><div class="settings-sub">Scores 0–25 sont remboursés sans intervention</div></div>
+            <div class="toggle on" id="tog-auto" onclick="toggleSetting('auto')"><div class="toggle-thumb"></div></div>
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-label">Seuil de blocage automatique</div><div class="settings-sub">Score au-dessus duquel le retour est bloqué</div>
+              <div class="threshold-row">
+                <input type="range" id="threshold-block" min="50" max="95" value="75" step="1" style="width:140px;accent-color:var(--red)" oninput="document.getElementById('threshold-val').textContent=this.value">
+                <span class="threshold-val" id="threshold-val">75</span>
+              </div>
+            </div>
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-label">Alertes email</div><div class="settings-sub">Recevoir un email pour chaque score &gt; 60</div></div>
+            <div class="toggle on" id="tog-email" onclick="toggleSetting('email')"><div class="toggle-thumb"></div></div>
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-label">Alertes Slack</div><div class="settings-sub">Webhook Slack pour les alertes critiques</div></div>
+            <div class="toggle" id="tog-slack" onclick="toggleSetting('slack')"><div class="toggle-thumb"></div></div>
+          </div>
+          <div class="settings-row" style="border-bottom:none">
+            <div><div class="settings-label">Contribution base mutualisée</div><div class="settings-sub">Partager les profils fraudeurs avec le réseau</div></div>
+            <div class="toggle on" id="tog-db" onclick="toggleSetting('db')"><div class="toggle-thumb"></div></div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-title">Intégrations</div>
+          <div class="settings-row">
+            <div><div class="settings-label">Shopify</div><div class="settings-sub" style="color:var(--green)">Connecté — webhooks actifs</div></div>
+            <span class="pill pill-green">Actif</span>
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-label">Gmail OAuth</div><div class="settings-sub">Lecture et labellisation des emails</div></div>
+            <button class="btn" style="font-size:11px;padding:5px 12px" onclick="toast('Redirection vers Google OAuth...','success')">Connecter</button>
+          </div>
+          <div class="settings-row" style="border-bottom:none">
+            <div><div class="settings-label">Webhook Slack</div><div class="settings-sub">URL du webhook pour les alertes</div></div>
+            <input class="form-input" placeholder="https://hooks.slack.com/..." style="width:220px;font-size:11px;padding:6px 10px">
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-title">Abonnement</div>
+          <div class="settings-row">
+            <div><div class="settings-label">Plan actuel</div><div class="settings-sub">Renouvellement le 1er du mois</div></div>
+            <span class="pill pill-red" style="font-size:11px;padding:4px 12px">Pro — 79€/mois</span>
+          </div>
+          <div class="settings-row" style="border-bottom:none">
+            <div><div class="settings-label">Analyses utilisées ce mois</div><div class="settings-sub">Illimité sur le plan Pro</div></div>
+            <span style="font-size:12px;font-weight:500;color:var(--green)">187 / ∞</span>
+          </div>
         </div>
       </div>
 
     </div><!-- end content-main -->
 
     <!-- DETAIL PANEL -->
-    <div class="detail-panel" id="detail-panel">
+    <div class="dp" id="detail-panel">
       <div class="dp-head">
         <span class="dp-title">Détail du retour</span>
         <button class="dp-close" onclick="closePanel()">×</button>
@@ -480,207 +623,629 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--w);displa
       <div class="dp-body" id="dp-body"></div>
       <div class="dp-actions" id="dp-actions"></div>
     </div>
-  </div><!-- end content-wrap -->
-</div><!-- end main -->
+  </div>
+</div>
+
+<!-- MODAL ANALYSER -->
+<div class="modal-overlay" id="modal-analyse">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title">Analyser un retour</span>
+      <button class="modal-close" onclick="closeModal('modal-analyse')">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:12px;color:var(--g1);margin-bottom:16px">Entrez les infos du client pour obtenir un score instantané. Vous pouvez aussi utiliser la page "Analyser" pour une analyse complète.</p>
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label">Email client</label><input class="form-input" id="quick-email" placeholder="client@email.com" oninput="quickScore()"></div>
+        <div class="form-group"><label class="form-label">Montant</label><input class="form-input" id="quick-amount" type="number" placeholder="€"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Motif</label>
+        <select class="form-input" id="quick-reason" onchange="quickScore()">
+          <option value="empty">Colis vide</option>
+          <option value="notreceived">Jamais reçu</option>
+          <option value="size">Mauvaise taille</option>
+          <option value="damaged">Produit endommagé</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;background:var(--s2);border-radius:8px;padding:12px 14px;margin-top:4px">
+        <div style="text-align:center">
+          <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800" id="quick-score-num">0</div>
+          <div style="font-size:10px;color:var(--g1)">score</div>
+        </div>
+        <div>
+          <div class="pill pill-green" id="quick-verdict" style="margin-bottom:4px">Faible risque</div>
+          <div style="font-size:11px;color:var(--g1)" id="quick-action">Remboursement recommandé</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-analyse')">Annuler</button>
+      <button class="btn" onclick="nav('analyse',null);closeModal('modal-analyse')">Analyse complète →</button>
+      <button class="btn primary" onclick="quickSave()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
 
 <script>
-const RETURNS = [
-  { id:'R-2847', name:'Sophie M.', email:'s.martin@gmail.com', product:'Robe midi fleurie', amount:89, score:91, level:'high', tags:['Fingerprint connu','Base mutualisée','VPN détecté','3e retour'], action:'block', date:'Aujourd\'hui 14:23', city:'Lyon', device:'iPhone 14', time_on_page:'28s', time_to_refund:'1h12', vpn:true, fp_match:7, phone_hash:true, signals:['Fingerprint identifié chez 7 marchands','Présence base mutualisée (réseau)','VPN résidentiel ProtonVPN','Délai commande→retour : 1h12','Email créé il y a 3 jours','Consulté politique retour avant achat'] },
-  { id:'R-2846', name:'Thomas K.', email:'tk.achat@hotmail.com', product:'Sneakers Running', amount:145, score:73, level:'high', tags:['Email suspect','Délai <2h','Récidive'], action:'review', date:'Aujourd\'hui 11:05', city:'Paris 11e', device:'Android', time_on_page:'45s', time_to_refund:'1h48', vpn:false, fp_match:0, phone_hash:false, signals:['Email jetable (domaine connu)','Délai commande→retour : 1h48','2e retour en 30 jours','Temps sur page produit : 45s','Adresse de livraison changée'] },
-  { id:'R-2845', name:'Marie L.', email:'marie.lefebvre@orange.fr', product:'Sac à main cuir', amount:210, score:18, level:'low', tags:['Client habituel'], action:'approve', date:'Hier 16:40', city:'Bordeaux', device:'MacBook', time_on_page:'8m32s', time_to_refund:'5j', vpn:false, fp_match:0, phone_hash:false, signals:['Client depuis 2 ans (14 commandes)','Premier retour','Délai normal : 5 jours','Photo jointe à la demande','Taille incorrecte — motif valide'] },
-  { id:'R-2844', name:'Julien B.', email:'jb_shop22@tempmail.org', product:'Écouteurs BT Pro', amount:179, score:97, level:'high', tags:['Email jetable','Fingerprint','Base mutualisée','VPN'], action:'block', date:'Hier 09:17', city:'Marseille', device:'Windows', time_on_page:'19s', time_to_refund:'45min', vpn:true, fp_match:12, phone_hash:true, signals:['Email @tempmail.org (jetable confirmé)','Fingerprint vu chez 12 marchands','Réseau fraude confirmé','VPN Mullvad','Délai 45min — record','Numéro de téléphone hashé connu'] },
-  { id:'R-2843', name:'Clara D.', email:'clara.dupont@gmail.com', product:'Pantalon slim', amount:65, score:31, level:'med', tags:['1er retour','Délai normal'], action:'review', date:'Il y a 2j', city:'Nantes', device:'iPhone 12', time_on_page:'4m10s', time_to_refund:'3j', vpn:false, fp_match:0, phone_hash:false, signals:['Premier retour sur ce compte','Délai correct : 3 jours','Temps de navigation normal','Aucun signal mutualisé','Mauvaise taille probable'] },
-  { id:'R-2842', name:'Pierre V.', email:'p.vidal@sfr.fr', product:'Montre connectée', amount:299, score:85, level:'high', tags:['Fingerprint','IP incohérente'], action:'block', date:'Il y a 2j', city:'Toulouse', device:'Samsung', time_on_page:'33s', time_to_refund:'2h30', vpn:false, fp_match:4, phone_hash:false, signals:['Fingerprint vu chez 4 marchands','IP géolocalisée à Paris ≠ livraison Toulouse','Délai 2h30','Navigation très rapide : 33s','Produit premium = cible fréquente'] },
+// ── DATA ──────────────────────────────────────────────────────────────────────
+let STATE = {
+  returns: [
+    { id:'R-2847', name:'Sophie M.', email:'s.martin@gmail.com', product:'Robe midi fleurie', amount:89, score:91, tags:['Fingerprint connu','Base mutualisée','VPN détecté'], action:'block', date:'Aujourd\'hui 14:23', city:'Lyon', device:'iPhone 14', time_on_page:'28s', delay:'fast', vpn:true, fp_match:7, signals:['Fingerprint identifié chez 7 marchands','Base mutualisée — réseau confirmé','VPN résidentiel ProtonVPN','Délai commande→retour : 1h12','Email créé il y a 3 jours','Politique retour consultée avant achat'] },
+    { id:'R-2846', name:'Thomas K.', email:'tk.achat@hotmail.com', product:'Sneakers Running', amount:145, score:73, tags:['Email suspect','Délai <2h','Récidive'], action:'review', date:'Aujourd\'hui 11:05', city:'Paris 11e', device:'Android', time_on_page:'45s', delay:'same', vpn:false, fp_match:0, signals:['Email jetable (domaine connu)','Délai commande→retour : 1h48','2e retour en 30 jours','Temps sur page produit : 45s','Adresse de livraison changée'] },
+    { id:'R-2845', name:'Marie L.', email:'marie.lefebvre@orange.fr', product:'Sac à main cuir', amount:210, score:18, tags:['Client habituel'], action:'approve', date:'Hier 16:40', city:'Bordeaux', device:'MacBook', time_on_page:'8m32s', delay:'normal', vpn:false, fp_match:0, signals:['Client depuis 2 ans (14 commandes)','Premier retour','Délai normal : 5 jours','Photo jointe','Taille incorrecte — motif valide'] },
+    { id:'R-2844', name:'Julien B.', email:'jb_shop22@tempmail.org', product:'Écouteurs BT Pro', amount:179, score:97, tags:['Email jetable','Fingerprint','VPN'], action:'block', date:'Hier 09:17', city:'Marseille', device:'Windows', time_on_page:'19s', delay:'fast', vpn:true, fp_match:12, signals:['Email @tempmail.org (jetable confirmé)','Fingerprint vu chez 12 marchands','VPN Mullvad actif','Délai 45min — record','Numéro hashé connu'] },
+    { id:'R-2843', name:'Clara D.', email:'clara.dupont@gmail.com', product:'Pantalon slim', amount:65, score:31, tags:['1er retour'], action:'review', date:'Il y a 2j', city:'Nantes', device:'iPhone 12', time_on_page:'4m10s', delay:'few', vpn:false, fp_match:0, signals:['Premier retour sur ce compte','Délai correct : 3 jours','Navigation normale','Aucun signal mutualisé'] },
+    { id:'R-2842', name:'Pierre V.', email:'p.vidal@sfr.fr', product:'Montre connectée', amount:299, score:85, tags:['Fingerprint','IP incohérente'], action:'block', date:'Il y a 2j', city:'Toulouse', device:'Samsung', time_on_page:'33s', delay:'same', vpn:false, fp_match:4, signals:['Fingerprint vu chez 4 marchands','IP géolocalisée Paris ≠ livraison Toulouse','Délai 2h30','Navigation très rapide : 33s'] },
+  ],
+  nextId: 2848,
+  settings: { auto:true, email:true, slack:false, db:true, threshold:75 },
+  shopName: 'ModeMaison.fr',
+  userName: 'Jean Dupont',
+  plan: 'Pro'
+};
+
+const DB_ENTRIES = [
+  { type:'Fingerprint', id:'fp_a3f9...c821', merchants:7, amount:1240, last:'Il y a 2h', status:'Confirmé' },
+  { type:'Adresse', id:'12 rue des Lilas, 75011...', merchants:3, amount:420, last:'Il y a 5h', status:'Suspect' },
+  { type:'Téléphone', id:'hash_7b2e...9f44', merchants:2, amount:310, last:'Hier', status:'Suspect' },
+  { type:'Fingerprint', id:'fp_8d12...e304', merchants:12, amount:3860, last:'Hier', status:'Réseau confirmé' },
+  { type:'Adresse', id:'8 av. Victor Hugo, 69002...', merchants:1, amount:89, last:'Il y a 2j', status:'Observation' },
 ];
 
-const ALERTS = [
-  { id:'R-2847', type:'critical', title:'Fraude très probable — Score 91/100', sub:'Sophie M. · Robe midi fleurie · 89€ · Fingerprint réseau', time:'14:23' },
-  { id:'R-2844', type:'critical', title:'Réseau fraude identifié — Score 97/100', sub:'Julien B. · Écouteurs BT Pro · 179€ · 12 marchands touchés', time:'Hier 09:17' },
-  { id:'R-2846', type:'warn', title:'À examiner — Score 73/100', sub:'Thomas K. · Sneakers Running · 145€ · Email suspect', time:'11:05' },
-];
+// ── NAV ────────────────────────────────────────────────────────────────────────
+function nav(view, sbEl, tabEl) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.sb-item').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  const v = document.getElementById('view-' + view);
+  if (v) v.classList.add('active');
+  if (sbEl) sbEl.classList.add('active');
+  if (tabEl) tabEl.classList.add('active');
+  const titles = { dashboard:'Vue d\'ensemble', returns:'Retours analysés', alerts:'Alertes', database:'Base mutualisée', analyse:'Analyser un retour', settings:'Paramètres' };
+  document.getElementById('tb-title').textContent = titles[view] || view;
+  closePanel();
+  if (view === 'dashboard') renderDashboard();
+  if (view === 'returns') renderReturns();
+  if (view === 'alerts') renderAlerts();
+  if (view === 'database') renderDB();
+}
 
-function scoreClass(s){return s>=75?'high':s>=40?'med':'low'}
-function actionClass(a){return a==='block'?'ap-block':a==='review'?'ap-review':a==='approve'?'ap-approve':'ap-pending'}
-function actionLabel(a){return a==='block'?'Bloquer':'Examiner':a==='approve'?'Approuver':'En attente'}
-function actionLabel2(a){return a==='block'?'Bloquer & signaler':a==='review'?'Demander preuves':a==='approve'?'Approuver':'En attente'}
+// ── SCORE HELPERS ─────────────────────────────────────────────────────────────
+function scoreLevel(s) { return s >= 75 ? 'high' : s >= 26 ? 'med' : 'low'; }
+function scoreColor(s) { return s >= 75 ? 'var(--red)' : s >= 26 ? 'var(--amber)' : 'var(--green)'; }
+function scoreLabel(s) { return s >= 75 ? 'Fraude probable' : s >= 26 ? 'Risque modéré' : 'Faible risque'; }
+function scoreAction(s) { return s >= 75 ? 'Bloquer & signaler' : s >= 26 ? 'Demander preuves' : 'Approuver'; }
+function scorePillClass(s) { return s >= 75 ? 'pill-red' : s >= 26 ? 'pill-amber' : 'pill-green'; }
 
-function buildRow(r, full){
+function actionLabel(a) { return a==='block'?'Bloquer':a==='review'?'Examiner':a==='approve'?'Approuver':'En attente'; }
+function actionClass(a) { return a==='block'?'pill-red':a==='review'?'pill-amber':a==='approve'?'pill-green':'pill-gray'; }
+
+// ── DASHBOARD ─────────────────────────────────────────────────────────────────
+function renderDashboard() {
+  const blocked = STATE.returns.filter(r => r.action === 'block').length;
+  const saved = STATE.returns.filter(r => r.action === 'block').reduce((s, r) => s + r.amount, 0);
+  const total = STATE.returns.length;
+  const alerts = STATE.returns.filter(r => r.score >= 75).length;
+
+  document.getElementById('dash-metrics').innerHTML = `
+    <div class="metric"><div class="metric-label">Fraudes bloquées <span style="color:var(--green);font-size:9px">ce mois</span></div>
+      <div class="metric-val green">${blocked}</div><div class="metric-change up">↑ Actif</div>
+      <div class="metric-icon"><svg viewBox="0 0 48 48" fill="none" stroke="white" stroke-width="2"><path d="M24 4L8 12v14c0 10 7 19 16 22 9-3 16-12 16-22V12L24 4z"/></svg></div></div>
+    <div class="metric"><div class="metric-label">Économies générées</div>
+      <div class="metric-val green">${saved.toLocaleString('fr-FR')}€</div><div class="metric-change up">↑ ROI ${saved > 0 ? Math.round(saved/79) : 0}×</div>
+      <div class="metric-icon"><svg viewBox="0 0 48 48" fill="none" stroke="white" stroke-width="2"><circle cx="24" cy="24" r="18"/><path d="M24 14v20M18 18h9a3 3 0 0 1 0 6h-6a3 3 0 0 0 0 6h9"/></svg></div></div>
+    <div class="metric"><div class="metric-label">Retours analysés</div>
+      <div class="metric-val">${total}</div><div class="metric-change neu">→ Taux fraude : ${total ? Math.round(blocked/total*100) : 0}%</div>
+      <div class="metric-icon"><svg viewBox="0 0 48 48" fill="none" stroke="white" stroke-width="2"><rect x="8" y="8" width="32" height="32" rx="4"/><path d="M16 24h16M16 32h10"/></svg></div></div>
+    <div class="metric"><div class="metric-label">Alertes en attente</div>
+      <div class="metric-val red">${alerts}</div><div class="metric-change down">${alerts > 0 ? '↑ Action requise' : '→ Aucune alerte'}</div>
+      <div class="metric-icon"><svg viewBox="0 0 48 48" fill="none" stroke="white" stroke-width="2"><path d="M24 8a12 12 0 0 1 12 12c0 9 4.5 12 4.5 12h-33s4.5-3 4.5-12A12 12 0 0 1 24 8z"/><path d="M19 40a5 5 0 0 0 10 0"/></svg></div></div>`;
+
+  updateBadges();
+  buildChart();
+  buildScoreDist();
+  buildRecentTable();
+  buildAlertsPreview();
+  buildTopSignals();
+  buildROI();
+}
+
+function buildChart() {
+  const el = document.getElementById('main-chart');
+  if (!el) return;
+  el.innerHTML = '';
+  const fraud=[2,3,1,4,1,3,4,1,0,2,3,1,2,0,1,3,2,4,1,2,3,0,2,1,4,3,2,1,3,2];
+  const ok=[5,4,6,3,5,4,3,6,7,5,4,6,5,7,6,4,5,3,6,5,4,7,5,6,3,4,5,6,4,5];
+  const proof=[2,1,3,1,2,1,2,1,1,2,1,2,1,2,1,2,1,1,2,1,2,1,2,1,1,2,1,2,1,1];
+  const max = Math.max(...fraud.map((f,i)=>f+ok[i]+proof[i]));
+  fraud.forEach((f,i)=>{
+    const col=document.createElement('div');
+    col.style.cssText='flex:1;display:flex;flex-direction:column-reverse;align-items:stretch;gap:1px';
+    [
+      {h:Math.round((f/max)*52),bg:'var(--red)'},
+      {h:Math.round((proof[i]/max)*52),bg:'rgba(245,158,11,.5)'},
+      {h:Math.round((ok[i]/max)*52),bg:'rgba(34,197,94,.4)'}
+    ].forEach(b=>{
+      const d=document.createElement('div');
+      d.className='bc';
+      d.style.height=b.h+'px';
+      d.style.background=b.bg;
+      col.appendChild(d);
+    });
+    el.appendChild(col);
+  });
+}
+
+function buildScoreDist() {
+  const el = document.getElementById('score-dist');
+  if (!el) return;
+  const low = STATE.returns.filter(r=>r.score<=25).length;
+  const med = STATE.returns.filter(r=>r.score>25&&r.score<=50).length;
+  const high = STATE.returns.filter(r=>r.score>50&&r.score<=75).length;
+  const crit = STATE.returns.filter(r=>r.score>75).length;
+  const total = STATE.returns.length || 1;
+  el.innerHTML = `
+    <div class="dist-row"><span class="dist-label" style="color:var(--green)">Faible (0–25)</span><div class="dist-track"><div class="dist-fill" style="width:${Math.round(low/total*100)}%;background:var(--green)"></div></div><span class="dist-count" style="color:var(--green)">${low}</span></div>
+    <div class="dist-row"><span class="dist-label" style="color:var(--amber)">Modéré (26–50)</span><div class="dist-track"><div class="dist-fill" style="width:${Math.round(med/total*100)}%;background:var(--amber)"></div></div><span class="dist-count" style="color:var(--amber)">${med}</span></div>
+    <div class="dist-row"><span class="dist-label" style="color:#f97316">Élevé (51–75)</span><div class="dist-track"><div class="dist-fill" style="width:${Math.round(high/total*100)}%;background:#f97316"></div></div><span class="dist-count" style="color:#f97316">${high}</span></div>
+    <div class="dist-row" style="margin-bottom:0"><span class="dist-label" style="color:var(--red)">Critique (76–100)</span><div class="dist-track"><div class="dist-fill" style="width:${Math.round(crit/total*100)}%;background:var(--red)"></div></div><span class="dist-count" style="color:var(--red)">${crit}</span></div>
+    <div style="background:var(--s1);border-radius:7px;padding:9px 11px;font-size:10px;color:var(--g1);line-height:1.5;margin-top:12px">
+      <span style="color:var(--red);font-weight:500">${Math.round(crit/total*100)}%</span> des retours sont critiques
+    </div>`;
+}
+
+function buildRecentTable() {
+  const tb = document.getElementById('recent-tbody');
+  if (!tb) return;
+  tb.innerHTML = '';
+  STATE.returns.slice(0, 4).forEach(r => {
+    const tr = makeRow(r);
+    tb.appendChild(tr);
+  });
+}
+
+function buildAlertsPreview() {
+  const el = document.getElementById('alerts-preview');
+  if (!el) return;
+  const alerts = STATE.returns.filter(r => r.score >= 60).slice(0, 3);
+  if (alerts.length === 0) { el.innerHTML = '<div class="empty" style="padding:20px"><div style="font-size:12px;color:var(--g2)">Aucune alerte active</div></div>'; return; }
+  el.innerHTML = alerts.map(a => `
+    <div class="alert-item" onclick="openPanel('${a.id}')">
+      <div class="ai-icon" style="background:${a.score>=75?'var(--red-dim)':'var(--ad)'}">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="${a.score>=75?'var(--red)':'var(--amber)'}" stroke-width="1.5"><path d="M8 2l6 12H2L8 2z"/><path d="M8 7v3M8 12v.01"/></svg>
+      </div>
+      <div style="flex:1">
+        <div class="ai-title" style="color:${a.score>=75?'var(--red)':'var(--amber)'}">Score ${a.score} — ${a.name}</div>
+        <div class="ai-sub">${a.product} · ${a.amount}€</div>
+      </div>
+      <div class="ai-time">${a.date.split(' ').slice(-1)[0]}</div>
+    </div>`).join('');
+}
+
+function buildTopSignals() {
+  const el = document.getElementById('top-signals');
+  if (!el) return;
+  const sigs = [
+    { label:'Fingerprint connu', pct:38, color:'var(--red)' },
+    { label:'Email jetable', pct:27, color:'#f97316' },
+    { label:'VPN détecté', pct:21, color:'var(--amber)' },
+    { label:'Délai < 2h', pct:18, color:'var(--amber)' },
+    { label:'Base mutualisée', pct:14, color:'var(--red)' },
+    { label:'Récidive locale', pct:9, color:'var(--green)' },
+  ];
+  el.innerHTML = sigs.map(s => `
+    <div class="sig-row">
+      <div class="sig-label">${s.label}<span>${s.pct}%</span></div>
+      <div class="sig-track"><div class="sig-fill" style="width:${s.pct}%;background:${s.color}"></div></div>
+    </div>`).join('');
+}
+
+function buildROI() {
+  const el = document.getElementById('roi-card');
+  if (!el) return;
+  const saved = STATE.returns.filter(r=>r.action==='block').reduce((s,r)=>s+r.amount,0);
+  const sub = 79;
+  const net = saved - sub;
+  const roi = sub > 0 ? Math.round(saved/sub) : 0;
+  el.innerHTML = `
+    <div style="text-align:center;padding:10px 0 16px">
+      <div style="font-family:'Syne',sans-serif;font-size:44px;font-weight:800;color:var(--green);line-height:1">${roi}×</div>
+      <div style="font-size:11px;color:var(--g1);margin-top:3px">retour sur investissement</div>
+    </div>
+    <div class="dp-row"><span class="dp-row-label">Abonnement</span><span class="dp-row-val" style="color:var(--g1)">${sub}€/mois</span></div>
+    <div class="dp-row"><span class="dp-row-label">Fraudes bloquées</span><span class="dp-row-val" style="color:var(--green)">+${saved.toLocaleString('fr-FR')}€</span></div>
+    <div class="dp-row" style="border-bottom:none"><span class="dp-row-label" style="font-weight:500;color:var(--w)">Gain net</span><span class="dp-row-val" style="color:var(--green);font-family:'Syne',sans-serif;font-weight:700;font-size:15px">+${net.toLocaleString('fr-FR')}€</span></div>`;
+}
+
+// ── RETURNS ───────────────────────────────────────────────────────────────────
+function renderReturns() {
+  const filter = document.getElementById('filter-score')?.value || 'all';
+  let data = [...STATE.returns];
+  if (filter === 'high') data = data.filter(r => r.score >= 76);
+  else if (filter === 'med') data = data.filter(r => r.score >= 26 && r.score <= 75);
+  else if (filter === 'low') data = data.filter(r => r.score <= 25);
+  document.getElementById('returns-count').textContent = `${data.length} retours · cliquez pour voir le détail`;
+  const tb = document.getElementById('full-tbody');
+  tb.innerHTML = '';
+  if (data.length === 0) {
+    tb.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--g2);font-size:12px">Aucun retour dans cette catégorie</td></tr>';
+    return;
+  }
+  data.forEach(r => tb.appendChild(makeRow(r)));
+}
+
+function makeRow(r) {
   const tr = document.createElement('tr');
-  tr.onclick = ()=>openPanel(r.id);
+  tr.className = 'data-row';
+  tr.onclick = () => openPanel(r.id);
+  const col = scoreColor(r.score);
   tr.innerHTML = `
     <td><div style="font-size:12px;font-weight:500">${r.name}</div><div style="font-size:10px;color:var(--g2)">${r.email}</div></td>
-    <td style="color:var(--g1)">${r.product}</td>
-    <td style="font-family:'Syne',sans-serif;font-weight:700">${r.amount}€</td>
-    <td><span class="score-pill ${scoreClass(r.score)}"><span class="score-pill-dot"></span>${r.score}</span></td>
-    <td>${r.tags.slice(0,2).map(t=>`<span class="tag tag-${t.includes('Fingerprint')||t.includes('Base')||t.includes('Réseau')?'red':t.includes('Email')||t.includes('VPN')||t.includes('Récidive')?'amber':'gray'}">${t}</span>`).join('')}</td>
-    <td><span class="action-pill ${actionClass(r.action)}">${actionLabel(r.action)}</span></td>
-    <td style="color:var(--g2);font-size:11px">${r.date}</td>
-  `;
+    <td style="color:var(--g1);font-size:11px">${r.product}</td>
+    <td style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px">${r.amount}€</td>
+    <td><span class="pill ${scorePillClass(r.score)}"><span class="pill-dot"></span>${r.score}</span></td>
+    <td>${r.tags.slice(0,2).map(t=>`<span class="tag tag-${t.includes('Finger')||t.includes('Base')||t.includes('Réseau')?'red':t.includes('Email')||t.includes('VPN')||t.includes('Récid')?'amber':'gray'}">${t}</span>`).join('')}</td>
+    <td><span class="pill ${actionClass(r.action)}">${actionLabel(r.action)}</span></td>
+    <td style="color:var(--g2);font-size:10px">${r.date}</td>`;
   return tr;
 }
 
-function buildChart(){
-  const c = document.getElementById('main-chart');
-  if(!c)return;
-  const fraud = [1,2,0,3,1,2,4,1,0,2,3,1,2,0,1,3,2,4,1,2,3,0,2,1,4,3,2,1,3,2];
-  const ok    = [5,4,6,3,5,4,3,6,7,5,4,6,5,7,6,4,5,3,6,5,4,7,5,6,3,4,5,6,4,5];
-  const max   = Math.max(...fraud.map((f,i)=>f+ok[i]));
-  fraud.forEach((f,i)=>{
-    const col = document.createElement('div');
-    col.className='bar-col';
-    col.innerHTML=`
-      <div class="bar-fill" style="height:${Math.round((ok[i]/max)*48)}px;background:rgba(34,197,94,0.5)"></div>
-      <div class="bar-fill" style="height:${Math.round((f/max)*48)}px;background:var(--red)"></div>
-      ${i%5===0?`<div class="bar-label">${i+1}</div>`:'<div class="bar-label"></div>'}
-    `;
-    col.style.flexDirection='column-reverse';
-    c.appendChild(col);
-  });
-}
-
-function buildRecentTable(){
-  const tb = document.getElementById('recent-table');
-  if(!tb)return;
-  RETURNS.slice(0,4).forEach(r=>tb.appendChild(buildRow(r)));
-}
-
-function buildFullTable(){
-  const tb = document.getElementById('full-table');
-  if(!tb)return;
-  RETURNS.forEach(r=>tb.appendChild(buildRow(r,true)));
-}
-
-function buildAlertsPreview(){
-  const el = document.getElementById('alerts-preview');
-  if(!el)return;
-  ALERTS.slice(0,2).forEach(a=>{
-    el.innerHTML+=`
-      <div class="alert-item" onclick="openPanel('${a.id}')">
-        <div class="alert-icon" style="background:${a.type==='critical'?'var(--red-dim)':'var(--amber-d)'}">
-          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="${a.type==='critical'?'var(--red)':'var(--amber)'}" stroke-width="1.5"><path d="M8 2l6 12H2L8 2z"/><path d="M8 7v3M8 12v.5"/></svg>
+// ── ALERTS ────────────────────────────────────────────────────────────────────
+function renderAlerts() {
+  const alerts = STATE.returns.filter(r => r.score >= 60);
+  document.getElementById('alerts-count-label').textContent = `${alerts.length} alerte${alerts.length !== 1 ? 's' : ''} — action requise`;
+  const el = document.getElementById('alerts-full');
+  el.innerHTML = '';
+  if (alerts.length === 0) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon"><svg viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 8a12 12 0 0 1 12 12c0 9 4.5 12 4.5 12h-33s4.5-3 4.5-12A12 12 0 0 1 22 8z"/></svg></div><div class="empty-title">Aucune alerte active</div><div class="empty-sub">Tous les retours sont sous le seuil d'alerte</div></div>`;
+    return;
+  }
+  alerts.forEach(a => {
+    const div = document.createElement('div');
+    div.className = 'card';
+    div.style.cursor = 'pointer';
+    div.innerHTML = `
+      <div style="display:flex;gap:14px;padding:16px">
+        <div style="width:40px;height:40px;border-radius:9px;background:${a.score>=75?'var(--red-dim)':'var(--ad)'};display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="${a.score>=75?'var(--red)':'var(--amber)'}" stroke-width="1.5"><path d="M8 2l6 12H2L8 2z"/><path d="M8 7v3M8 12v.01"/></svg>
         </div>
-        <div class="alert-content">
-          <div class="alert-title" style="color:${a.type==='critical'?'var(--red)':'var(--amber)'}">${a.title}</div>
-          <div class="alert-sub">${a.sub}</div>
-        </div>
-        <div class="alert-time">${a.time}</div>
-      </div>`;
-  });
-}
-
-function buildAlertsList(){
-  const el = document.getElementById('alerts-list');
-  if(!el)return;
-  el.innerHTML='';
-  ALERTS.forEach(a=>{
-    el.innerHTML+=`
-      <div class="card" style="margin-bottom:12px;cursor:pointer" onclick="openPanel('${a.id}')">
-        <div style="display:flex;gap:16px;padding:20px">
-          <div style="width:44px;height:44px;border-radius:10px;background:${a.type==='critical'?'var(--red-dim)':'var(--amber-d)'};display:flex;align-items:center;justify-content:center;flex-shrink:0">
-            <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="${a.type==='critical'?'var(--red)':'var(--amber)'}" stroke-width="1.5"><path d="M8 2l6 12H2L8 2z"/><path d="M8 7v3M8 12v.5"/></svg>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:500;color:${a.score>=75?'var(--red)':'var(--amber)'};margin-bottom:3px">Score ${a.score}/100 — ${a.name} · ${a.product} · ${a.amount}€</div>
+          <div style="font-size:11px;color:var(--g1);margin-bottom:10px">${a.tags.join(' · ')} · ${a.date}</div>
+          <div style="display:flex;gap:7px">
+            <button onclick="event.stopPropagation();blockReturn('${a.id}')" style="font-size:11px;padding:6px 12px;border-radius:6px;background:var(--red-dim);border:0.5px solid var(--red-border);color:var(--red);cursor:pointer;font-family:'DM Sans',sans-serif">Bloquer & signaler</button>
+            <button onclick="event.stopPropagation();requestProof('${a.id}')" style="font-size:11px;padding:6px 12px;border-radius:6px;background:transparent;border:0.5px solid var(--b2);color:var(--g1);cursor:pointer;font-family:'DM Sans',sans-serif">Demander preuves</button>
+            <button onclick="event.stopPropagation();openPanel('${a.id}')" style="font-size:11px;padding:6px 12px;border-radius:6px;background:transparent;border:0.5px solid var(--b2);color:var(--g1);cursor:pointer;font-family:'DM Sans',sans-serif">Voir détail</button>
           </div>
-          <div style="flex:1">
-            <div style="font-weight:500;font-size:14px;color:${a.type==='critical'?'var(--red)':'var(--amber)'};margin-bottom:4px">${a.title}</div>
-            <div style="font-size:12px;color:var(--g1);margin-bottom:12px">${a.sub}</div>
-            <div style="display:flex;gap:8px">
-              <button class="dp-act-btn danger" style="padding:7px 14px;font-size:12px" onclick="event.stopPropagation();alert('Retour bloqué et signalé dans la base mutualisée.')">Bloquer & signaler</button>
-              <button class="dp-act-btn" style="padding:7px 14px;font-size:12px" onclick="event.stopPropagation();openPanel('${a.id}')">Voir détail</button>
-            </div>
-          </div>
-          <div style="font-size:11px;color:var(--g2);flex-shrink:0">${a.time}</div>
         </div>
+        <div style="font-size:10px;color:var(--g2)">${a.date}</div>
       </div>`;
+    el.appendChild(div);
   });
 }
 
-function openPanel(id){
-  const r = RETURNS.find(x=>x.id===id);
-  if(!r)return;
+function blockReturn(id) {
+  const r = STATE.returns.find(x=>x.id===id);
+  if (!r) return;
+  r.action = 'block';
+  r.score = Math.max(r.score, 76);
+  toast(`Retour ${id} bloqué · Client signalé dans la base mutualisée`, 'danger');
+  renderAlerts();
+  updateBadges();
+}
+
+function requestProof(id) {
+  toast('Email de demande de preuves envoyé au client', 'success');
+}
+
+// ── DATABASE ──────────────────────────────────────────────────────────────────
+function renderDB() {
+  const tb = document.getElementById('db-tbody');
+  if (!tb) return;
+  tb.innerHTML = '';
+  DB_ENTRIES.forEach(d => {
+    const statusClass = d.status === 'Réseau confirmé' || d.status === 'Confirmé' ? 'pill-red' : d.status === 'Suspect' ? 'pill-amber' : 'pill-gray';
+    const typeClass = d.type === 'Fingerprint' ? 'tag-red' : d.type === 'Adresse' ? 'tag-amber' : 'tag-blue';
+    tb.innerHTML += `<tr class="data-row">
+      <td><span class="tag ${typeClass}">${d.type}</span></td>
+      <td style="font-family:monospace;font-size:10px;color:var(--g1)">${d.id}</td>
+      <td style="color:${d.merchants>=5?'var(--red)':'var(--amber)'};font-weight:500;text-align:center">${d.merchants}</td>
+      <td style="color:${d.merchants>=5?'var(--red)':'var(--amber)'};font-weight:600;font-family:'Syne',sans-serif">${d.amount.toLocaleString('fr-FR')}€</td>
+      <td style="color:var(--g1);font-size:10px">${d.last}</td>
+      <td><span class="pill ${statusClass}">${d.status}</span></td>
+    </tr>`;
+  });
+}
+
+// ── DETAIL PANEL ──────────────────────────────────────────────────────────────
+function openPanel(id) {
+  const r = STATE.returns.find(x=>x.id===id);
+  if (!r) return;
   const panel = document.getElementById('detail-panel');
   const body = document.getElementById('dp-body');
   const actions = document.getElementById('dp-actions');
   panel.classList.add('open');
+  const col = scoreColor(r.score);
+  const circ = 251;
+  const offset = circ - (r.score/100)*circ;
+  const verdictBg = r.score>=75?'var(--red-dim)':r.score>=26?'var(--ad)':'var(--gd)';
 
-  const col = r.score>=75?'var(--red)':r.score>=40?'var(--amber)':'var(--green)';
-  const circ=188;
-  const offset=circ-(r.score/100)*circ;
-  const verdictText = r.score>=75?'Fraude probable':r.score>=40?'Risque modéré':'Faible risque';
-  const verdictBg = r.score>=75?'var(--red-dim)':r.score>=40?'var(--amber-d)':'var(--green-d)';
-
-  body.innerHTML=`
+  body.innerHTML = `
     <div class="dp-score-hero">
-      <div class="dp-score-ring">
-        <svg viewBox="0 0 80 80">
-          <circle cx="40" cy="40" r="30" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="7"/>
-          <circle cx="40" cy="40" r="30" fill="none" stroke="${col}" stroke-width="7"
+      <div class="dp-ring">
+        <svg viewBox="0 0 90 90">
+          <circle cx="45" cy="45" r="40" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="7"/>
+          <circle cx="45" cy="45" r="40" fill="none" stroke="${col}" stroke-width="7"
             stroke-linecap="round" stroke-dasharray="${circ}" stroke-dashoffset="${offset}"
-            transform="rotate(-90 40 40)"/>
+            transform="rotate(-90 45 45)"/>
         </svg>
-        <div class="dp-score-num" style="color:${col}">${r.score}</div>
+        <div class="dp-ring-num" style="color:${col}">${r.score}</div>
       </div>
-      <div class="dp-verdict" style="background:${verdictBg};color:${col}">${verdictText}</div>
-      <div class="dp-action-label">Action : ${actionLabel2(r.action)}</div>
+      <div class="dp-verdict" style="background:${verdictBg};color:${col}">${scoreLabel(r.score)}</div>
+      <div class="dp-verdict-action">Action : ${scoreAction(r.score)}</div>
     </div>
-
     <div class="dp-section">
       <div class="dp-section-title">Informations client</div>
       <div class="dp-row"><span class="dp-row-label">Nom</span><span class="dp-row-val">${r.name}</span></div>
-      <div class="dp-row"><span class="dp-row-label">Email</span><span class="dp-row-val" style="font-size:11px;font-family:monospace">${r.email}</span></div>
-      <div class="dp-row"><span class="dp-row-label">Ville</span><span class="dp-row-val">${r.city}</span></div>
-      <div class="dp-row"><span class="dp-row-label">Appareil</span><span class="dp-row-val">${r.device}</span></div>
+      <div class="dp-row"><span class="dp-row-label">Email</span><span class="dp-row-val" style="font-size:10px;font-family:monospace">${r.email}</span></div>
+      <div class="dp-row"><span class="dp-row-label">Produit</span><span class="dp-row-val">${r.product}</span></div>
+      <div class="dp-row"><span class="dp-row-label">Montant</span><span class="dp-row-val" style="font-family:'Syne',sans-serif;font-weight:700">${r.amount}€</span></div>
       <div class="dp-row"><span class="dp-row-label">VPN détecté</span><span class="dp-row-val" style="color:${r.vpn?'var(--red)':'var(--green)'}">${r.vpn?'Oui ⚠':'Non ✓'}</span></div>
-    </div>
-
-    <div class="dp-section">
-      <div class="dp-section-title">Comportement de navigation</div>
-      <div class="dp-row"><span class="dp-row-label">Temps sur page</span><span class="dp-row-val" style="color:${parseInt(r.time_on_page)<60?'var(--red)':'var(--green)'}">${r.time_on_page}</span></div>
-      <div class="dp-row"><span class="dp-row-label">Délai avant retour</span><span class="dp-row-val" style="color:${r.time_to_refund.includes('min')||r.time_to_refund.includes('h1')||r.time_to_refund.includes('h2')?'var(--red)':'var(--green)'}">${r.time_to_refund}</span></div>
       <div class="dp-row"><span class="dp-row-label">Fingerprint réseau</span><span class="dp-row-val" style="color:${r.fp_match>0?'var(--red)':'var(--g1)'}">${r.fp_match>0?`Vu chez ${r.fp_match} marchands`:'Inconnu'}</span></div>
+      <div class="dp-row"><span class="dp-row-label">Temps sur page</span><span class="dp-row-val">${r.time_on_page}</span></div>
     </div>
-
     <div class="dp-section">
       <div class="dp-section-title">Signaux détectés (${r.signals.length})</div>
-      <div class="timeline">
-        ${r.signals.map((s,i)=>`<div class="tl-item ${i<2&&r.score>50?'danger':i<3&&r.score>40?'warn':''}"><div class="tl-text">${s}</div></div>`).join('')}
+      <div class="tl">
+        ${r.signals.map((s,i)=>`<div class="tl-item ${i<2&&r.score>50?'d':i<3&&r.score>30?'w':''}"><div class="tl-text">${s}</div></div>`).join('')}
       </div>
-    </div>
-  `;
+    </div>`;
 
-  actions.innerHTML=`
-    ${r.action==='block'?`
-      <button class="dp-act-btn danger" onclick="alert('Retour bloqué. Client signalé dans la base mutualisée.')">Bloquer & signaler dans la base</button>
-      <button class="dp-act-btn" onclick="alert('Email envoyé : preuves photo demandées.')">Demander des preuves</button>
-    `:''}
-    ${r.action==='review'?`
-      <button class="dp-act-btn" onclick="alert('Email envoyé : preuves photo demandées.')">Demander des preuves</button>
-      <button class="dp-act-btn primary" onclick="alert('Remboursement approuvé.')">Approuver quand même</button>
-    `:''}
-    ${r.action==='approve'?`
-      <button class="dp-act-btn primary" onclick="alert('Remboursement approuvé.')">Approuver le remboursement</button>
-    `:''}
-    <button class="dp-act-btn" onclick="closePanel()">Fermer</button>
-  `;
+  actions.innerHTML = `
+    ${r.action==='block'||r.score>=75?`<button class="dp-btn danger" onclick="blockReturn('${r.id}');closePanel()">Bloquer & signaler dans la base</button>`:''}
+    ${r.action==='review'||r.score>=26?`<button class="dp-btn" onclick="requestProof('${r.id}')">Demander des preuves</button>`:''}
+    ${r.action==='approve'||r.score<26?`<button class="dp-btn success" onclick="approveReturn('${r.id}')">Approuver le remboursement</button>`:''}
+    <button class="dp-btn" onclick="closePanel()">Fermer</button>`;
 }
 
-function closePanel(){
+function approveReturn(id) {
+  const r = STATE.returns.find(x=>x.id===id);
+  if (r) { r.action = 'approve'; toast('Remboursement approuvé', 'success'); closePanel(); renderDashboard(); }
+}
+
+function closePanel() {
   document.getElementById('detail-panel').classList.remove('open');
 }
 
-function switchView(v){
-  document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
-  document.querySelectorAll('.sb-item').forEach(x=>x.classList.remove('active'));
-  document.getElementById('view-'+v).classList.add('active');
-  closePanel();
-  const titles={dashboard:'Vue d\'ensemble',returns:'Retours analysés',alerts:'Alertes',database:'Base mutualisée'};
-  document.getElementById('topbar-title').textContent=titles[v]||'';
+// ── ANALYSER ──────────────────────────────────────────────────────────────────
+function computeScore(email, reason, delay, histCount, vpn, known, copypaste, retpolicy) {
+  let score = 0;
+  const jetable = ['tempmail','mailinator','guerrilla','throwam','yopmail','sharklasers','dispostable','fakeinbox','spam4','trashmail'];
+  if (email && jetable.some(d => email.includes(d))) score += 18;
+  if (email && email.match(/^[a-z]{2}_[a-z\d]+\d{2,}@/)) score += 8;
+  if (reason === 'empty' || reason === 'notreceived') score += 15;
+  if (delay === 'fast') score += 15;
+  else if (delay === 'same') score += 10;
+  else if (delay === 'normal') score -= 5;
+  const hist = parseInt(histCount) || 0;
+  if (hist >= 3) score += 18;
+  else if (hist === 2) score += 12;
+  else if (hist === 1) score += 6;
+  else score -= 8;
+  if (vpn) score += 12;
+  if (known) score += 25;
+  if (copypaste) score += 10;
+  if (retpolicy) score += 12;
+  return Math.max(0, Math.min(100, score));
 }
 
-buildChart();
-buildRecentTable();
-buildFullTable();
-buildAlertsPreview();
-buildAlertsList();
+function liveScore() {
+  const email = document.getElementById('a-email')?.value || '';
+  const reason = document.getElementById('a-reason')?.value || '';
+  const delay = document.getElementById('a-delay')?.value || 'normal';
+  const hist = document.getElementById('a-history')?.value || '0';
+  const vpn = document.getElementById('a-vpn')?.checked || false;
+  const known = document.getElementById('a-known')?.checked || false;
+  const cp = document.getElementById('a-copypaste')?.checked || false;
+  const rp = document.getElementById('a-returnedbefore')?.checked || false;
+  const score = computeScore(email, reason, delay, hist, vpn, known, cp, rp);
+  const col = scoreColor(score);
+  const arc = document.getElementById('analyse-arc');
+  if (arc) {
+    arc.style.stroke = col;
+    arc.style.strokeDashoffset = 314 - (score/100)*314;
+  }
+  const sn = document.getElementById('analyse-score');
+  if (sn) sn.textContent = score;
+  const vd = document.getElementById('analyse-verdict');
+  if (vd) {
+    vd.textContent = scoreLabel(score);
+    vd.className = 'pill ' + scorePillClass(score);
+    vd.style.fontSize = '12px'; vd.style.padding = '5px 16px'; vd.style.marginBottom = '8px';
+  }
+  const ac = document.getElementById('analyse-action');
+  if (ac) ac.textContent = scoreAction(score);
+  buildAnalyseBreakdown(email, reason, delay, hist, vpn, known, cp, rp, score);
+}
+
+function buildAnalyseBreakdown(email, reason, delay, hist, vpn, known, cp, rp, score) {
+  const el = document.getElementById('analyse-breakdown');
+  if (!el) return;
+  const items = [];
+  const jetable = ['tempmail','mailinator','guerrilla','yopmail','sharklasers'];
+  if (email && jetable.some(d=>email.includes(d))) items.push({label:'Email jetable détecté',pts:18,bad:true});
+  if (reason==='empty'||reason==='notreceived') items.push({label:'Motif suspect (colis vide / jamais reçu)',pts:15,bad:true});
+  if (delay==='fast') items.push({label:'Retour demandé < 2h',pts:15,bad:true});
+  else if (delay==='same') items.push({label:'Retour demandé le jour même',pts:10,bad:true});
+  else if (delay==='normal') items.push({label:'Délai normal (5–14 jours)',pts:-5,bad:false});
+  const h = parseInt(hist);
+  if (h>=3) items.push({label:'Historique chargé (3+ retours)',pts:18,bad:true});
+  else if (h===0) items.push({label:'Premier retour',pts:-8,bad:false});
+  if (vpn) items.push({label:'VPN / Proxy détecté',pts:12,bad:true});
+  if (known) items.push({label:'Présence base mutualisée',pts:25,bad:true});
+  if (cp) items.push({label:'Formulation copier-coller Telegram',pts:10,bad:true});
+  if (rp) items.push({label:'Politique retour consultée avant achat',pts:12,bad:true});
+  if (items.length === 0) { el.innerHTML = '<div style="font-size:11px;color:var(--g2);padding:4px 0">Aucun signal détecté — remplissez les champs</div>'; return; }
+  el.innerHTML = items.map(it=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:0.5px solid rgba(255,255,255,.03);font-size:11px">
+      <span style="color:${it.bad?'var(--g1)':'var(--green)'}">
+        <span style="color:${it.bad?'var(--red)':'var(--green)'};margin-right:5px">${it.bad?'↑':'↓'}</span>${it.label}
+      </span>
+      <span style="font-weight:600;color:${it.bad?'var(--red)':'var(--green)'};font-family:monospace">${it.pts>0?'+':''}${it.pts}</span>
+    </div>`).join('') + `<div style="display:flex;justify-content:space-between;padding:8px 0 0;font-size:12px;font-weight:500;color:var(--w);border-top:0.5px solid var(--b);margin-top:4px"><span>Score total</span><span style="font-family:'Syne',sans-serif;font-weight:800;color:${scoreColor(score)}">${score}/100</span></div>`;
+}
+
+function submitAnalyse() {
+  const name = document.getElementById('a-name')?.value || 'Client inconnu';
+  const email = document.getElementById('a-email')?.value || '';
+  const product = document.getElementById('a-product')?.value || 'Produit non renseigné';
+  const amount = parseFloat(document.getElementById('a-amount')?.value) || 0;
+  const reason = document.getElementById('a-reason')?.value || '';
+  const delay = document.getElementById('a-delay')?.value || 'normal';
+  const hist = document.getElementById('a-history')?.value || '0';
+  const vpn = document.getElementById('a-vpn')?.checked || false;
+  const known = document.getElementById('a-known')?.checked || false;
+  const cp = document.getElementById('a-copypaste')?.checked || false;
+  const rp = document.getElementById('a-returnedbefore')?.checked || false;
+  const score = computeScore(email, reason, delay, hist, vpn, known, cp, rp);
+  const action = score >= 75 ? 'block' : score >= 26 ? 'review' : 'approve';
+  const newReturn = {
+    id: 'R-' + STATE.nextId++,
+    name, email, product, amount, score,
+    tags: buildTags(email, vpn, known, delay, hist),
+    action, date: 'Maintenant',
+    city: '—', device: '—', time_on_page: '—', delay,
+    vpn, fp_match: known ? 1 : 0,
+    signals: buildSignals(email, reason, delay, hist, vpn, known, cp, rp)
+  };
+  STATE.returns.unshift(newReturn);
+  toast(`Retour enregistré — Score ${score}/100 — ${scoreLabel(score)}`, score >= 75 ? 'danger' : 'success');
+  updateBadges();
+  // Reset form
+  ['a-name','a-email','a-product','a-amount'].forEach(id => { const el=document.getElementById(id); if(el)el.value=''; });
+  liveScore();
+}
+
+function blockAndReport() {
+  const score = parseInt(document.getElementById('analyse-score')?.textContent) || 0;
+  if (score < 30) { toast('Score trop faible pour signaler', 'danger'); return; }
+  submitAnalyse();
+  toast('Retour bloqué et signalé dans la base mutualisée réseau', 'danger');
+}
+
+function buildTags(email, vpn, known, delay, hist) {
+  const tags = [];
+  if (known) tags.push('Base mutualisée');
+  if (email.includes('tempmail')||email.includes('mailinator')) tags.push('Email jetable');
+  if (vpn) tags.push('VPN détecté');
+  if (delay==='fast'||delay==='same') tags.push('Délai suspect');
+  if (parseInt(hist)>=2) tags.push('Récidive');
+  return tags.length ? tags : ['Aucun signal'];
+}
+
+function buildSignals(email, reason, delay, hist, vpn, known, cp, rp) {
+  const sigs = [];
+  if (known) sigs.push('Présence dans la base mutualisée');
+  if (vpn) sigs.push('VPN / Proxy détecté');
+  const jetable=['tempmail','mailinator','guerrilla','yopmail'];
+  if (jetable.some(d=>email.includes(d))) sigs.push('Email jetable (domaine connu)');
+  if (reason==='empty') sigs.push('Motif déclaré : colis vide');
+  if (reason==='notreceived') sigs.push('Motif déclaré : jamais reçu');
+  if (delay==='fast') sigs.push('Retour demandé dans les 2 premières heures');
+  if (parseInt(hist)>=2) sigs.push(`${hist} retours précédents sur ce compte`);
+  if (cp) sigs.push('Formulation type copier-coller Telegram détectée');
+  if (rp) sigs.push('Politique de retour consultée avant l\'achat');
+  return sigs.length ? sigs : ['Aucun signal particulier détecté'];
+}
+
+// ── QUICK MODAL ───────────────────────────────────────────────────────────────
+function quickScore() {
+  const email = document.getElementById('quick-email')?.value || '';
+  const reason = document.getElementById('quick-reason')?.value || '';
+  const score = computeScore(email, reason, 'normal', '0', false, false, false, false);
+  const col = scoreColor(score);
+  document.getElementById('quick-score-num').textContent = score;
+  document.getElementById('quick-score-num').style.color = col;
+  const vd = document.getElementById('quick-verdict');
+  vd.textContent = scoreLabel(score);
+  vd.className = 'pill ' + scorePillClass(score);
+  document.getElementById('quick-action').textContent = scoreAction(score);
+}
+
+function quickSave() {
+  const email = document.getElementById('quick-email')?.value || '';
+  const amount = parseFloat(document.getElementById('quick-amount')?.value) || 0;
+  const reason = document.getElementById('quick-reason')?.value || '';
+  const score = computeScore(email, reason, 'normal', '0', false, false, false, false);
+  const action = score >= 75 ? 'block' : score >= 26 ? 'review' : 'approve';
+  STATE.returns.unshift({
+    id:'R-'+STATE.nextId++, name:'Client rapide', email, product:'Non renseigné', amount, score,
+    tags:['Analyse rapide'], action, date:'Maintenant', city:'—', device:'—',
+    time_on_page:'—', delay:'normal', vpn:false, fp_match:0,
+    signals:[`Score calculé : ${score}/100 — ${scoreLabel(score)}`]
+  });
+  toast(`Retour enregistré — Score ${score}`, score>=75?'danger':'success');
+  closeModal('modal-analyse');
+  updateBadges();
+}
+
+// ── SETTINGS ──────────────────────────────────────────────────────────────────
+function toggleSetting(key) {
+  STATE.settings[key] = !STATE.settings[key];
+  const el = document.getElementById('tog-' + key);
+  if (el) el.classList.toggle('on', STATE.settings[key]);
+  toast(`${key} ${STATE.settings[key] ? 'activé' : 'désactivé'}`, 'success');
+}
+
+function saveSettings() {
+  const name = document.getElementById('set-shop-name')?.value || '';
+  if (name) {
+    STATE.shopName = name;
+    document.getElementById('sb-shop-name').textContent = name;
+  }
+  toast('Paramètres sauvegardés', 'success');
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────────────────
+function openModal(id) {
+  document.getElementById(id)?.classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id)?.classList.remove('open');
+}
+document.addEventListener('click', e => {
+  if (e.target.classList.contains('modal-overlay')) {
+    e.target.classList.remove('open');
+  }
+});
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+function toast(msg, type='success') {
+  const el = document.getElementById('toast');
+  el.innerHTML = `<span style="width:7px;height:7px;border-radius:50%;background:${type==='danger'?'var(--red)':'var(--green)'};flex-shrink:0"></span>${msg}`;
+  el.className = `toast ${type} show`;
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 3500);
+}
+
+// ── BADGES ────────────────────────────────────────────────────────────────────
+function updateBadges() {
+  const count = STATE.returns.filter(r => r.score >= 60).length;
+  document.getElementById('sb-alert-badge').textContent = count;
+  document.getElementById('tab-alert-badge').textContent = count;
+  document.getElementById('notif-dot').style.display = count > 0 ? 'block' : 'none';
+}
+
+function filterPeriod(val) {
+  toast(`Filtré sur les ${val} derniers jours`, 'success');
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+renderDashboard();
 </script>
 </body>
 </html>
