@@ -758,96 +758,121 @@ setTimeout(()=>{
 
 // ── METRICS CARD ANIMATION ────────────────────────────────
 
-const TICKER_ITEMS = [
-  {shop:'M***maison.fr',amount:'179€',color:'#E8281A'},
-  {shop:'E***shop.fr',amount:'299€',color:'#E8281A'},
-  {shop:'S***plus.fr',amount:'89€',color:'#F59E0B'},
-  {shop:'L***bag.fr',amount:'449€',color:'#E8281A'},
-  {shop:'B***bio.fr',amount:'65€',color:'#F59E0B'},
-  {shop:'T***pro.fr',amount:'199€',color:'#E8281A'},
-  {shop:'K***zone.fr',amount:'129€',color:'#F59E0B'},
-  {shop:'D***mode.fr',amount:'239€',color:'#E8281A'},
-  {shop:'P***sport.fr',amount:'349€',color:'#E8281A'},
-  {shop:'N***beauty.fr',amount:'79€',color:'#F59E0B'},
+// Boutiques françaises avec vrais noms de domaine crédibles
+const SHOPS = [
+  {shop:'modemaison.fr',   amounts:[89,129,179,239], color:'#E8281A'},
+  {shop:'electrocity.fr',  amounts:[299,349,449,199],color:'#E8281A'},
+  {shop:'sportrunner.fr',  amounts:[89,129,65,99],   color:'#F59E0B'},
+  {shop:'luxboutique.fr',  amounts:[449,599,299,379],color:'#E8281A'},
+  {shop:'bioessen.fr',     amounts:[45,65,79,55],    color:'#F59E0B'},
+  {shop:'techdeals.fr',    amounts:[199,249,179,299],color:'#E8281A'},
+  {shop:'kidsplanet.fr',   amounts:[79,99,129,65],   color:'#F59E0B'},
+  {shop:'decormaison.fr',  amounts:[239,189,149,279],color:'#E8281A'},
+  {shop:'prosport24.fr',   amounts:[349,279,199,319],color:'#E8281A'},
+  {shop:'naturbeauty.fr',  amounts:[59,79,89,69],    color:'#F59E0B'},
+  {shop:'gadgetstore.fr',  amounts:[149,199,129,179],color:'#E8281A'},
+  {shop:'vetemoda.fr',     amounts:[99,139,79,119],  color:'#F59E0B'},
 ];
 
-// Build ticker (duplicated for infinite loop)
-function buildTicker(){
+// Ticker items list — rebuilt dynamically when new fraud is added
+let tickerItems = SHOPS.slice(0,8).map(s=>({
+  shop:s.shop, amount:s.amounts[0], color:s.color
+}));
+
+function rebuildTicker(){
   const el = document.getElementById('mc-ticker');
   if(!el) return;
-  const items = [...TICKER_ITEMS, ...TICKER_ITEMS];
+  const items = [...tickerItems, ...tickerItems];
   el.innerHTML = items.map(i=>`
     <span class="mc-tick-item">
       <span class="mc-tick-dot" style="background:${i.color}"></span>
       <span>${i.shop}</span>
-      <span class="mc-tick-saved">+${i.amount} bloqués</span>
+      <span class="mc-tick-saved">+${i.amount}€ bloqués</span>
     </span>`).join('');
 }
-buildTicker();
+rebuildTicker();
 
-// Animated counters
+// Counters state
 let savingsVal = 0, blockedVal = 0, merchantsVal = 0;
 const SAVINGS_TARGET = 98340;
 const BLOCKED_TARGET = 4821;
 const MERCHANTS_TARGET = 342;
 
-function lerp(a,b,t){return Math.round(a+(b-a)*t)}
 function easeOut(t){return 1-Math.pow(1-t,4)}
 
 // Initial count-up on load
 function initialCountUp(){
-  const dur = 2200;
+  const dur = 2400;
   const start = performance.now();
-  const step = ts => {
+  const tick = ts => {
     const p = Math.min((ts-start)/dur,1), e = easeOut(p);
-    savingsVal = lerp(0, SAVINGS_TARGET, e);
-    blockedVal = lerp(0, BLOCKED_TARGET, e);
-    merchantsVal = lerp(0, MERCHANTS_TARGET, e);
-    // format savings with thousands separator
-    document.getElementById('mc-savings').textContent =
-      savingsVal.toLocaleString('fr-FR');
-    document.getElementById('mc-blocked').textContent =
-      blockedVal.toLocaleString('fr-FR');
-    document.getElementById('mc-merchants').textContent =
-      merchantsVal.toLocaleString('fr-FR');
-    // progress bars
+    savingsVal  = Math.round(e * SAVINGS_TARGET);
+    blockedVal  = Math.round(e * BLOCKED_TARGET);
+    merchantsVal= Math.round(e * MERCHANTS_TARGET);
+    document.getElementById('mc-savings').textContent   = savingsVal.toLocaleString('fr-FR');
+    document.getElementById('mc-blocked').textContent   = blockedVal.toLocaleString('fr-FR');
+    document.getElementById('mc-merchants').textContent = merchantsVal.toLocaleString('fr-FR');
     document.getElementById('mc-bar1').style.width = (e*82)+'%';
     document.getElementById('mc-bar2').style.width = (e*68)+'%';
     document.getElementById('mc-bar3').style.width = (e*55)+'%';
-    if(p < 1) requestAnimationFrame(step);
+    if(p < 1) requestAnimationFrame(tick);
     else startLiveIncrements();
   };
-  requestAnimationFrame(step);
+  requestAnimationFrame(tick);
 }
 setTimeout(initialCountUp, 1600);
 
-// Live increments — random fraud blocked every few seconds
+// Live increments — realistic nighttime cadence
+// Heure actuelle : ~23h → peu de commandes, fraudes rares
+// En journée : toutes les 20-45s · En soirée : 45-90s · Nuit : 90-180s
+function getDelay(){
+  const h = new Date().getHours();
+  if(h >= 10 && h < 14) return 15000 + Math.random()*20000;  // midi : 15-35s
+  if(h >= 14 && h < 20) return 20000 + Math.random()*25000;  // après-midi : 20-45s
+  if(h >= 20 && h < 23) return 35000 + Math.random()*30000;  // soirée : 35-65s
+  return 60000 + Math.random()*60000;                          // nuit : 1-2 min
+}
+
 function startLiveIncrements(){
-  const AMOUNTS = [89,129,179,199,239,299,349,449,65,79];
   function increment(){
-    const amt = AMOUNTS[Math.floor(Math.random()*AMOUNTS.length)];
-    // increment savings
+    // Pick a random shop and amount
+    const shop = SHOPS[Math.floor(Math.random()*SHOPS.length)];
+    const amt  = shop.amounts[Math.floor(Math.random()*shop.amounts.length)];
+
+    // Update counters
     savingsVal += amt;
     blockedVal += 1;
-    const sEl = document.getElementById('mc-savings');
-    const bEl = document.getElementById('mc-blocked');
-    const badge = document.getElementById('mc-new-badge');
-    // flash animation
+
+    const sEl    = document.getElementById('mc-savings');
+    const bEl    = document.getElementById('mc-blocked');
+    const badge  = document.getElementById('mc-new-badge');
+
+    // Flash
     sEl.classList.remove('flashing');
     bEl.classList.remove('flashing');
-    void sEl.offsetWidth; // reflow
+    void sEl.offsetWidth;
     sEl.classList.add('flashing');
     bEl.classList.add('flashing');
+
+    // Update displays
     sEl.textContent = savingsVal.toLocaleString('fr-FR');
     bEl.textContent = blockedVal.toLocaleString('fr-FR');
-    // show badge
-    badge.textContent = `+${amt}€`;
+
+    // Badge
+    badge.textContent = `+${amt}€ — ${shop.shop}`;
     badge.style.opacity = '1';
-    setTimeout(()=>badge.style.opacity='0', 2000);
-    // next increment — random 3.5 to 7s
-    setTimeout(increment, 3500 + Math.random()*3500);
+    setTimeout(()=>badge.style.opacity='0', 3000);
+
+    // Add to ticker and rebuild
+    tickerItems.unshift({shop:shop.shop, amount:amt, color:shop.color});
+    if(tickerItems.length > 14) tickerItems.pop();
+    rebuildTicker();
+
+    // Schedule next
+    setTimeout(increment, getDelay());
   }
-  setTimeout(increment, 3000);
+  // First increment after a realistic delay based on current hour
+  setTimeout(increment, getDelay());
 }
 
 // ── SCROLL REVEAL ─────────────────────────────────────────
