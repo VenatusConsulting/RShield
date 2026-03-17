@@ -322,7 +322,82 @@ footer{border-top:0.5px solid var(--b);padding:32px 48px;display:flex;align-item
 .footer-links a:hover{color:var(--w)}
 .footer-copy{font-size:11px;color:var(--g2)}
 
-/* ══ RESPONSIVE ══════════════════════════════════════════ */
+/* ══ COMPARISON TABLE ═══════════════════════════════════ */
+.compare-section{padding:0 0 120px}
+.compare-wrap{margin-top:56px;background:var(--s1);border:0.5px solid var(--b);border-radius:18px;overflow:hidden;position:relative}
+.compare-wrap::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--red-b),transparent)}
+.compare-header{display:grid;grid-template-columns:1.2fr 1fr 1fr;border-bottom:0.5px solid var(--b)}
+.ch-empty{padding:20px 24px}
+.ch-col{padding:20px 24px;text-align:center;border-left:0.5px solid var(--b)}
+.ch-col.bad{background:rgba(255,255,255,.02)}
+.ch-col.good{background:rgba(232,40,26,.05)}
+.ch-name{font-size:12px;font-weight:700;letter-spacing:-.01em;margin-bottom:4px}
+.ch-sub{font-size:10px;color:var(--g2)}
+.compare-row{display:grid;grid-template-columns:1.2fr 1fr 1fr;border-bottom:0.5px solid rgba(255,255,255,.04);transition:background .15s}
+.compare-row:last-child{border-bottom:none}
+.compare-row:hover{background:rgba(255,255,255,.015)}
+.cr-label{padding:16px 24px;font-size:12.5px;color:var(--g1);display:flex;align-items:center;gap:10px}
+.cr-icon{width:22px;height:22px;border-radius:5px;background:var(--s2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.cr-cell{padding:16px 24px;text-align:center;font-size:12px;border-left:0.5px solid rgba(255,255,255,.04);display:flex;align-items:center;justify-content:center}
+.cr-cell.bad{color:var(--g2)}
+.cr-cell.good{color:var(--w);font-weight:500}
+.cr-x{width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;color:var(--g2);font-size:11px}
+.cr-check{width:18px;height:18px;border-radius:50%;background:var(--gd);border:0.5px solid var(--gb);display:flex;align-items:center;justify-content:center}
+
+/* ══ DASHBOARD SCREENSHOT ═══════════════════════════════ */
+.dash-section{padding:0 0 120px}
+.dash-preview{margin-top:56px;position:relative}
+.dash-glow{position:absolute;bottom:-60px;left:50%;transform:translateX(-50%);width:80%;height:120px;background:radial-gradient(ellipse,rgba(232,40,26,.12) 0%,transparent 70%);pointer-events:none;z-index:0}
+.dash-frame{background:var(--s1);border:0.5px solid var(--b2);border-radius:18px;overflow:hidden;position:relative;z-index:1;box-shadow:0 40px 80px rgba(0,0,0,.6),0 0 0 1px rgba(232,40,26,.06)}
+.dash-frame::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--red-b),var(--red-b),transparent)}
+.dash-topbar{display:flex;align-items:center;gap:7px;padding:12px 18px;border-bottom:0.5px solid var(--b);background:rgba(255,255,255,.02)}
+.dash-dot{width:10px;height:10px;border-radius:50%}
+.dash-url{background:var(--s2);border:0.5px solid var(--b);border-radius:6px;padding:4px 14px;font-size:11px;color:var(--g2);font-family:var(--mono);margin:0 auto}
+.dash-content{display:grid;grid-template-columns:200px 1fr;min-height:340px}
+.dash-sidebar{background:rgba(255,255,255,.02);border-right:0.5px solid var(--b);padding:16px 12px}
+.dash-sb-logo{display:flex;align-items:center;gap:7px;padding:8px 8px 16px;border-bottom:0.5px solid var(--b);margin-bottom:10px}
+.dash-sb-logo-text{font-size:13px;font-weight:800;letter-spacing:-.02em}
+.dash-sb-logo-text span{color:var(--red)}
+.dash-sb-item{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:6px;font-size:11px;color:var(--g1);margin-bottom:2px}
+.dash-sb-item.active{background:var(--red-dim);color:var(--w);border:0.5px solid var(--red-b)}
+.dash-sb-item svg{width:13px;height:13px;opacity:.7;flex-shrink:0}
+.dash-sb-item.active svg{opacity:1}
+.dash-sb-badge{margin-left:auto;background:var(--red);color:white;font-size:9px;font-weight:700;padding:1px 5px;border-radius:5px}
+.dash-main{padding:20px 22px;overflow:hidden}
+.dash-metrics-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.dash-metric{background:var(--s2);border:0.5px solid var(--b);border-radius:9px;padding:12px 14px}
+.dash-m-label{font-size:9.5px;color:var(--g1);margin-bottom:6px}
+.dash-m-val{font-size:20px;font-weight:700;letter-spacing:-.025em;line-height:1}
+.dash-table-header{display:grid;grid-template-columns:1.5fr 1fr 60px 80px 60px;gap:8px;padding:7px 12px;border-bottom:0.5px solid var(--b);margin-bottom:0}
+.dash-th{font-size:9px;font-weight:600;color:var(--g2);text-transform:uppercase;letter-spacing:.06em}
+.dash-row{display:grid;grid-template-columns:1.5fr 1fr 60px 80px 60px;gap:8px;padding:9px 12px;border-bottom:0.5px solid rgba(255,255,255,.03);font-size:11px;align-items:center}
+.dash-row:last-child{border-bottom:none}
+.dash-pill{padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;display:inline-block}
+.dash-pill-red{background:var(--red-dim);color:var(--red)}
+.dash-pill-amber{background:rgba(245,158,11,.1);color:var(--amber)}
+.dash-pill-green{background:var(--gd);color:var(--green)}
+
+/* ══ DECISIONER SECTION ═════════════════════════════════ */
+.decisioner-section{padding:0 0 120px}
+.dec-inner{background:var(--s1);border:0.5px solid var(--b);border-radius:20px;overflow:hidden;position:relative}
+.dec-inner::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--red-b),transparent)}
+.dec-grid{display:grid;grid-template-columns:1fr 1fr;align-items:center}
+.dec-left{padding:52px 48px;border-right:0.5px solid var(--b)}
+.dec-right{padding:48px;display:flex;flex-direction:column;gap:12px}
+.dec-flow-item{background:var(--s2);border:0.5px solid var(--b);border-radius:11px;padding:16px 18px;display:flex;align-items:center;gap:14px;transition:border-color .2s}
+.dec-flow-item:hover{border-color:var(--b2)}
+.dec-flow-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.dec-flow-title{font-size:12.5px;font-weight:600;margin-bottom:3px;letter-spacing:-.01em}
+.dec-flow-sub{font-size:11px;color:var(--g1);line-height:1.5}
+.dec-arrow{text-align:center;color:var(--g2);font-size:18px;margin:-4px 0;display:flex;align-items:center;justify-content:center;gap:6px}
+.dec-you-badge{background:linear-gradient(135deg,rgba(232,40,26,.12),rgba(232,40,26,.04));border:1px solid var(--red-b);border-radius:10px;padding:14px 18px;display:flex;align-items:center;gap:12px;margin-top:4px}
+
+/* ══ STICKY CTA MOBILE ══════════════════════════════════ */
+.sticky-cta{position:fixed;bottom:0;left:0;right:0;z-index:90;padding:12px 20px;background:rgba(13,13,15,.96);backdrop-filter:blur(20px);border-top:0.5px solid var(--b);display:none;align-items:center;justify-content:space-between;gap:12px;transform:translateY(100%);transition:transform .3s ease}
+.sticky-cta.show{transform:translateY(0)}
+.sticky-cta-text{font-size:13px;font-weight:500;color:var(--w)}
+.sticky-cta-sub{font-size:11px;color:var(--g1)}
+@media(max-width:768px){.sticky-cta{display:flex}}
 @media(max-width:900px){
   .hero{grid-template-columns:1fr;padding:100px 28px 60px;text-align:center}
   .hero-right{display:none}
@@ -359,7 +434,7 @@ footer{border-top:0.5px solid var(--b);padding:32px 48px;display:flex;align-item
     <a href="#tarifs">Tarifs</a>
     <a href="#faq">FAQ</a>
     <a href="dashboard.html">Se connecter</a>
-    <a href="#tarifs" class="nav-cta">Démarrer gratuit</a>
+    <a href="dashboard.html" class="nav-cta">Essai gratuit 30j →</a>
   </div>
 </nav>
 
@@ -390,11 +465,11 @@ footer{border-top:0.5px solid var(--b);padding:32px 48px;display:flex;align-item
       <p class="hero-sub">RefundShield détecte les retours frauduleux avant que vous remboursiez. Score de risque temps réel, base mutualisée 340+ marchands, alertes instantanées.</p>
 
       <div class="hero-ctas">
-        <a href="#tarifs" class="btn-p">
-          Protéger ma boutique
+        <a href="dashboard.html" class="btn-p">
+          Essayer 30 jours gratuits — sans CB
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
         </a>
-        <a href="#roi" class="btn-g">Calculer mes pertes</a>
+        <a href="#roi" class="btn-g">Calculer mes pertes →</a>
       </div>
 
       <div class="hero-metrics">
@@ -577,10 +652,10 @@ footer{border-top:0.5px solid var(--b);padding:32px 48px;display:flex;align-item
         <span style="font-size:10px;color:var(--green);display:flex;align-items:center;gap:4px"><span style="width:5px;height:5px;border-radius:50%;background:var(--green);display:inline-block;animation:pulse 1.5s infinite"></span>Live</span>
       </div>
       <div class="net-card">
-        <div class="net-merchant rv d1"><div class="net-av" style="background:rgba(232,40,26,.15);color:var(--red)">MM</div><span class="net-name">ModeMaison.fr</span><span class="net-saved">+1 847€</span></div>
-        <div class="net-merchant rv d2"><div class="net-av" style="background:rgba(59,130,246,.15);color:#3B82F6">ES</div><span class="net-name">ElecShop.fr</span><span class="net-saved">+5 420€</span></div>
-        <div class="net-merchant rv d3"><div class="net-av" style="background:rgba(34,197,94,.15);color:var(--green)">SP</div><span class="net-name">SportPlus.fr</span><span class="net-saved">+1 240€</span></div>
-        <div class="net-merchant rv d4"><div class="net-av" style="background:rgba(139,92,246,.15);color:#8B5CF6">LB</div><span class="net-name">LuxBag.fr</span><span class="net-saved">+8 960€</span></div>
+        <div class="net-merchant rv d1"><div class="net-av" style="background:rgba(232,40,26,.15);color:var(--red)">MM</div><span class="net-name">mod*****.fr</span><span class="net-saved">+1 847€</span></div>
+        <div class="net-merchant rv d2"><div class="net-av" style="background:rgba(59,130,246,.15);color:#3B82F6">ES</div><span class="net-name">ele*******.fr</span><span class="net-saved">+5 420€</span></div>
+        <div class="net-merchant rv d3"><div class="net-av" style="background:rgba(34,197,94,.15);color:var(--green)">SP</div><span class="net-name">spo******.fr</span><span class="net-saved">+1 240€</span></div>
+        <div class="net-merchant rv d4"><div class="net-av" style="background:rgba(139,92,246,.15);color:#8B5CF6">LB</div><span class="net-name">lux*****.fr</span><span class="net-saved">+8 960€</span></div>
         <div class="net-total"><span class="net-total-label">Total réseau économisé</span><span class="net-total-val">+98 340€</span></div>
       </div>
     </div>
@@ -617,7 +692,204 @@ footer{border-top:0.5px solid var(--b);padding:32px 48px;display:flex;align-item
   </div>
 </div>
 
-<!-- HOW -->
+<!-- COMPARISON AVANT / APRÈS -->
+<div class="compare-section container">
+  <span class="section-tag rv" style="justify-content:center">Comparaison</span>
+  <h2 class="section-title rv" style="text-align:center">Avant RefundShield. Après RefundShield.</h2>
+  <p class="section-sub rv" style="margin:0 auto;text-align:center">La différence concrète sur votre activité quotidienne.</p>
+  <div class="compare-wrap rv">
+    <div class="compare-header">
+      <div class="ch-empty"></div>
+      <div class="ch-col bad"><div class="ch-name" style="color:var(--g1)">Sans RefundShield</div><div class="ch-sub">Situation actuelle</div></div>
+      <div class="ch-col good"><div class="ch-name" style="color:var(--red)">Avec RefundShield</div><div class="ch-sub">Dès l'activation</div></div>
+    </div>
+    <div class="compare-row">
+      <div class="cr-label"><div class="cr-icon"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="var(--g1)" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg></div>Temps pour traiter un retour suspect</div>
+      <div class="cr-cell bad">15–30 minutes<br><span style="font-size:10px;color:var(--g2)">vérification manuelle</span></div>
+      <div class="cr-cell good">30 secondes<br><span style="font-size:10px;color:var(--green)">score automatique + boutons</span></div>
+    </div>
+    <div class="compare-row">
+      <div class="cr-label"><div class="cr-icon"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="var(--g1)" stroke-width="1.5"><path d="M2 12l4-4 3 3 5-6"/></svg></div>Taux de fraude détecté</div>
+      <div class="cr-cell bad"><div class="cr-x">✕</div><span style="margin-left:8px">~20% détectés</span></div>
+      <div class="cr-cell good"><div class="cr-check"><svg width="8" height="8" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="#22C55E" stroke-width="1.5" stroke-linecap="round"/></svg></div><span style="margin-left:8px">~80–90% détectés</span></div>
+    </div>
+    <div class="compare-row">
+      <div class="cr-label"><div class="cr-icon"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="var(--g1)" stroke-width="1.5"><ellipse cx="8" cy="5" rx="5" ry="2"/><path d="M3 5v6c0 1.1 2.24 2 5 2s5-.9 5-2V5"/></svg></div>Récidivistes inter-boutiques</div>
+      <div class="cr-cell bad"><div class="cr-x">✕</div><span style="margin-left:8px">Invisibles</span></div>
+      <div class="cr-cell good"><div class="cr-check"><svg width="8" height="8" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="#22C55E" stroke-width="1.5" stroke-linecap="round"/></svg></div><span style="margin-left:8px">Base mutualisée 340+</span></div>
+    </div>
+    <div class="compare-row">
+      <div class="cr-label"><div class="cr-icon"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="var(--g1)" stroke-width="1.5"><path d="M8 2a4 4 0 0 1 4 4c0 3 1.5 4 1.5 4h-11s1.5-1 1.5-4a4 4 0 0 1 4-4z"/></svg></div>Alertes en temps réel</div>
+      <div class="cr-cell bad"><div class="cr-x">✕</div><span style="margin-left:8px">Aucune</span></div>
+      <div class="cr-cell good"><div class="cr-check"><svg width="8" height="8" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="#22C55E" stroke-width="1.5" stroke-linecap="round"/></svg></div><span style="margin-left:8px">Slack / Email / Push</span></div>
+    </div>
+    <div class="compare-row">
+      <div class="cr-label"><div class="cr-icon"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="var(--g1)" stroke-width="1.5"><rect x="2" y="4" width="12" height="9" rx="1.5"/><path d="M5 4V3a3 3 0 0 1 6 0v1"/></svg></div>Preuves pour contester un chargeback</div>
+      <div class="cr-cell bad"><div class="cr-x">✕</div><span style="margin-left:8px">Rien à montrer</span></div>
+      <div class="cr-cell good"><div class="cr-check"><svg width="8" height="8" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="#22C55E" stroke-width="1.5" stroke-linecap="round"/></svg></div><span style="margin-left:8px">Dossier complet exportable</span></div>
+    </div>
+    <div class="compare-row">
+      <div class="cr-label"><div class="cr-icon"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="var(--g1)" stroke-width="1.5"><path d="M2 12l4-4 3 3 5-6"/></svg></div>Coût mensuel</div>
+      <div class="cr-cell bad" style="color:var(--red)">Pertes non maîtrisées<br><span style="font-size:10px;color:var(--g2)">moy. 300–800€/mois</span></div>
+      <div class="cr-cell good">À partir de 29€/mois<br><span style="font-size:10px;color:var(--green)">ROI moyen 18× le premier mois</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD SCREENSHOT -->
+<div class="dash-section container">
+  <span class="section-tag rv" style="justify-content:center">Le produit</span>
+  <h2 class="section-title rv" style="text-align:center">Votre tableau de bord en temps réel</h2>
+  <p class="section-sub rv" style="margin:0 auto;text-align:center">Tout ce qu'il vous faut pour décider en 30 secondes — sans expertise technique.</p>
+  <div class="dash-preview rv">
+    <div class="dash-glow"></div>
+    <div class="dash-frame">
+      <div class="dash-topbar">
+        <div class="dash-dot" style="background:#ff5f57"></div>
+        <div class="dash-dot" style="background:#ffbd2e"></div>
+        <div class="dash-dot" style="background:#28c840"></div>
+        <div class="dash-url">app.refundshield.fr/dashboard</div>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:4px;font-size:10px;color:var(--green);font-family:var(--mono)"><span style="width:5px;height:5px;border-radius:50%;background:var(--green);display:inline-block;animation:pulse 1.5s infinite"></span>Live</div>
+      </div>
+      <div class="dash-content">
+        <div class="dash-sidebar">
+          <div class="dash-sb-logo">
+            <svg width="20" height="20" viewBox="0 0 25 25" fill="none"><rect width="25" height="25" rx="6" fill="#E8281A"/><path d="M12.5 9L9.5 11.2V14.5C9.5 16.6 10.8 18.5 12.5 19.2C14.2 18.5 15.5 16.6 15.5 14.5V11.2L12.5 9Z" fill="white"/></svg>
+            <span class="dash-sb-logo-text">Refund<span>Shield</span></span>
+          </div>
+          <div class="dash-sb-item active">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/></svg>
+            Vue d'ensemble
+          </div>
+          <div class="dash-sb-item">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2a4 4 0 0 1 4 4c0 3 1.5 4 1.5 4h-11s1.5-1 1.5-4a4 4 0 0 1 4-4z"/></svg>
+            Alertes <span class="dash-sb-badge">3</span>
+          </div>
+          <div class="dash-sb-item">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12M2 8h8M2 12h5"/></svg>
+            Retours
+          </div>
+          <div class="dash-sb-item">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><ellipse cx="8" cy="4" rx="6" ry="2"/><path d="M2 4v4c0 1.1 2.69 2 6 2s6-.9 6-2V4"/></svg>
+            Base réseau
+          </div>
+        </div>
+        <div class="dash-main">
+          <div class="dash-metrics-row">
+            <div class="dash-metric"><div class="dash-m-label">Fraudes bloquées</div><div class="dash-m-val" style="color:var(--green)">24</div></div>
+            <div class="dash-metric"><div class="dash-m-label">Économies générées</div><div class="dash-m-val" style="color:var(--green)">1 847€</div></div>
+            <div class="dash-metric"><div class="dash-m-label">Retours analysés</div><div class="dash-m-val">187</div></div>
+            <div class="dash-metric"><div class="dash-m-label">Alertes en attente</div><div class="dash-m-val" style="color:var(--red)">3</div></div>
+          </div>
+          <div class="dash-table-header">
+            <div class="dash-th">Client</div>
+            <div class="dash-th">Produit</div>
+            <div class="dash-th">Score</div>
+            <div class="dash-th">Action</div>
+            <div class="dash-th">Date</div>
+          </div>
+          <div class="dash-row">
+            <div style="font-size:11.5px;font-weight:500">Sophie M.</div>
+            <div style="color:var(--g1)">Robe midi</div>
+            <div><span class="dash-pill dash-pill-red">91</span></div>
+            <div><span class="dash-pill dash-pill-red">Bloquer</span></div>
+            <div style="color:var(--g2)">Auj. 14:23</div>
+          </div>
+          <div class="dash-row">
+            <div style="font-size:11.5px;font-weight:500">Thomas K.</div>
+            <div style="color:var(--g1)">Sneakers</div>
+            <div><span class="dash-pill dash-pill-amber">73</span></div>
+            <div><span class="dash-pill dash-pill-amber">Preuves</span></div>
+            <div style="color:var(--g2)">Auj. 11:05</div>
+          </div>
+          <div class="dash-row">
+            <div style="font-size:11.5px;font-weight:500">Marie L.</div>
+            <div style="color:var(--g1)">Sac cuir</div>
+            <div><span class="dash-pill dash-pill-green">18</span></div>
+            <div><span class="dash-pill dash-pill-green">Approuver</span></div>
+            <div style="color:var(--g2)">Hier 16:40</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- VOUS RESTEZ DÉCISIONNAIRE -->
+<div class="decisioner-section container">
+  <div class="dec-inner rv">
+    <div class="dec-grid">
+      <div class="dec-left">
+        <span class="section-tag">Vous restez maître</span>
+        <h2 class="section-title">RefundShield conseille.<br>Vous décidez.</h2>
+        <p class="section-sub" style="margin-bottom:24px">Nous ne bloquons jamais un remboursement à votre place. RefundShield vous donne l'information — vous gardez le contrôle total sur chaque décision.</p>
+        <div style="background:var(--s2);border:0.5px solid var(--b);border-radius:10px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--green)" stroke-width="1.5" style="flex-shrink:0;margin-top:1px"><path d="M8 2a6 6 0 1 1 0 12A6 6 0 0 1 8 2z"/><path d="M8 7v4M8 5v.5"/></svg>
+          <div style="font-size:12px;color:var(--g1);line-height:1.6">Vos CGV restent inchangées. RefundShield est un outil d'aide à la décision — pas un système automatique de refus.</div>
+        </div>
+      </div>
+      <div class="dec-right">
+        <div class="dec-flow-item">
+          <div class="dec-flow-icon" style="background:rgba(245,158,11,.1)">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--amber)" stroke-width="1.5" stroke-linecap="round"><path d="M8 2l6 12H2L8 2z"/><path d="M8 7v3M8 12v.01"/></svg>
+          </div>
+          <div>
+            <div class="dec-flow-title">Demande de retour reçue</div>
+            <div class="dec-flow-sub">Le webhook Shopify déclenche l'analyse automatiquement</div>
+          </div>
+        </div>
+        <div class="dec-arrow">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 3v10M4 9l4 4 4-4"/></svg>
+        </div>
+        <div class="dec-flow-item">
+          <div class="dec-flow-icon" style="background:var(--red-dim)">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--red)" stroke-width="1.5" stroke-linecap="round"><path d="M2 12l4-4 3 3 5-6"/></svg>
+          </div>
+          <div>
+            <div class="dec-flow-title">Score calculé en 200ms</div>
+            <div class="dec-flow-sub">Signaux analysés, base mutualisée consultée</div>
+          </div>
+        </div>
+        <div class="dec-arrow">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 3v10M4 9l4 4 4-4"/></svg>
+        </div>
+        <div class="dec-flow-item">
+          <div class="dec-flow-icon" style="background:rgba(59,130,246,.1)">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#3B82F6" stroke-width="1.5" stroke-linecap="round"><path d="M8 2a4 4 0 0 1 4 4c0 3 1.5 4 1.5 4h-11s1.5-1 1.5-4a4 4 0 0 1 4-4z"/></svg>
+          </div>
+          <div>
+            <div class="dec-flow-title">Vous êtes alerté instantanément</div>
+            <div class="dec-flow-sub">Score + signaux + recommandation sur Slack ou email</div>
+          </div>
+        </div>
+        <div class="dec-arrow">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 3v10M4 9l4 4 4-4"/></svg>
+        </div>
+        <div class="dec-you-badge">
+          <div style="width:36px;height:36px;border-radius:50%;background:var(--red-dim);border:1px solid var(--red-b);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--red)" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 13c0-3 2.69-5 6-5s6 2 6 5"/></svg>
+          </div>
+          <div>
+            <div style="font-size:12.5px;font-weight:700;color:var(--red);margin-bottom:3px">Vous prenez la décision finale</div>
+            <div style="font-size:11px;color:var(--g1)">Approuver · Demander preuves · Bloquer</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STICKY CTA MOBILE -->
+<div class="sticky-cta" id="sticky-cta">
+  <div>
+    <div class="sticky-cta-text">Protégez votre boutique</div>
+    <div class="sticky-cta-sub">30 jours gratuits · Sans CB</div>
+  </div>
+  <a href="dashboard.html" class="btn-p" style="white-space:nowrap;font-size:12px;padding:10px 18px">
+    Essayer gratuit
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+  </a>
+</div>
 <div class="how-section container" id="comment">
   <span class="section-tag rv">Comment ça marche</span>
   <h2 class="section-title rv">Installé en 10 minutes, actif à vie</h2>
@@ -717,7 +989,7 @@ footer{border-top:0.5px solid var(--b);padding:32px 48px;display:flex;align-item
   <div class="cta-inner rv">
     <h2>Prêt à protéger votre boutique ?</h2>
     <p>Rejoignez les 50 marchands bêta. Installation en 10 minutes.<br>Premier mois offert, sans engagement.</p>
-    <a href="dashboard.html" class="btn-w">Démarrer gratuitement →</a>
+    <a href="dashboard.html" class="btn-w">Protéger ma boutique — c'est gratuit →</a>
     <div class="cta-nums">
       <div class="cta-num"><span>30 jours</span><small>Essai gratuit</small></div>
       <div class="cta-num"><span>10 min</span><small>Installation</small></div>
@@ -910,6 +1182,18 @@ function calcROI(){
   document.getElementById('rs').textContent=net>0?fmt(net):'—';
 }
 calcROI();
+
+// ── STICKY CTA MOBILE ─────────────────────────────────────
+const stickyCta = document.getElementById('sticky-cta');
+let heroBottom = 0;
+function updateStickyVisibility(){
+  if(!stickyCta) return;
+  const hero = document.querySelector('.hero');
+  if(hero) heroBottom = hero.getBoundingClientRect().bottom;
+  stickyCta.classList.toggle('show', heroBottom < 0);
+}
+window.addEventListener('scroll', updateStickyVisibility, {passive:true});
+updateStickyVisibility();
 
 // ── FAQ ───────────────────────────────────────────────────
 function faq(btn){
