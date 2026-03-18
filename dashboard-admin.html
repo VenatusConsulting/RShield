@@ -495,8 +495,9 @@ tr:hover td{background:rgba(255,255,255,.015)}
             <div style="font-size:10.5px;color:var(--g1);margin-bottom:6px">Avantages parrain</div>
             <div style="display:flex;flex-direction:column;gap:5px">
               <div style="display:flex;align-items:center;gap:7px;font-size:11.5px"><span style="color:var(--green)">✓</span> 1 filleul → 1 mois offert</div>
-              <div style="display:flex;align-items:center;gap:7px;font-size:11.5px"><span style="color:var(--green)">✓</span> 3 filleuls → badge Ambassadeur</div>
-              <div style="display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--g2)"><span>○</span> 5 filleuls → 2 mois offerts <span style="font-size:10px">(bientôt)</span></div>
+              <div style="display:flex;align-items:center;gap:7px;font-size:11.5px"><span style="color:var(--green)">✓</span> 3 filleuls → 3 mois offerts + Badge Ambassadeur</div>
+              <div style="display:flex;align-items:center;gap:7px;font-size:11.5px"><span style="color:var(--green)">✓</span> 5 filleuls → 6 mois offerts + Early access</div>
+              <div style="display:flex;align-items:center;gap:7px;font-size:11.5px"><span style="color:var(--amber)">★</span> 10 filleuls → Plan gratuit à vie</div>
             </div>
           </div>
         </div>
@@ -2248,12 +2249,13 @@ function renderAffiliation(m){
   // Pour l'instant on stocke dans les métadonnées du marchand (champ `parrain_code`)
   const filleuls = allMarchands.filter(x => x.parrain_code === code);
   const nbFilleuls = filleuls.length;
-  const moisOfferts = nbFilleuls; // 1 mois offert par filleul
+  const tier = getAffilTier(nbFilleuls);
+  const tierText = tier
+    ? `${nbFilleuls} filleul${nbFilleuls>1?'s':''} · ${tier.label}`
+    : `${nbFilleuls} filleul${nbFilleuls>1?'s':''} · Prochain palier : 1 filleul`;
 
   document.getElementById('fiche-affil-stats').textContent =
-    nbFilleuls > 0
-      ? `${nbFilleuls} filleul${nbFilleuls>1?'s':''} · ${moisOfferts} mois offert${moisOfferts>1?'s':''}`
-      : 'Aucun filleul pour l\'instant';
+    nbFilleuls > 0 ? tierText : 'Aucun filleul pour l\'instant';
 
   // Badge Ambassadeur dès 3 filleuls
   const badge = document.getElementById('fiche-ambassador-badge');
