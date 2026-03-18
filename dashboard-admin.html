@@ -668,6 +668,13 @@ tr:hover td{background:rgba(255,255,255,.015)}
             <div class="card-title">Résultat du scoring</div>
           </div>
           <div class="sim-body">
+            <!-- Alerte récidive auto-détectée -->
+            <div id="recidive-alert" style="display:none;background:linear-gradient(135deg,rgba(232,40,26,.12),rgba(232,40,26,.04));border:1px solid var(--red-b);border-radius:9px;padding:12px 14px;margin-bottom:12px">
+              <div style="display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;color:var(--red);margin-bottom:8px">
+                <span>⚠</span> Récidiviste détecté automatiquement
+              </div>
+              <div id="recidive-alert-list" style="display:flex;flex-direction:column;gap:5px"></div>
+            </div>
             <div id="score-placeholder" style="padding:48px 0;text-align:center;color:var(--g2)">
               <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="margin:0 auto 12px;display:block;opacity:.3"><path d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.5C16.5 22.15 20 17.25 20 12V6L12 2z"/></svg>
               <div style="font-size:13px;margin-bottom:6px">En attente d'analyse</div>
@@ -704,21 +711,44 @@ tr:hover td{background:rgba(255,255,255,.015)}
 
     <!-- ── PAGE : RÉSEAU ── -->
     <div class="page" id="page-reseau">
-      <div class="card">
-        <div class="card-header">
-          <div>
+      <!-- Tabs -->
+      <div style="display:flex;gap:4px;margin-bottom:14px;background:var(--s1);border:0.5px solid var(--b);border-radius:9px;padding:4px;width:fit-content">
+        <div class="fiche-tab active" id="reseau-tab-base" onclick="switchReseauTab('base',this)">Base fraudeurs</div>
+        <div class="fiche-tab" id="reseau-tab-recidiv" onclick="switchReseauTab('recidiv',this)">Récidivistes <span id="recidiv-count-badge" style="background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:5px;margin-left:4px">0</span></div>
+      </div>
+
+      <!-- Base fraudeurs -->
+      <div id="reseau-panel-base">
+        <div class="card">
+          <div class="card-header">
             <div class="card-title">Base mutualisée des fraudeurs</div>
             <div class="card-sub" id="reseau-count">Chargement…</div>
           </div>
+          <table>
+            <thead><tr>
+              <th>Fingerprint</th><th>Email</th><th>Signaux</th><th>Nb tentatives</th><th>Marchands touchés</th><th>Dernière activité</th>
+            </tr></thead>
+            <tbody id="tb-reseau">
+              <tr><td colspan="6" class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/></svg>Base vide — les fraudeurs confirmés apparaissent ici</td></tr>
+            </tbody>
+          </table>
         </div>
-        <table>
-          <thead><tr>
-            <th>Fingerprint</th><th>Email</th><th>Signaux</th><th>Nb tentatives</th><th>Marchands touchés</th><th>Dernière activité</th>
-          </tr></thead>
-          <tbody id="tb-reseau">
-            <tr><td colspan="6" class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/></svg>Base vide — les fraudeurs confirmés apparaissent ici</td></tr>
-          </tbody>
-        </table>
+      </div>
+
+      <!-- Récidivistes -->
+      <div id="reseau-panel-recidiv" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Récidivistes détectés</div>
+            <div class="card-sub" id="recidiv-sub">Clients avec ≥2 retours suspects dans le réseau</div>
+          </div>
+          <table>
+            <thead><tr>
+              <th>Email client</th><th>Retours suspects</th><th>Boutiques touchées</th><th>Score max</th><th>Dernier retour</th><th>Verdict</th>
+            </tr></thead>
+            <tbody id="tb-recidivistes"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -1167,6 +1197,7 @@ async function loadRetours(){
   allRetours = data || [];
   renderRetours();
   document.getElementById('sb-count-retours').textContent = allRetours.length;
+  updateRecidivBadge();
 }
 
 async function loadReseau(){
@@ -1199,6 +1230,67 @@ async function createTables(){
 }
 
 // ── SCORING ENGINE ─────────────────────────────────────────
+// ── DÉTECTION RÉCIDIVE ────────────────────────────────────
+
+// Distance de Levenshtein pour noms similaires
+function levenshtein(a, b){
+  a = a.toLowerCase().trim();
+  b = b.toLowerCase().trim();
+  const m = a.length, n = b.length;
+  const dp = Array.from({length:m+1}, (_,i) => Array.from({length:n+1}, (_,j) => i===0?j:j===0?i:0));
+  for(let i=1;i<=m;i++) for(let j=1;j<=n;j++)
+    dp[i][j] = a[i-1]===b[j-1] ? dp[i-1][j-1] : 1+Math.min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1]);
+  return dp[m][n];
+}
+
+function normaliserNom(prenom, nom){
+  return `${prenom} ${nom}`.toLowerCase().trim().replace(/\s+/g,' ');
+}
+
+// Cherche les correspondances d'un client dans tous les retours existants
+function detecterRecidive(prenom, nom, email){
+  const matches = [];
+  const emailNorm = (email||'').toLowerCase().trim();
+  const nomNorm = normaliserNom(prenom, nom);
+
+  allRetours.forEach(r => {
+    if(!r.client_email && !r.client_prenom) return;
+    const rEmail = (r.client_email||'').toLowerCase().trim();
+    const rNom = normaliserNom(r.client_prenom||'', r.client_nom||'');
+    const marchand = allMarchands.find(m => m.id === r.marchand_id);
+
+    // 1 — Email exact
+    if(emailNorm && rEmail && emailNorm === rEmail && r.score >= 40){
+      matches.push({ type:'email_exact', retour:r, marchand, detail:`Email identique : ${email}` });
+      return;
+    }
+
+    // 2 — Email même partie locale (sophie@ = sophie@hotmail = sophie@gmail)
+    const localEmail = emailNorm.split('@')[0];
+    const localR = rEmail.split('@')[0];
+    if(localEmail && localR && localEmail === localR && localEmail.length > 3 && r.score >= 50){
+      matches.push({ type:'email_similaire', retour:r, marchand, detail:`Partie email identique : "${localEmail}@…"` });
+      return;
+    }
+
+    // 3 — Nom similaire (distance ≤ 2 et longueur > 5)
+    if(nomNorm.length > 5 && rNom.length > 5){
+      const dist = levenshtein(nomNorm, rNom);
+      if(dist <= 2 && dist > 0 && r.score >= 50){
+        matches.push({ type:'nom_similaire', retour:r, marchand, detail:`Nom similaire : "${rNom}" (distance ${dist})` });
+      }
+    }
+  });
+
+  // Dédupliquer par retour id
+  const seen = new Set();
+  return matches.filter(m => {
+    if(seen.has(m.retour.id)) return false;
+    seen.add(m.retour.id);
+    return true;
+  });
+}
+
 function calculateScore(params){
   let score = 0;
   const signals = [];
@@ -1210,6 +1302,7 @@ function calculateScore(params){
   const delai = params.delai;
   const script = params.script;
   const recidive = params.recidive;
+  const recidiveMatches = params.recidiveMatches || []; // auto-détectés
   const message = (params.message || '').toLowerCase();
 
   // Motif à risque élevé
@@ -1221,9 +1314,25 @@ function calculateScore(params){
   if(vpn){ score += 15; signals.push({text:'VPN / Proxy actif détecté', pts:'+15', risk:'red'}) }
   if(emailJetable){ score += 18; signals.push({text:'Email jetable ou temporaire', pts:'+18', risk:'red'}) }
   if(reseau){ score += 25; signals.push({text:'Fingerprint dans la base mutualisée', pts:'+25', risk:'red'}) }
-  if(recidive){ score += 20; signals.push({text:'Récidiviste confirmé', pts:'+20', risk:'red'}) }
   if(delai){ score += 12; signals.push({text:'Délai retour < 2h après livraison', pts:'+12', risk:'amber'}) }
   if(script){ score += 10; signals.push({text:'Formulation script Telegram détectée', pts:'+10', risk:'amber'}) }
+
+  // Récidive manuelle (cochée)
+  if(recidive){ score += 20; signals.push({text:'Récidiviste confirmé (manuel)', pts:'+20', risk:'red'}) }
+
+  // Récidive auto-détectée — bonus selon type
+  recidiveMatches.forEach(m => {
+    if(m.type === 'email_exact'){
+      score += 30;
+      signals.push({text:`Récidive — ${m.detail}`, pts:'+30', risk:'red'});
+    } else if(m.type === 'email_similaire'){
+      score += 20;
+      signals.push({text:`Email suspect — ${m.detail}`, pts:'+20', risk:'red'});
+    } else if(m.type === 'nom_similaire'){
+      score += 15;
+      signals.push({text:`Identité proche — ${m.detail}`, pts:'+15', risk:'amber'});
+    }
+  });
 
   // Analyse du message
   const scriptPhrases = ['colis vide', 'rien dedans', 'boîte vide', 'jamais reçu', 'pas livré', 'volé', 'manquant'];
@@ -1252,15 +1361,26 @@ function simulateFraud(){
   const message = document.getElementById('sim-message').value || '';
   const marchandId = document.getElementById('sim-marchand').value;
 
+  // ── Auto-détection récidive ──
+  const recidiveMatches = detecterRecidive(prenom, nom, email);
+
+  // Si récidive détectée → cocher automatiquement + afficher alerte
+  if(recidiveMatches.length > 0){
+    document.getElementById('sig-recidive').checked = true;
+    showRecidiveAlert(recidiveMatches);
+  } else {
+    hideRecidiveAlert();
+  }
+
   const params = {
-    motif,
-    message,
+    motif, message,
     vpn: document.getElementById('sig-vpn').checked,
     emailJetable: document.getElementById('sig-email-jetable').checked,
     reseau: document.getElementById('sig-reseau').checked,
     delai: document.getElementById('sig-delai').checked,
     script: document.getElementById('sig-script').checked,
     recidive: document.getElementById('sig-recidive').checked,
+    recidiveMatches,
   };
 
   const result = calculateScore(params);
@@ -2380,7 +2500,100 @@ function renderAffiliationPage(){
   }
 }
 
-// ── ACTIVITY LOG ─────────────────────────────────────────
+// ── ALERTE RÉCIDIVE SIMULATEUR ────────────────────────────
+function showRecidiveAlert(matches){
+  const alert = document.getElementById('recidive-alert');
+  const list = document.getElementById('recidive-alert-list');
+  if(!alert || !list) return;
+  alert.style.display = 'block';
+  list.innerHTML = matches.map(m => {
+    const marchand = m.marchand ? `chez ${m.marchand.nom}` : 'réseau';
+    const date = m.retour.created_at ? new Date(m.retour.created_at).toLocaleDateString('fr-FR') : '—';
+    const typeIcon = m.type==='email_exact'?'📧':m.type==='email_similaire'?'📨':'👤';
+    return `<div style="background:rgba(0,0,0,.2);border-radius:6px;padding:7px 10px;font-size:11px">
+      <span style="margin-right:5px">${typeIcon}</span>
+      <strong>${m.detail}</strong>
+      <span style="color:var(--g1)"> — Score ${m.retour.score}/100 ${marchand} · ${date}</span>
+    </div>`;
+  }).join('');
+  // Auto-cocher récidive
+  document.getElementById('sig-recidive').checked = true;
+  toast('warning', `⚠ Récidiviste détecté`, `${matches.length} correspondance${matches.length>1?'s':''} trouvée${matches.length>1?'s':''} dans la base`);
+}
+
+function hideRecidiveAlert(){
+  const alert = document.getElementById('recidive-alert');
+  if(alert) alert.style.display = 'none';
+}
+
+// ── VUE RÉCIDIVISTES ──────────────────────────────────────
+function getRecidivistes(){
+  // Grouper les retours par email et trouver ceux qui ont ≥2 retours avec score ≥40
+  const byEmail = {};
+  allRetours.forEach(r => {
+    if(!r.client_email || r.score < 40) return;
+    const k = r.client_email.toLowerCase().trim();
+    if(!byEmail[k]) byEmail[k] = [];
+    byEmail[k].push(r);
+  });
+
+  // Récidivistes = même email, ≥2 retours suspects, dans ≥1 boutique
+  return Object.entries(byEmail)
+    .filter(([,rs]) => rs.length >= 2)
+    .map(([email, rs]) => {
+      const marchands = [...new Set(rs.map(r=>r.marchand_id).filter(Boolean))];
+      const scoreMax = Math.max(...rs.map(r=>r.score));
+      const dernierRetour = rs.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at))[0];
+      return { email, retours:rs, nbRetours:rs.length, nbMarchands:marchands.length, scoreMax, dernierRetour };
+    })
+    .sort((a,b) => b.nbMarchands - a.nbMarchands || b.scoreMax - a.scoreMax);
+}
+
+// ── RÉCIDIVISTES ──────────────────────────────────────────
+function switchReseauTab(tab, el){
+  document.querySelectorAll('#reseau-tab-base,#reseau-tab-recidiv').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('reseau-panel-base').style.display = tab==='base' ? 'block' : 'none';
+  document.getElementById('reseau-panel-recidiv').style.display = tab==='recidiv' ? 'block' : 'none';
+  if(tab==='recidiv') renderRecidivistes();
+}
+
+function renderRecidivistes(){
+  const list = getRecidivistes();
+  const badge = document.getElementById('recidiv-count-badge');
+  if(badge) badge.textContent = list.length;
+  document.getElementById('recidiv-sub').textContent = `${list.length} client${list.length>1?'s':''} avec ≥2 retours suspects dans le réseau`;
+
+  const tb = document.getElementById('tb-recidivistes');
+  if(list.length === 0){
+    tb.innerHTML = `<tr><td colspan="6" class="empty-state">Aucun récidiviste détecté — continuez à analyser des retours</td></tr>`;
+    return;
+  }
+  tb.innerHTML = list.map(r => {
+    const sc = r.scoreMax;
+    const pillClass = sc>=75?'pill-red':sc>=50?'pill-red':'pill-amber';
+    const marchands = r.retours.map(ret => {
+      const m = allMarchands.find(x=>x.id===ret.marchand_id);
+      return m ? m.nom : '—';
+    }).filter((v,i,a)=>a.indexOf(v)===i).join(', ');
+    const date = new Date(r.dernierRetour.created_at).toLocaleDateString('fr-FR');
+    return `<tr>
+      <td style="font-family:var(--mono);font-size:11.5px;font-weight:500">${r.email}</td>
+      <td><span class="pill pill-red">${r.nbRetours} retour${r.nbRetours>1?'s':''}</span></td>
+      <td style="font-size:11.5px;color:var(--g1)">${marchands}</td>
+      <td><div class="score-badge" style="background:${sc>=50?'var(--red-dim)':'var(--ad)'};color:${sc>=50?'var(--red)':'var(--amber)'};border:0.5px solid ${sc>=50?'var(--red-b)':'var(--ab)'}">${sc}</div></td>
+      <td style="font-size:11px;color:var(--g2)">${date}</td>
+      <td><span class="pill ${pillClass}">${r.dernierRetour.verdict||'—'}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// Mettre à jour le badge récidivistes quand les retours chargent
+function updateRecidivBadge(){
+  const list = getRecidivistes();
+  const badge = document.getElementById('recidiv-count-badge');
+  if(badge) badge.textContent = list.length;
+}
 let activityLog = [];
 try {
   const saved = localStorage.getItem('rs_log');
