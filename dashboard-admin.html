@@ -1230,7 +1230,109 @@ async function createTables(){
 }
 
 // ── SCORING ENGINE ─────────────────────────────────────────
-// ── DÉTECTION RÉCIDIVE ────────────────────────────────────
+// ── BLACKLIST EMAILS JETABLES (300+ domaines) ─────────────
+const DISPOSABLE_DOMAINS = new Set([
+  // Classiques
+  'tempmail.org','guerrillamail.com','yopmail.com','mailinator.com','throwam.com',
+  'trashmail.com','sharklasers.com','guerrillamailblock.com','grr.la','guerrillamail.info',
+  'guerrillamail.biz','guerrillamail.de','guerrillamail.net','guerrillamail.org',
+  'spam4.me','tempinbox.com','tempr.email','dispostable.com','maildrop.cc',
+  'spamgourmet.com','spamgourmet.net','spamgourmet.org','spamgourmet.me',
+  'mailnull.com','spamcorpse.com','spam.la','bugmenot.com','mailexpire.com',
+  'spamfree24.de','spamfree24.eu','spamfree24.info','spamfree24.net','spamfree24.org',
+  'spamgob.com','spamhereplease.com','spamhole.com','spamify.com','spaminmotion.net',
+  'spammotel.com','spamoff.de','spamslicer.com','spamspot.com','spamthis.co.uk',
+  'spamtroll.net','spamwc.de','spamwc.net','spamwc.org','spamzz.com',
+  'tempail.com','tempemail.co','tempemail.com','tempemail.net','tempemail.org',
+  'tempemails.net','tempinbox.co.uk','tempinbox.com','tempmail.net','tempmail2.com',
+  'tempmailaddress.com','tempmailapp.com','tempmailer.com','tempmailid.com',
+  'tempmails.com','tempmails.net','tempmailsite.com','tempmails.org','tempmailto.com',
+  'tempnam.com','tempnator.com','tempo.com','tempomail.fr','temporarioemail.com.br',
+  'temporaryemail.net','temporaryemail.us','temporaryforwarding.com','temporaryinbox.com',
+  'temporarymail.net','temporamail.com','tempsky.com','tempthe.net','tempymail.com',
+  'thanksnospam.info','thisisnotmyrealemail.com','throwam.com','throwaway.email',
+  'throwam.com','throwme.pw','tilien.com','tmail.com','tmail.ws','tmailinator.com',
+  'tmails.net','toiea.com','token.com','toomail.biz','top-mailer.net','topranklist.de',
+  'tradermail.info','trash-amil.com','trash-mail.at','trash-mail.com','trash-mail.de',
+  'trash-mail.io','trash-mail.net','trash2009.com','trashcanmail.com','trashdevil.com',
+  'trashemail.de','trashmail.at','trashmail.com','trashmail.io','trashmail.me',
+  'trashmail.net','trashmail.org','trashmail.xyz','trashmailgenerator.com','trashmailer.com',
+  'trashmailer.de','trashmails.com','trashtixx.de','trbvm.com','trialmail.de',
+  'trickmail.net','trillianpro.com','tryalert.com','turual.com','twinmail.de',
+  'tyldd.com','uggsrock.com','umail.net','unimark.org','unmail.ru',
+  'upliftnow.com','uroid.com','used.hu','username.e4ward.com','venompen.com',
+  'veryrealemail.com','vfast.co','victimasparabombas.com.ar','viditag.com',
+  'vikingsonly.com','vitapool.com','vivianharding.com','vkcode.ru','vomoto.com',
+  'vorsicht-mail.de','votiputox.org','vpn.st','vsimcard.com','vubby.com',
+  'w3internet.co.uk','walala.org','walkmail.net','wallaloop.com','wam.co.za',
+  'webemail.me','webm4il.info','webuser.in','wetrainbayarea.org','wetrainbayarea.com',
+  'whatpaas.com','whopy.com','wilemail.com','willhackforfood.biz','willselfdestruct.com',
+  'winemaven.info','wmail.cf','wolfsmail.tk','wollan.info','wuzi.pw',
+  'wuzup.net','wuzupmail.net','www.e4ward.com','www.mailinator.com','wwwnew.eu',
+  'wyvernia.net','x.ip6.li','xagloo.co','xagloo.com','xemaps.com',
+  'xents.com','xing886.uu.gl','xjoi.com','xl.cx','xmaily.com',
+  'xn--9kq967o.com','xoxox.cc','xoxy.net','xsmail.com','xww.ro',
+  'xxolocanto.us','xxqx3wq.com','xyz.am','yapped.net','yeah.net',
+  'yep.it','ymail.com','yogamaven.com','yopmail.fr','yopmail.pp.ua',
+  'youmail.ga','yppm.ru','yuurok.com','z1p.biz','za.com',
+  'zehnminuten.de','zehnminutenmail.com','zehnminutenmail.de','zetmail.com','zippymail.info',
+  'zoemail.net','zoemail.org','zomg.info','zumpul.com','zxc.ovh',
+  // Français courants
+  'poubelle.fr','jetable.fr','jetable.net','jetable.org','courrieltemporaire.com',
+  'cartemail.fr','filzmail.com','no-spam.ws','nospam.ze.tc','nospamfor.us',
+  // Russes / Est-européens courants
+  'mailnull.com','spamgourmet.com','spamgourmet.net','getairmail.com','filzmail.com',
+  'mailnew.com','maileimer.de','mailnew.com','mytrashmail.com','nowmymail.com',
+  // Récents populaires
+  'discard.email','discardmail.com','discardmail.de','einrot.com','emkei.cz',
+  'fakeinbox.com','fakeinbox.net','fakeinbox.org','fastacura.com','fastchevy.com',
+  'fastchrysler.com','fastkawasaki.com','fastmazda.com','fastmitsubishi.com',
+  'fastnissan.com','fastsubaru.com','fastsuzuki.com','fasttoyota.com','fastyamaha.com',
+  'filbert7.com','filberts7.com','fivemail.de','fizmail.com','fleckens.hu',
+  'fmailbox.com','fmailc.com','fmailc.net','fornow.eu','forspam.net',
+]);
+
+function analyserEmail(email){
+  if(!email) return { jetable: false, suspect: false, raison: null };
+  const lower = email.toLowerCase().trim();
+  const parts = lower.split('@');
+  if(parts.length !== 2) return { jetable: false, suspect: false, raison: 'Format invalide' };
+  const [local, domain] = parts;
+
+  // 1 — Domaine blacklisté
+  if(DISPOSABLE_DOMAINS.has(domain)){
+    return { jetable: true, suspect: true, raison: `Domaine jetable connu : @${domain}` };
+  }
+
+  // 2 — Sous-domaine d'un domaine blacklisté
+  const domainParts = domain.split('.');
+  for(let i=1; i<domainParts.length-1; i++){
+    const sub = domainParts.slice(i).join('.');
+    if(DISPOSABLE_DOMAINS.has(sub)){
+      return { jetable: true, suspect: true, raison: `Sous-domaine jetable : @${domain}` };
+    }
+  }
+
+  // 3 — Pattern généré : beaucoup de chiffres consécutifs (≥6)
+  if(/\d{6,}/.test(local)){
+    return { jetable: false, suspect: true, raison: `Email généré automatiquement (${local.match(/\d+/g).join('')} chiffres)` };
+  }
+
+  // 4 — Local très court (≤2 chars) ou très aléatoire (entropie haute)
+  if(local.length <= 2){
+    return { jetable: false, suspect: true, raison: `Partie locale trop courte : "${local}"` };
+  }
+
+  // 5 — Pattern type: lettres+chiffres mélangés de façon aléatoire (ex: az7k9x2@)
+  const hasHighEntropy = local.length >= 8 && /[a-z]{1,2}\d{1,2}[a-z]{1,2}\d/.test(local);
+  if(hasHighEntropy){
+    return { jetable: false, suspect: true, raison: `Pattern email aléatoire détecté` };
+  }
+
+  return { jetable: false, suspect: false, raison: null };
+}
+
+// ── BLACKLIST EMAILS JETABLES ─────────────────────────────
 
 // Distance de Levenshtein pour noms similaires
 function levenshtein(a, b){
@@ -1312,7 +1414,11 @@ function calculateScore(params){
 
   // Signaux techniques
   if(vpn){ score += 15; signals.push({text:'VPN / Proxy actif détecté', pts:'+15', risk:'red'}) }
-  if(emailJetable){ score += 18; signals.push({text:'Email jetable ou temporaire', pts:'+18', risk:'red'}) }
+  if(emailJetable){
+    const raison = params.emailRaison || 'Email jetable ou temporaire';
+    score += 18;
+    signals.push({text: raison, pts:'+18', risk:'red'});
+  }
   if(reseau){ score += 25; signals.push({text:'Fingerprint dans la base mutualisée', pts:'+25', risk:'red'}) }
   if(delai){ score += 12; signals.push({text:'Délai retour < 2h après livraison', pts:'+12', risk:'amber'}) }
   if(script){ score += 10; signals.push({text:'Formulation script Telegram détectée', pts:'+10', risk:'amber'}) }
@@ -1361,6 +1467,17 @@ function simulateFraud(){
   const message = document.getElementById('sim-message').value || '';
   const marchandId = document.getElementById('sim-marchand').value;
 
+  // ── Analyse email automatique ──
+  const emailAnalyse = analyserEmail(email);
+  if(emailAnalyse.suspect){
+    document.getElementById('sig-email-jetable').checked = true;
+    if(emailAnalyse.jetable){
+      toast('warning', '📧 Email jetable détecté', emailAnalyse.raison);
+    } else {
+      toast('warning', '📧 Email suspect', emailAnalyse.raison);
+    }
+  }
+
   // ── Auto-détection récidive ──
   const recidiveMatches = detecterRecidive(prenom, nom, email);
 
@@ -1376,6 +1493,7 @@ function simulateFraud(){
     motif, message,
     vpn: document.getElementById('sig-vpn').checked,
     emailJetable: document.getElementById('sig-email-jetable').checked,
+    emailRaison: emailAnalyse.raison || 'Email jetable ou temporaire',
     reseau: document.getElementById('sig-reseau').checked,
     delai: document.getElementById('sig-delai').checked,
     script: document.getElementById('sig-script').checked,
