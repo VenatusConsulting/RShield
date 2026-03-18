@@ -203,7 +203,7 @@ tr:hover td{background:rgba(255,255,255,.015)}
 .search-bar input{background:var(--s2);border:0.5px solid var(--b2);border-radius:7px;padding:6px 12px 6px 32px;font-family:var(--f);font-size:12px;color:var(--w);outline:none;width:200px;transition:all .2s}
 .search-bar input:focus{border-color:var(--red-b);width:260px}
 .search-bar svg{position:absolute;left:9px;width:13px;height:13px;color:var(--g2);pointer-events:none}
-.search-results{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--s1);border:0.5px solid var(--b2);border-radius:9px;overflow:hidden;box-shadow:0 12px 32px rgba(0,0,0,.5);z-index:200;display:none;min-width:280px}
+.search-results{position:fixed;top:60px;background:var(--s1);border:0.5px solid var(--b2);border-radius:9px;overflow:hidden;box-shadow:0 12px 32px rgba(0,0,0,.6);z-index:999;display:none;min-width:300px;max-width:400px}
 .search-results.show{display:block}
 .sr-item{padding:10px 14px;cursor:pointer;transition:background .15s;display:flex;align-items:center;gap:10px;border-bottom:0.5px solid var(--b)}
 .sr-item:last-child{border-bottom:none}
@@ -317,7 +317,7 @@ tr:hover td{background:rgba(255,255,255,.015)}
       <!-- Recherche globale -->
       <div class="search-bar" id="search-wrap">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6.5" cy="6.5" r="4.5"/><path d="M11 11l3 3"/></svg>
-        <input type="text" id="search-input" placeholder="Rechercher…" oninput="globalSearch(this.value)" onblur="setTimeout(()=>hideSearch(),200)">
+        <input type="text" id="search-input" placeholder="Rechercher…" oninput="globalSearch(this.value)" autocomplete="off">
         <div class="search-results" id="search-results"></div>
       </div>
       <div class="tb-live"><span class="tb-dot"></span>Live</div>
@@ -2000,6 +2000,225 @@ function renderScoring(){
       <div style="font-size:10.5px;color:var(--g1);margin-top:4px">Retours avec signaux détectés</div>
     </div>`;
 }
+// ── ACTIVITY LOG ──────────────────────────────────────────
+let activityLog = [];
+try { activityLog = JSON.parse(localStorage.getItem('rs_log') || '[]'); } catch(e) {}
+
+function addLog(type, title, sub){
+  const entry = { type, title, sub, ts: Date.now() };
+  activityLog.unshift(entry);
+  if(activityLog.length > 200) activityLog = activityLog.slice(0,200);
+  try { localStorage.setItem('rs_log', JSON.stringify(activityLog)); } catch(e) {}
+  const badge = document.getElementById('sb-count-log');
+  if(badge) badge.textContent = activityLog.filter(l => l.ts > Date.now()-86400000).length;
+  if(document.getElementById('page-log')?.classList.contains('active')) renderLog();
+}
+
+function renderLog(){
+  const list = document.getElementById('log-list');
+  if(!list) return;
+  const f = document.getElementById('log-filter')?.value || '';
+  const logs = f ? activityLog.filter(l => l.type === f) : activityLog;
+  const countEl = document.getElementById('log-count');
+  if(countEl) countEl.textContent = `${logs.length} événement${logs.length>1?'s':''}`;
+  const iconMap = {
+    fraud:  { bg:'var(--red-dim)', icon:'⚠' },
+    marchand:{ bg:'var(--bd)',      icon:'👤' },
+    plan:   { bg:'var(--ad)',       icon:'💳' },
+    system: { bg:'rgba(255,255,255,.06)', icon:'⚙' },
+  };
+  if(logs.length === 0){
+    list.innerHTML = `<div class="empty-state" style="padding:48px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12M2 7h8M2 10h6"/></svg>Aucun événement enregistré</div>`;
+    return;
+  }
+  list.innerHTML = logs.map(l => {
+    const ic = iconMap[l.type] || iconMap.system;
+    const ago = getTimeAgo(l.ts);
+    return `<div class="log-item">
+      <div class="log-icon" style="background:${ic.bg}">${ic.icon}</div>
+      <div class="log-content">
+        <div class="log-title">${l.title}</div>
+        <div class="log-sub">${l.sub}</div>
+      </div>
+      <div class="log-time">${ago}</div>
+    </div>`;
+  }).join('');
+}
+
+function filterLog(){ renderLog(); }
+
+function getTimeAgo(ts){
+  const d = Date.now() - ts;
+  if(d < 60000) return 'À l\'instant';
+  if(d < 3600000) return `${Math.floor(d/60000)} min`;
+  if(d < 86400000) return `${Math.floor(d/3600000)}h`;
+  return new Date(ts).toLocaleDateString('fr-FR');
+}
+
+// ── CSV EXPORT ─────────────────────────────────────────────
+function exportCSV(type){
+  let rows = [], headers = [], filename = '';
+
+  if(type === 'retours'){
+    headers = ['Prénom','Nom','Email','Motif','Produit','Montant','Score','Verdict','Action','Date'];
+    rows = allRetours.map(r => [
+      r.client_prenom||'', r.client_nom||'', r.client_email||'',
+      r.motif||'', r.produit||'', r.montant||0,
+      r.score||0, r.verdict||'', r.action_recommandee||'',
+      new Date(r.created_at).toLocaleDateString('fr-FR')
+    ]);
+    filename = `refundshield-retours-${new Date().toISOString().slice(0,10)}.csv`;
+  } else if(type === 'marchands'){
+    headers = ['Nom','Domaine','Email','Plan','Plateforme','Commandes/mois','Actif','Inscrit le'];
+    rows = allMarchands.map(m => [
+      m.nom||'', m.domaine||'', m.email||'',
+      m.plan||'', m.platform||'', m.commandes_mois||0,
+      m.actif !== false ? 'Oui' : 'Non',
+      new Date(m.created_at).toLocaleDateString('fr-FR')
+    ]);
+    filename = `refundshield-marchands-${new Date().toISOString().slice(0,10)}.csv`;
+  } else if(type === 'log'){
+    headers = ['Type','Titre','Détail','Date'];
+    rows = activityLog.map(l => [
+      l.type||'', l.title||'', l.sub||'',
+      new Date(l.ts).toLocaleString('fr-FR')
+    ]);
+    filename = `refundshield-log-${new Date().toISOString().slice(0,10)}.csv`;
+  }
+
+  if(rows.length === 0){
+    toast('warning', 'Export vide', 'Aucune donnée à exporter');
+    return;
+  }
+
+  const escape = v => `"${String(v||'').replace(/"/g,'""')}"`;
+  const csv = [headers, ...rows].map(r => r.map(escape).join(',')).join('\r\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  toast('success', 'Export CSV', `${rows.length} ligne${rows.length>1?'s':''} exportée${rows.length>1?'s':''}`);
+  addLog('system', 'Export CSV', `${type} — ${rows.length} lignes`);
+}
+
+// ── SEARCH ─────────────────────────────────────────────────
+function globalSearch(q){
+  const box = document.getElementById('search-results');
+  if(!box) return;
+  if(!q || q.length < 2){ box.classList.remove('show'); return; }
+  q = q.toLowerCase();
+  const results = [];
+  allMarchands.filter(m =>
+    (m.nom||'').toLowerCase().includes(q) ||
+    (m.domaine||'').toLowerCase().includes(q) ||
+    (m.email||'').toLowerCase().includes(q)
+  ).slice(0,3).forEach(m => results.push({ type:'marchand', label:m.nom, sub:m.domaine, color:'var(--blue)', id:m.id }));
+  allRetours.filter(r =>
+    (r.client_email||'').toLowerCase().includes(q) ||
+    ((r.client_prenom||'')+' '+(r.client_nom||'')).toLowerCase().includes(q) ||
+    (r.produit||'').toLowerCase().includes(q)
+  ).slice(0,4).forEach(r => results.push({
+    type:'retour',
+    label:`${r.client_prenom||''} ${r.client_nom||''}`,
+    sub:`Score ${r.score} · ${r.verdict}`,
+    color: r.score >= 50 ? 'var(--red)' : 'var(--green)',
+    id: r.marchand_id || ''
+  }));
+  if(results.length === 0){
+    box.innerHTML = `<div style="padding:12px 14px;font-size:12px;color:var(--g2)">Aucun résultat pour "${q}"</div>`;
+  } else {
+    box.innerHTML = results.map(r => `
+      <div class="sr-item" onmousedown="searchGoTo('${r.type}','${r.id||''}')">
+        <span class="sr-type" style="background:${r.color}22;color:${r.color}">${r.type}</span>
+        <div>
+          <div style="font-size:12.5px;font-weight:500">${r.label}</div>
+          <div style="font-size:10.5px;color:var(--g1)">${r.sub}</div>
+        </div>
+      </div>`).join('');
+  }
+  // Position sous le champ de recherche
+  const input = document.getElementById('search-input');
+  if(input){
+    const rect = input.getBoundingClientRect();
+    box.style.left = rect.left + 'px';
+    box.style.top = (rect.bottom + 6) + 'px';
+    box.style.width = Math.max(300, rect.width) + 'px';
+  }
+  box.classList.add('show');
+}
+
+function searchGoTo(type, id){
+  hideSearch();
+  document.getElementById('search-input').value = '';
+  if(type === 'marchand' && id) openFiche(id);
+  else showPage('retours');
+}
+
+function hideSearch(){
+  const box = document.getElementById('search-results');
+  if(box) box.classList.remove('show');
+}
+
+// Fermer la recherche au clic extérieur
+document.addEventListener('click', e => {
+  const wrap = document.getElementById('search-wrap');
+  const box = document.getElementById('search-results');
+  if(wrap && box && !wrap.contains(e.target) && !box.contains(e.target)){
+    hideSearch();
+  }
+});
+
+// ── SETTINGS ──────────────────────────────────────────────
+let adminSettings = {};
+try { adminSettings = JSON.parse(localStorage.getItem('rs_settings') || '{}'); } catch(e) {}
+
+function saveSettings(){
+  adminSettings.blockThreshold = parseInt(document.getElementById('set-block').value) || 75;
+  adminSettings.proofThreshold = parseInt(document.getElementById('set-proof').value) || 50;
+  adminSettings.modThreshold   = parseInt(document.getElementById('set-mod').value)   || 30;
+  adminSettings.wNet   = parseInt(document.getElementById('set-w-net').value)   || 25;
+  adminSettings.wVpn   = parseInt(document.getElementById('set-w-vpn').value)   || 15;
+  adminSettings.wEmail = parseInt(document.getElementById('set-w-email').value) || 18;
+  try { localStorage.setItem('rs_settings', JSON.stringify(adminSettings)); } catch(e) {}
+  toast('success', 'Seuils sauvegardés', 'Moteur de scoring mis à jour');
+  addLog('system', 'Seuils mis à jour', `Blocage ≥${adminSettings.blockThreshold} · Preuves ≥${adminSettings.proofThreshold}`);
+}
+
+function toggleSetting(el){ el.classList.toggle('on'); }
+
+function loadSettings(){
+  const s = adminSettings;
+  if(s.blockThreshold) document.getElementById('set-block').value = s.blockThreshold;
+  if(s.proofThreshold) document.getElementById('set-proof').value = s.proofThreshold;
+  if(s.modThreshold)   document.getElementById('set-mod').value   = s.modThreshold;
+  if(s.wNet)   document.getElementById('set-w-net').value   = s.wNet;
+  if(s.wVpn)   document.getElementById('set-w-vpn').value   = s.wVpn;
+  if(s.wEmail) document.getElementById('set-w-email').value = s.wEmail;
+}
+
+async function renderSettings(){
+  loadSettings();
+  document.getElementById('set-total-retours').textContent   = allRetours.length;
+  document.getElementById('set-total-marchands').textContent = allMarchands.length;
+  try {
+    const { count } = await db.from('reseau_fraudeurs').select('*', { count:'exact', head:true });
+    document.getElementById('set-total-fraudeurs').textContent = count || 0;
+  } catch(e) { document.getElementById('set-total-fraudeurs').textContent = '—'; }
+}
+
+async function purgeTestData(){
+  const { error } = await db.from('retours').delete().eq('sauvegarde', false);
+  if(error){ toast('error','Erreur',error.message); return; }
+  toast('success', 'Données purgées', 'Retours non sauvegardés supprimés');
+  addLog('system', 'Purge données de test', 'Retours sauvegarde=false supprimés');
+  await loadAll();
+}
+
 initDB();
 </script>
 </body>
