@@ -122,9 +122,26 @@ tr:hover td{background:rgba(255,255,255,.015)}
 .sr-pts{margin-left:auto;font-family:var(--mono);font-size:10px;font-weight:600}
 
 /* ── MERCHANTS ── */
-.merchant-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-.merchant-card{background:var(--s1);border:0.5px solid var(--b);border-radius:11px;padding:16px;transition:border-color .2s,transform .2s;cursor:default}
-.merchant-card:hover{border-color:var(--b2);transform:translateY(-1px)}
+/* ── FICHE MARCHAND ── */
+.merchant-card{background:var(--s1);border:0.5px solid var(--b);border-radius:11px;padding:16px;transition:border-color .2s,transform .2s;cursor:pointer}
+.merchant-card:hover{border-color:var(--red-b);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.fiche-header{background:var(--s1);border:0.5px solid var(--b);border-radius:14px;padding:24px 28px;margin-bottom:16px;position:relative;overflow:hidden}
+.fiche-header::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--red-b),transparent)}
+.fiche-av{width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0}
+.fiche-metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px}
+.fiche-metric{background:var(--s1);border:0.5px solid var(--b);border-radius:10px;padding:14px 16px}
+.fiche-metric-val{font-size:1.5rem;font-weight:700;letter-spacing:-.03em;line-height:1;margin-bottom:3px}
+.fiche-metric-lbl{font-size:10px;color:var(--g1)}
+.chart-wrap{background:var(--s1);border:0.5px solid var(--b);border-radius:12px;padding:18px;margin-bottom:16px}
+.chart-bars{display:flex;align-items:flex-end;gap:6px;height:80px;margin-top:12px}
+.chart-bar-group{flex:1;display:flex;gap:2px;align-items:flex-end}
+.chart-bar{flex:1;border-radius:3px 3px 0 0;transition:height .6s ease,opacity .2s;min-height:2px;position:relative}
+.chart-bar:hover::after{content:attr(data-val);position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:9px;white-space:nowrap;color:var(--w);font-family:var(--mono)}
+.chart-labels{display:flex;gap:6px;margin-top:6px}
+.chart-label{flex:1;text-align:center;font-size:9px;color:var(--g2)}
+.fiche-tabs{display:flex;gap:4px;margin-bottom:14px;background:var(--s1);border:0.5px solid var(--b);border-radius:9px;padding:4px}
+.fiche-tab{flex:1;padding:7px;text-align:center;font-size:12px;font-weight:500;border-radius:6px;cursor:pointer;transition:all .15s;color:var(--g1)}
+.fiche-tab.active{background:var(--s2);color:var(--w);border:0.5px solid var(--b2)}
 .mc-top{display:flex;align-items:center;gap:10px;margin-bottom:12px}
 .mc-av{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
 .mc-name{font-size:13px;font-weight:600;letter-spacing:-.01em}
@@ -202,6 +219,7 @@ tr:hover td{background:rgba(255,255,255,.015)}
 <!-- MAIN -->
 <main class="main">
   <div class="topbar">
+    <button id="topbar-back" onclick="showPage('marchands')" style="display:none;background:transparent;border:0.5px solid var(--b2);border-radius:6px;padding:5px 12px;font-family:var(--f);font-size:12px;color:var(--g1);cursor:pointer;transition:all .15s" onmouseover="this.style.color='var(--w)'" onmouseout="this.style.color='var(--g1)'">← Marchands</button>
     <div>
       <span class="topbar-title" id="topbar-title">Vue d'ensemble</span>
       <span class="topbar-sub" id="topbar-sub">— Tableau de bord admin</span>
@@ -286,6 +304,106 @@ tr:hover td{background:rgba(255,255,255,.015)}
           <tbody id="tb-all-retours">
             <tr><td colspan="9" class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16v.01"/></svg>Aucun retour — utilisez le simulateur</td></tr>
           </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── PAGE : FICHE MARCHAND ── -->
+    <div class="page" id="page-fiche-marchand">
+      <!-- Header -->
+      <div class="fiche-header">
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
+          <div class="fiche-av" id="fiche-av"></div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+              <h2 style="font-size:18px;font-weight:700;letter-spacing:-.02em" id="fiche-nom">—</h2>
+              <span class="pill" id="fiche-plan-pill">—</span>
+              <span class="pill" id="fiche-actif-pill">—</span>
+            </div>
+            <div style="display:flex;gap:16px;font-size:12px;color:var(--g1)">
+              <span id="fiche-domaine">—</span>
+              <span>·</span>
+              <span id="fiche-platform">—</span>
+              <span>·</span>
+              <span id="fiche-email">—</span>
+              <span>·</span>
+              <span>Inscrit <strong id="fiche-date" style="color:var(--w)">—</strong></span>
+              <span>·</span>
+              <span><strong id="fiche-anciennete" style="color:var(--w)">—</strong></span>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn-sm btn-ghost" onclick="toggleSuspend()"><span id="fiche-suspend-label">Suspendre</span></button>
+            <button class="btn-sm btn-ghost" onclick="openChangePlan()">Changer plan</button>
+            <button class="btn-sm btn-red" onclick="sendRapportJ15()">📄 Rapport J+15</button>
+          </div>
+        </div>
+        <!-- Quick stats row -->
+        <div class="fiche-metrics">
+          <div class="fiche-metric">
+            <div class="fiche-metric-val" id="fiche-m-retours">—</div>
+            <div class="fiche-metric-lbl">Retours analysés</div>
+          </div>
+          <div class="fiche-metric">
+            <div class="fiche-metric-val" id="fiche-m-fraudes" style="color:var(--red)">—</div>
+            <div class="fiche-metric-lbl">Fraudes bloquées</div>
+          </div>
+          <div class="fiche-metric">
+            <div class="fiche-metric-val" id="fiche-m-economies" style="color:var(--green)">—</div>
+            <div class="fiche-metric-lbl">Économies générées</div>
+          </div>
+          <div class="fiche-metric">
+            <div class="fiche-metric-val" id="fiche-m-roi" style="color:var(--amber)">—</div>
+            <div class="fiche-metric-lbl">ROI (vs abonnement)</div>
+          </div>
+          <div class="fiche-metric">
+            <div class="fiche-metric-val" id="fiche-m-score">—</div>
+            <div class="fiche-metric-lbl">Score moyen fraudes</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart -->
+      <div class="chart-wrap">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-size:13px;font-weight:600">Activité des retours</div>
+            <div style="font-size:11px;color:var(--g1);margin-top:2px">7 derniers jours — frauduleux vs légitimes</div>
+          </div>
+          <div style="display:flex;gap:12px;font-size:11px">
+            <div style="display:flex;align-items:center;gap:5px"><div style="width:8px;height:8px;border-radius:2px;background:var(--red)"></div>Frauduleux</div>
+            <div style="display:flex;align-items:center;gap:5px"><div style="width:8px;height:8px;border-radius:2px;background:var(--green)"></div>Légitimes</div>
+          </div>
+        </div>
+        <div class="chart-bars" id="fiche-chart-bars"></div>
+        <div class="chart-labels" id="fiche-chart-labels"></div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="fiche-tabs">
+        <div class="fiche-tab active" onclick="switchFicheTab('tous',this)">Tous les retours</div>
+        <div class="fiche-tab" onclick="switchFicheTab('fraudes',this)">Fraudes bloquées</div>
+        <div class="fiche-tab" onclick="switchFicheTab('legitimes',this)">Retours légitimes</div>
+        <div class="fiche-tab" onclick="switchFicheTab('reseau',this)">Base réseau</div>
+      </div>
+
+      <!-- Tab content -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title" id="fiche-tab-title">Tous les retours</div>
+          <div class="card-sub" id="fiche-tab-count">—</div>
+        </div>
+        <table id="fiche-table-retours">
+          <thead><tr>
+            <th>Client</th><th>Motif</th><th>Montant</th><th>Score</th><th>Signaux</th><th>Verdict</th><th>Date</th>
+          </tr></thead>
+          <tbody id="fiche-tb"></tbody>
+        </table>
+        <table id="fiche-table-reseau" style="display:none">
+          <thead><tr>
+            <th>Fingerprint</th><th>Email</th><th>Tentatives</th><th>Dernière activité</th>
+          </tr></thead>
+          <tbody id="fiche-tb-reseau"></tbody>
         </table>
       </div>
     </div>
@@ -460,6 +578,30 @@ tr:hover td{background:rgba(255,255,255,.015)}
 
   </div><!-- /content -->
 </main>
+
+<!-- MODAL : Changer plan -->
+<div class="modal-overlay" id="modal-plan">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Changer le plan</div>
+      <div class="modal-close" onclick="closeModal('modal-plan')">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>Nouveau plan</label>
+        <select id="change-plan-select">
+          <option value="starter">Starter — 29€/mois (&lt;500 cmds)</option>
+          <option value="pro">Pro — 79€/mois (500–3 000 cmds)</option>
+          <option value="business">Business — 199€/mois (3 000+)</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm btn-ghost" onclick="closeModal('modal-plan')">Annuler</button>
+      <button class="btn-sm btn-red" onclick="savePlanChange()">Confirmer le changement →</button>
+    </div>
+  </div>
+</div>
 
 <!-- MODAL : Ajouter marchand -->
 <div class="modal-overlay" id="modal-marchand">
@@ -795,7 +937,217 @@ function resetSim(){
   currentReturn = null;
 }
 
-// ── MARCHANDS ─────────────────────────────────────────────
+// ── FICHE MARCHAND ───────────────────────────────────────
+let currentMarchand = null;
+let ficheTabMode = 'tous';
+
+async function openFiche(marchandId){
+  const m = allMarchands.find(x => x.id === marchandId);
+  if(!m) return;
+  currentMarchand = m;
+
+  // Nav
+  showPage('fiche-marchand');
+  document.getElementById('topbar-title').textContent = m.nom;
+  document.getElementById('topbar-sub').textContent = `— Fiche marchand`;
+
+  // Header infos
+  const ci = allMarchands.indexOf(m) % AVATAR_COLORS.length;
+  const initiales = (m.nom||'?').slice(0,2).toUpperCase();
+  const av = document.getElementById('fiche-av');
+  av.textContent = initiales;
+  av.style.background = AVATAR_COLORS[ci];
+  av.style.color = AVATAR_TEXT[ci];
+
+  document.getElementById('fiche-nom').textContent = m.nom;
+  document.getElementById('fiche-domaine').textContent = m.domaine;
+  document.getElementById('fiche-platform').textContent = m.platform;
+  document.getElementById('fiche-email').textContent = m.email || '—';
+
+  // Date inscription + ancienneté
+  const created = new Date(m.created_at);
+  const now = new Date();
+  const diffDays = Math.floor((now - created) / 86400000);
+  const diffMonths = Math.floor(diffDays / 30);
+  document.getElementById('fiche-date').textContent = created.toLocaleDateString('fr-FR', {day:'2-digit',month:'long',year:'numeric'});
+  document.getElementById('fiche-anciennete').textContent = diffDays < 1 ? "Aujourd'hui" : diffDays < 30 ? `${diffDays} jour${diffDays>1?'s':''}` : `${diffMonths} mois`;
+
+  // Plan pill
+  const planColors = {starter:'pill-blue',pro:'pill-red',business:'pill-amber'};
+  const planLabels = {starter:'Starter 29€',pro:'Pro 79€',business:'Business 199€'};
+  document.getElementById('fiche-plan-pill').className = `pill ${planColors[m.plan]||'pill-gray'}`;
+  document.getElementById('fiche-plan-pill').textContent = planLabels[m.plan]||m.plan;
+  document.getElementById('fiche-actif-pill').className = `pill ${m.actif!==false?'pill-green':'pill-gray'}`;
+  document.getElementById('fiche-actif-pill').textContent = m.actif!==false ? 'Actif' : 'Suspendu';
+  document.getElementById('fiche-suspend-label').textContent = m.actif!==false ? 'Suspendre' : 'Réactiver';
+
+  // Retours de ce marchand
+  const retours = allRetours.filter(r => r.marchand_id === m.id);
+  const fraudes = retours.filter(r => r.score >= 50);
+  const legitimes = retours.filter(r => r.score < 30);
+  const economies = fraudes.reduce((s,r) => s+r.montant, 0);
+  const prix = PLAN_PRICES[m.plan] || 29;
+  const roi = prix > 0 ? Math.round(economies / prix) : 0;
+  const scoreMoyen = fraudes.length > 0 ? Math.round(fraudes.reduce((s,r)=>s+r.score,0)/fraudes.length) : 0;
+
+  document.getElementById('fiche-m-retours').textContent = retours.length;
+  document.getElementById('fiche-m-fraudes').textContent = fraudes.length;
+  document.getElementById('fiche-m-economies').textContent = economies > 0 ? `${economies}€` : '0€';
+  document.getElementById('fiche-m-roi').textContent = roi > 0 ? `${roi}×` : '—';
+  document.getElementById('fiche-m-score').textContent = scoreMoyen > 0 ? `${scoreMoyen}/100` : '—';
+
+  // Chart 7 jours
+  buildChart(retours);
+
+  // Table
+  ficheTabMode = 'tous';
+  document.querySelectorAll('.fiche-tab').forEach((t,i) => t.classList.toggle('active', i===0));
+  renderFicheTab(retours);
+}
+
+function buildChart(retours){
+  const bars = document.getElementById('fiche-chart-bars');
+  const labels = document.getElementById('fiche-chart-labels');
+  const days = [];
+  for(let i=6;i>=0;i--){
+    const d = new Date();
+    d.setDate(d.getDate()-i);
+    days.push(d);
+  }
+  const maxVal = Math.max(...days.map(d => {
+    const dayStr = d.toDateString();
+    return retours.filter(r => new Date(r.created_at).toDateString()===dayStr).length;
+  }), 1);
+
+  bars.innerHTML = days.map(d => {
+    const dayStr = d.toDateString();
+    const dayRetours = retours.filter(r => new Date(r.created_at).toDateString()===dayStr);
+    const fraud = dayRetours.filter(r=>r.score>=50).length;
+    const legit = dayRetours.filter(r=>r.score<30).length;
+    const fH = Math.max((fraud/maxVal)*76, fraud>0?4:0);
+    const lH = Math.max((legit/maxVal)*76, legit>0?4:0);
+    return `<div class="chart-bar-group">
+      <div class="chart-bar" style="height:${fH}px;background:var(--red);opacity:.8" data-val="${fraud} fraude${fraud>1?'s':''}"></div>
+      <div class="chart-bar" style="height:${lH}px;background:var(--green);opacity:.6" data-val="${legit} légitime${legit>1?'s':''}"></div>
+    </div>`;
+  }).join('');
+
+  labels.innerHTML = days.map(d => {
+    const label = d.toLocaleDateString('fr-FR',{weekday:'short'}).slice(0,3);
+    return `<div class="chart-label">${label}</div>`;
+  }).join('');
+}
+
+function switchFicheTab(mode, el){
+  ficheTabMode = mode;
+  document.querySelectorAll('.fiche-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  const retours = allRetours.filter(r => r.marchand_id === currentMarchand?.id);
+  renderFicheTab(retours);
+}
+
+function renderFicheTab(retours){
+  const tableRetours = document.getElementById('fiche-table-retours');
+  const tableReseau = document.getElementById('fiche-table-reseau');
+  const tb = document.getElementById('fiche-tb');
+  const tbReseau = document.getElementById('fiche-tb-reseau');
+  const title = document.getElementById('fiche-tab-title');
+  const count = document.getElementById('fiche-tab-count');
+
+  if(ficheTabMode === 'reseau'){
+    tableRetours.style.display = 'none';
+    tableReseau.style.display = 'table';
+    title.textContent = 'Base réseau — fraudeurs identifiés';
+    // Load réseau for this merchant
+    db.from('reseau_fraudeurs').select('*').then(({data}) => {
+      const merchantData = (data||[]).filter(r => (r.marchands_touches||[]).includes(currentMarchand.id));
+      count.textContent = `${merchantData.length} profil${merchantData.length>1?'s':''}`;
+      if(merchantData.length === 0){
+        tbReseau.innerHTML = `<tr><td colspan="4" class="empty-state">Aucun fraudeur identifié depuis cette boutique</td></tr>`;
+        return;
+      }
+      tbReseau.innerHTML = merchantData.map(r => `<tr>
+        <td style="font-family:var(--mono);font-size:11px;color:var(--g1)">${r.fingerprint}</td>
+        <td>${r.email}</td>
+        <td><span class="pill pill-red">${r.nb_tentatives}</span></td>
+        <td style="font-size:11px;color:var(--g2)">${new Date(r.derniere_activite).toLocaleDateString('fr-FR')}</td>
+      </tr>`).join('');
+    });
+    return;
+  }
+
+  tableRetours.style.display = 'table';
+  tableReseau.style.display = 'none';
+
+  let filtered = retours;
+  if(ficheTabMode === 'fraudes') filtered = retours.filter(r => r.score >= 50);
+  if(ficheTabMode === 'legitimes') filtered = retours.filter(r => r.score < 30);
+
+  const labels = {tous:'Tous les retours',fraudes:'Fraudes bloquées',legitimes:'Retours légitimes'};
+  title.textContent = labels[ficheTabMode];
+  count.textContent = `${filtered.length} retour${filtered.length>1?'s':''}`;
+
+  if(filtered.length === 0){
+    tb.innerHTML = `<tr><td colspan="7" class="empty-state">Aucun retour dans cette catégorie</td></tr>`;
+    return;
+  }
+
+  tb.innerHTML = filtered.map(r => {
+    const sc = r.score;
+    const pillClass = sc>=75?'pill-red':sc>=50?'pill-red':sc>=30?'pill-amber':'pill-green';
+    const ringColor = sc>=50?'var(--red)':sc>=30?'var(--amber)':'var(--green)';
+    const date = new Date(r.created_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+    const motifLabel = {colis_vide:'Colis vide',jamais_recu:'Jamais reçu',produit_endommage:'Prod. endommagé',mauvaise_taille:'Mauvaise taille',ne_correspond_pas:'Ne correspond pas',autre:'Autre'}[r.motif]||r.motif;
+    const sigCount = (r.signaux||[]).length;
+    return `<tr>
+      <td><div style="font-weight:500">${r.client_prenom} ${r.client_nom}</div><div style="font-size:10px;color:var(--g2)">${r.client_email}</div></td>
+      <td><span class="pill pill-gray">${motifLabel}</span></td>
+      <td style="font-weight:600">${r.montant}€</td>
+      <td><div class="score-badge" style="background:${sc>=50?'var(--red-dim)':sc>=30?'var(--ad)':'var(--gd)'};color:${ringColor};border:0.5px solid ${sc>=50?'var(--red-b)':sc>=30?'var(--ab)':'var(--gb)'}">${sc}</div></td>
+      <td style="font-size:11px;color:var(--g1)">${sigCount} signal${sigCount>1?'s':''}</td>
+      <td><span class="pill ${pillClass}">${r.verdict}</span></td>
+      <td style="font-size:11px;color:var(--g2);white-space:nowrap">${date}</td>
+    </tr>`;
+  }).join('');
+}
+
+// Actions admin
+async function toggleSuspend(){
+  if(!currentMarchand) return;
+  const newActif = currentMarchand.actif === false ? true : false;
+  const { error } = await db.from('marchands').update({ actif: newActif }).eq('id', currentMarchand.id);
+  if(error){ toast('error', 'Erreur', error.message); return; }
+  toast('success', newActif ? 'Marchand réactivé' : 'Marchand suspendu', currentMarchand.nom);
+  await loadAll();
+  openFiche(currentMarchand.id);
+}
+
+function openChangePlan(){
+  document.getElementById('change-plan-select').value = currentMarchand?.plan || 'starter';
+  document.getElementById('modal-plan').classList.add('show');
+}
+
+async function savePlanChange(){
+  if(!currentMarchand) return;
+  const newPlan = document.getElementById('change-plan-select').value;
+  const { error } = await db.from('marchands').update({ plan: newPlan }).eq('id', currentMarchand.id);
+  if(error){ toast('error', 'Erreur', error.message); return; }
+  toast('success', 'Plan mis à jour', `${currentMarchand.nom} → ${newPlan}`);
+  closeModal('modal-plan');
+  await loadAll();
+  openFiche(currentMarchand.id);
+}
+
+function sendRapportJ15(){
+  if(!currentMarchand) return;
+  const retours = allRetours.filter(r => r.marchand_id === currentMarchand.id);
+  const fraudes = retours.filter(r => r.score >= 50);
+  const economies = fraudes.reduce((s,r) => s+r.montant, 0);
+  toast('success', 'Rapport J+15 préparé', `${currentMarchand.nom} · ${fraudes.length} fraudes · ${economies}€ économisés`);
+  // En prod: déclencher l'envoi email via une Edge Function Supabase
+}
+
+// ── FICHE MARCHAND ────────────────────────────────────────
 const PLAN_COLORS = {starter:'var(--blue)',pro:'var(--red)',business:'var(--amber)'};
 const PLAN_PRICES = {starter:29,pro:79,business:199};
 const AVATAR_COLORS = ['rgba(232,40,26,.15)','rgba(59,130,246,.15)','rgba(34,197,94,.15)','rgba(245,158,11,.15)','rgba(139,92,246,.15)'];
@@ -814,7 +1166,7 @@ function renderMarchands(){
     const retoursMarchand = allRetours.filter(r => r.marchand_id === m.id);
     const economies = retoursMarchand.filter(r=>r.score>=50).reduce((s,r)=>s+r.montant,0);
     return `
-    <div class="merchant-card fade-up" style="animation-delay:${i*.06}s">
+    <div class="merchant-card fade-up" style="animation-delay:${i*.06}s" onclick="openFiche('${m.id}')">
       <div class="mc-top">
         <div class="mc-av" style="background:${AVATAR_COLORS[ci]};color:${AVATAR_TEXT[ci]}">${initiales}</div>
         <div>
@@ -961,6 +1313,7 @@ const PAGE_TITLES = {
   dashboard:['Vue d\'ensemble','— Tableau de bord admin'],
   retours:['Retours analysés','— Historique complet'],
   marchands:['Marchands','— Gestion du réseau'],
+  'fiche-marchand':['Fiche marchand','— Détail'],
   simulator:['Simulateur de fraude','— Testez votre moteur de scoring'],
   reseau:['Base réseau','— Profils fraudeurs mutualisés'],
 };
@@ -976,6 +1329,7 @@ function showPage(name){
   const t = PAGE_TITLES[name] || [name,''];
   document.getElementById('topbar-title').textContent = t[0];
   document.getElementById('topbar-sub').textContent = t[1];
+  document.getElementById('topbar-back').style.display = name === 'fiche-marchand' ? 'block' : 'none';
 }
 
 // ── HELPERS ───────────────────────────────────────────────
