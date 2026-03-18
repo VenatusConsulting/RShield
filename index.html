@@ -519,7 +519,7 @@ footer{border-top:0.5px solid var(--b);padding:32px 48px;display:flex;align-item
               <div>
                 <span class="mc-big-num" id="mc-blocked" style="color:var(--red)">0</span>
               </div>
-              <div class="mc-delta down" id="mc-new-badge" style="transition:all .3s">+0 fraude</div>
+              <div class="mc-delta down" id="mc-new-badge" style="transition:all .3s">↑ +124 ce mois</div>
             </div>
             <div class="mc-label">Fraudes bloquées depuis le lancement</div>
             <div class="mc-bar-wrap"><div class="mc-bar-fill" id="mc-bar2" style="width:0%;background:var(--red)"></div></div>
@@ -1259,15 +1259,16 @@ function startLiveIncrements(){
     sEl.textContent = savingsVal.toLocaleString('fr-FR');
     bEl.textContent = blockedVal.toLocaleString('fr-FR');
 
-    // Badge — update text directly, flash background briefly
+    // Badge — update text with shop and amount, flash briefly
     if(badgeTimeout) clearTimeout(badgeTimeout);
-    badge.textContent = `+${amt}€`;
+    badge.textContent = `+${amt}€ — ${shop.shop}`;
     badge.style.background = 'rgba(232,40,26,.25)';
-    badge.style.borderColor = 'var(--red)';
+    badge.style.borderColor = 'rgba(232,40,26,.5)';
     badgeTimeout = setTimeout(()=>{
+      badge.textContent = `↑ +${(blockedVal - BLOCKED_TARGET + 124)}  ce mois`;
       badge.style.background = '';
       badge.style.borderColor = '';
-    }, 2000);
+    }, 3000);
 
     // Prepend new item to ticker DOM without resetting CSS animation
     const el = document.getElementById('mc-ticker');
