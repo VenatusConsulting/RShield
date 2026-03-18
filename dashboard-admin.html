@@ -198,7 +198,40 @@ tr:hover td{background:rgba(255,255,255,.015)}
 .prog-bar{height:4px;border-radius:2px;overflow:hidden;background:rgba(255,255,255,.06);margin-top:6px}
 .prog-fill{height:100%;border-radius:2px;transition:width 1s ease}
 
-/* ── ANIMATIONS ── */
+/* ── SEARCH ── */
+.search-bar{position:relative;display:flex;align-items:center}
+.search-bar input{background:var(--s2);border:0.5px solid var(--b2);border-radius:7px;padding:6px 12px 6px 32px;font-family:var(--f);font-size:12px;color:var(--w);outline:none;width:200px;transition:all .2s}
+.search-bar input:focus{border-color:var(--red-b);width:260px}
+.search-bar svg{position:absolute;left:9px;width:13px;height:13px;color:var(--g2);pointer-events:none}
+.search-results{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--s1);border:0.5px solid var(--b2);border-radius:9px;overflow:hidden;box-shadow:0 12px 32px rgba(0,0,0,.5);z-index:200;display:none;min-width:280px}
+.search-results.show{display:block}
+.sr-item{padding:10px 14px;cursor:pointer;transition:background .15s;display:flex;align-items:center;gap:10px;border-bottom:0.5px solid var(--b)}
+.sr-item:last-child{border-bottom:none}
+.sr-item:hover{background:var(--s2)}
+.sr-type{font-size:9px;font-weight:600;padding:1px 6px;border-radius:5px;text-transform:uppercase;flex-shrink:0}
+
+/* ── LOG ── */
+.log-item{display:flex;align-items:flex-start;gap:12px;padding:12px 16px;border-bottom:0.5px solid rgba(255,255,255,.03);transition:background .15s}
+.log-item:hover{background:rgba(255,255,255,.015)}
+.log-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.log-content{flex:1}
+.log-title{font-size:12.5px;font-weight:500;margin-bottom:2px}
+.log-sub{font-size:11px;color:var(--g1)}
+.log-time{font-size:10px;color:var(--g2);white-space:nowrap;font-family:var(--mono);margin-top:2px}
+
+/* ── SETTINGS ── */
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.settings-section{background:var(--s1);border:0.5px solid var(--b);border-radius:12px;overflow:hidden}
+.settings-section-header{padding:14px 18px;border-bottom:0.5px solid var(--b);font-size:13px;font-weight:600}
+.settings-body{padding:18px;display:flex;flex-direction:column;gap:12px}
+.settings-row{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.settings-row label{font-size:12px;color:var(--g1);flex:1}
+.settings-row input,.settings-row select{background:var(--s2);border:0.5px solid var(--b2);border-radius:6px;padding:7px 11px;font-family:var(--f);font-size:12px;color:var(--w);outline:none;width:140px;transition:border-color .18s}
+.settings-row input:focus,.settings-row select:focus{border-color:var(--red-b)}
+.toggle{width:36px;height:20px;background:var(--s2);border:0.5px solid var(--b2);border-radius:10px;cursor:pointer;position:relative;transition:background .2s}
+.toggle.on{background:var(--green);border-color:var(--gb)}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:12px;height:12px;border-radius:50%;background:white;transition:transform .2s}
+.toggle.on::after{transform:translateX(16px)}
 @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 .fade-up{animation:fadeUp .35s ease both}
 </style>
@@ -255,6 +288,16 @@ tr:hover td{background:rgba(255,255,255,.015)}
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><ellipse cx="8" cy="4" rx="5" ry="2"/><path d="M3 4v4c0 1.1 2.24 2 5 2s5-.9 5-2V4"/><path d="M3 8v4c0 1.1 2.24 2 5 2s5-.9 5-2V8"/></svg>
       Base réseau
     </div>
+    <div class="sb-section">Système</div>
+    <div class="sb-item" onclick="showPage('log')">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12M2 7h8M2 10h6M2 13h4"/></svg>
+      Log d'activité
+      <span class="sb-count" id="sb-count-log" style="background:var(--blue)">0</span>
+    </div>
+    <div class="sb-item" onclick="showPage('settings')">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2.5"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.41 1.41M11.54 11.54l1.41 1.41M3.05 12.95l1.41-1.41M11.54 4.46l1.41-1.41"/></svg>
+      Paramètres
+    </div>
   </nav>
   <div class="sb-footer">
     <strong id="sb-user">admin@refundshield.fr</strong>
@@ -271,6 +314,12 @@ tr:hover td{background:rgba(255,255,255,.015)}
       <span class="topbar-sub" id="topbar-sub">— Tableau de bord admin</span>
     </div>
     <div class="tb-right">
+      <!-- Recherche globale -->
+      <div class="search-bar" id="search-wrap">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6.5" cy="6.5" r="4.5"/><path d="M11 11l3 3"/></svg>
+        <input type="text" id="search-input" placeholder="Rechercher…" oninput="globalSearch(this.value)" onblur="setTimeout(()=>hideSearch(),200)">
+        <div class="search-results" id="search-results"></div>
+      </div>
       <div class="tb-live"><span class="tb-dot"></span>Live</div>
       <button class="btn-sm btn-ghost" onclick="loadAll()">↻ Actualiser</button>
       <button class="btn-sm btn-red" onclick="showPage('simulator')">+ Simuler une fraude</button>
@@ -340,6 +389,7 @@ tr:hover td{background:rgba(255,255,255,.015)}
               <option value="Risque modéré">Risque modéré</option>
               <option value="Faible risque">Faible risque</option>
             </select>
+            <button class="btn-sm btn-ghost" onclick="exportCSV('retours')">⬇ CSV</button>
             <button class="btn-sm btn-red" onclick="showPage('simulator')">+ Simuler</button>
           </div>
         </div>
@@ -461,6 +511,7 @@ tr:hover td{background:rgba(255,255,255,.015)}
           <h2 style="font-size:15px;font-weight:700;letter-spacing:-.01em">Marchands</h2>
           <p style="font-size:12px;color:var(--g1);margin-top:2px" id="marchands-count">Chargement…</p>
         </div>
+        <button class="btn-sm btn-ghost" onclick="exportCSV('marchands')">⬇ CSV</button>
         <button class="btn-sm btn-red" onclick="openAddMarchand()">+ Ajouter un marchand</button>
       </div>
       <div class="merchant-grid" id="merchant-grid">
@@ -795,6 +846,88 @@ tr:hover td{background:rgba(255,255,255,.015)}
       </div>
     </div>
 
+    <!-- ── PAGE : LOG ── -->
+    <div class="page" id="page-log">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div>
+          <h2 style="font-size:15px;font-weight:700;letter-spacing:-.01em">Log d'activité</h2>
+          <p style="font-size:12px;color:var(--g1);margin-top:2px" id="log-count">Chargement…</p>
+        </div>
+        <div style="display:flex;gap:8px">
+          <select id="log-filter" onchange="filterLog()" style="background:var(--s2);border:0.5px solid var(--b2);border-radius:6px;padding:6px 10px;font-family:var(--f);font-size:12px;color:var(--w);outline:none">
+            <option value="">Tous les événements</option>
+            <option value="fraud">Fraudes détectées</option>
+            <option value="marchand">Marchands</option>
+            <option value="plan">Changements de plan</option>
+            <option value="system">Système</option>
+          </select>
+          <button class="btn-sm btn-ghost" onclick="exportCSV('log')">⬇ CSV</button>
+        </div>
+      </div>
+      <div class="card">
+        <div id="log-list" style="max-height:600px;overflow-y:auto"></div>
+      </div>
+    </div>
+
+    <!-- ── PAGE : PARAMÈTRES ── -->
+    <div class="page" id="page-settings">
+      <div style="margin-bottom:16px">
+        <h2 style="font-size:15px;font-weight:700;letter-spacing:-.01em">Paramètres</h2>
+        <p style="font-size:12px;color:var(--g1);margin-top:2px">Configuration globale du moteur RefundShield</p>
+      </div>
+      <div class="settings-grid">
+        <!-- Seuils de scoring -->
+        <div class="settings-section">
+          <div class="settings-section-header">🎯 Seuils de scoring</div>
+          <div class="settings-body">
+            <div class="settings-row"><label>Score min — Bloquer automatiquement</label><input type="number" id="set-block" value="75" min="0" max="100"></div>
+            <div class="settings-row"><label>Score min — Demander preuves</label><input type="number" id="set-proof" value="50" min="0" max="100"></div>
+            <div class="settings-row"><label>Score min — Risque modéré</label><input type="number" id="set-mod" value="30" min="0" max="100"></div>
+            <div class="settings-row"><label>Poids — Fingerprint réseau</label><input type="number" id="set-w-net" value="25" min="0" max="50"></div>
+            <div class="settings-row"><label>Poids — VPN détecté</label><input type="number" id="set-w-vpn" value="15" min="0" max="50"></div>
+            <div class="settings-row"><label>Poids — Email jetable</label><input type="number" id="set-w-email" value="18" min="0" max="50"></div>
+            <button class="btn-sm btn-red" style="width:100%;margin-top:4px" onclick="saveSettings()">Sauvegarder les seuils →</button>
+          </div>
+        </div>
+        <!-- Notifications -->
+        <div class="settings-section">
+          <div class="settings-section-header">🔔 Notifications</div>
+          <div class="settings-body">
+            <div class="settings-row"><label>Email admin (alertes)</label><input type="email" id="set-email" placeholder="admin@refundshield.fr"></div>
+            <div class="settings-row"><label>Alerte fraude score &gt; 90</label><div class="toggle on" id="tog-fraud" onclick="toggleSetting(this)"></div></div>
+            <div class="settings-row"><label>Alerte nouveau marchand</label><div class="toggle on" id="tog-new-merchant" onclick="toggleSetting(this)"></div></div>
+            <div class="settings-row"><label>Alerte churn risque élevé</label><div class="toggle on" id="tog-churn" onclick="toggleSetting(this)"></div></div>
+            <div class="settings-row"><label>Rapport J+15 auto</label><div class="toggle" id="tog-rapport" onclick="toggleSetting(this)"></div></div>
+            <div class="settings-row"><label>Résumé quotidien (8h)</label><div class="toggle" id="tog-daily" onclick="toggleSetting(this)"></div></div>
+            <button class="btn-sm btn-ghost" style="width:100%;margin-top:4px" onclick="toast('success','Paramètres sauvegardés','Notifications mises à jour')">Sauvegarder →</button>
+          </div>
+        </div>
+        <!-- Compte admin -->
+        <div class="settings-section">
+          <div class="settings-section-header">👤 Compte admin</div>
+          <div class="settings-body">
+            <div class="settings-row"><label>Email</label><input type="email" id="set-admin-email" value="admin@refundshield.fr"></div>
+            <div class="settings-row"><label>Nom affiché</label><input type="text" id="set-admin-name" value="Admin RefundShield"></div>
+            <div class="settings-row"><label>Nouveau mot de passe</label><input type="password" id="set-pwd" placeholder="••••••••"></div>
+            <div class="settings-row"><label>Confirmer</label><input type="password" id="set-pwd2" placeholder="••••••••"></div>
+            <button class="btn-sm btn-ghost" style="width:100%;margin-top:4px" onclick="toast('success','Compte mis à jour','Modifications sauvegardées')">Mettre à jour →</button>
+          </div>
+        </div>
+        <!-- Base de données -->
+        <div class="settings-section">
+          <div class="settings-section-header">🗄️ Base de données</div>
+          <div class="settings-body">
+            <div class="settings-row"><label>Supabase URL</label><input type="text" value="uhtbzhjzghxvmgonfvoh" readonly style="opacity:.5;font-family:var(--mono);font-size:10px"></div>
+            <div class="settings-row"><label>Statut connexion</label><span class="pill pill-green" style="font-size:10.5px">Connecté</span></div>
+            <div class="settings-row"><label>Total retours en base</label><span id="set-total-retours" style="font-size:12px;font-weight:600">—</span></div>
+            <div class="settings-row"><label>Total marchands</label><span id="set-total-marchands" style="font-size:12px;font-weight:600">—</span></div>
+            <div class="settings-row"><label>Base réseau fraudeurs</label><span id="set-total-fraudeurs" style="font-size:12px;font-weight:600">—</span></div>
+            <button class="btn-sm btn-ghost" style="width:100%;margin-top:4px;color:var(--red);border-color:var(--red-b)" onclick="if(confirm('Purger TOUS les retours de test ?')) purgeTestData()">⚠ Purger données de test</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div><!-- /content -->
 </main>
 
@@ -1082,6 +1215,7 @@ async function saveCurrentReturn(){
   }
 
   toast('success', 'Sauvegardé', 'Retour ajouté à la base Supabase');
+  addLog('fraud', `Fraude analysée — score ${currentReturn.score}`, `${currentReturn.prenom} ${currentReturn.nom} · ${currentReturn.montant}€ · ${currentReturn.verdict}`);
   await loadAll();
   resetSim();
 }
@@ -1352,6 +1486,7 @@ async function savePlanChange(){
   const { error } = await db.from('marchands').update({ plan: newPlan }).eq('id', currentMarchand.id);
   if(error){ toast('error', 'Erreur', error.message); return; }
   toast('success', 'Plan mis à jour', `${currentMarchand.nom} → ${newPlan}`);
+  addLog('plan', 'Plan modifié', `${currentMarchand.nom} → ${newPlan}`);
   closeModal('modal-plan');
   await loadAll();
   openFiche(currentMarchand.id);
@@ -1432,6 +1567,7 @@ async function addMarchand(){
   if(error){ toast('error', 'Erreur Supabase', error.message); return; }
 
   toast('success', 'Marchand ajouté', `${nom} (${plan}) — sauvegardé dans Supabase`);
+  addLog('marchand', 'Nouveau marchand', `${nom} · ${domaine} · ${plan}`);
   closeModal('modal-marchand');
   document.getElementById('add-nom').value = '';
   document.getElementById('add-domaine').value = '';
@@ -1539,13 +1675,14 @@ const PAGE_TITLES = {
   churn:['Churn & rétention','— Marchands à risque'],
   'reseau-sante':['Santé du réseau','— Performance de la base mutualisée'],
   scoring:['Moteur de scoring','— Distribution et précision'],
+  log:['Log d\'activité','— Historique des événements'],
+  settings:['Paramètres','— Configuration du système'],
 };
 
 function showPage(name){
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
-  // Highlight nav item
   document.querySelectorAll('.sb-item').forEach(item => {
     if(item.getAttribute('onclick') === `showPage('${name}')`) item.classList.add('active');
   });
@@ -1553,11 +1690,12 @@ function showPage(name){
   document.getElementById('topbar-title').textContent = t[0];
   document.getElementById('topbar-sub').textContent = t[1];
   document.getElementById('topbar-back').style.display = name === 'fiche-marchand' ? 'block' : 'none';
-  // Render analytics pages on demand
   if(name === 'finance') renderFinance();
   if(name === 'churn') renderChurn();
   if(name === 'reseau-sante') renderReseauSante();
   if(name === 'scoring') renderScoring();
+  if(name === 'log') renderLog();
+  if(name === 'settings') renderSettings();
 }
 
 // ── HELPERS ───────────────────────────────────────────────
