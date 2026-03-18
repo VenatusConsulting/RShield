@@ -2295,7 +2295,12 @@ function renderAffiliationPage(){
 
 // ── ACTIVITY LOG ─────────────────────────────────────────
 let activityLog = [];
-try { activityLog = JSON.parse(localStorage.getItem('rs_log') || '[]'); } catch(e) {}
+try {
+  const saved = localStorage.getItem('rs_log');
+  if(saved) activityLog = JSON.parse(saved);
+} catch(e) {
+  activityLog = []; // localStorage bloqué (file://) — mode mémoire uniquement
+}
 
 function addLog(type, title, sub){
   const entry = { type, title, sub, ts: Date.now() };
@@ -2303,7 +2308,7 @@ function addLog(type, title, sub){
   if(activityLog.length > 200) activityLog = activityLog.slice(0,200);
   try { localStorage.setItem('rs_log', JSON.stringify(activityLog)); } catch(e) {}
   const badge = document.getElementById('sb-count-log');
-  if(badge) badge.textContent = activityLog.filter(l => l.ts > Date.now()-86400000).length;
+  if(badge) badge.textContent = activityLog.filter(l => l.ts > Date.now()-86400000).length || activityLog.length;
   if(document.getElementById('page-log')?.classList.contains('active')) renderLog();
 }
 
@@ -2315,25 +2320,27 @@ function renderLog(){
   const countEl = document.getElementById('log-count');
   if(countEl) countEl.textContent = `${logs.length} événement${logs.length>1?'s':''}`;
   const iconMap = {
-    fraud:  { bg:'var(--red-dim)', icon:'⚠' },
+    fraud:   { bg:'var(--red-dim)', icon:'⚠' },
     marchand:{ bg:'var(--bd)',      icon:'👤' },
-    plan:   { bg:'var(--ad)',       icon:'💳' },
-    system: { bg:'rgba(255,255,255,.06)', icon:'⚙' },
+    plan:    { bg:'var(--ad)',      icon:'💳' },
+    system:  { bg:'rgba(255,255,255,.06)', icon:'⚙' },
   };
   if(logs.length === 0){
-    list.innerHTML = `<div class="empty-state" style="padding:48px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12M2 7h8M2 10h6"/></svg>Aucun événement enregistré</div>`;
+    list.innerHTML = `<div class="empty-state" style="padding:48px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:32px;height:32px;margin:0 auto 12px;display:block;opacity:.3"><path d="M2 4h12M2 7h8M2 10h6"/></svg>
+      Aucun événement enregistré — les actions apparaissent ici automatiquement
+    </div>`;
     return;
   }
   list.innerHTML = logs.map(l => {
     const ic = iconMap[l.type] || iconMap.system;
-    const ago = getTimeAgo(l.ts);
     return `<div class="log-item">
       <div class="log-icon" style="background:${ic.bg}">${ic.icon}</div>
       <div class="log-content">
         <div class="log-title">${l.title}</div>
         <div class="log-sub">${l.sub}</div>
       </div>
-      <div class="log-time">${ago}</div>
+      <div class="log-time">${getTimeAgo(l.ts)}</div>
     </div>`;
   }).join('');
 }
