@@ -519,9 +519,7 @@ footer{border-top:0.5px solid var(--b);padding:32px 48px;display:flex;align-item
               <div>
                 <span class="mc-big-num" id="mc-blocked" style="color:var(--red)">0</span>
               </div>
-              <div class="mc-delta down">
-                <span id="mc-new-badge" style="opacity:0;transition:opacity .3s">+1 fraude</span>
-              </div>
+              <div class="mc-delta down" id="mc-new-badge" style="transition:all .3s">+0 fraude</div>
             </div>
             <div class="mc-label">Fraudes bloquées depuis le lancement</div>
             <div class="mc-bar-wrap"><div class="mc-bar-fill" id="mc-bar2" style="width:0%;background:var(--red)"></div></div>
@@ -1261,15 +1259,15 @@ function startLiveIncrements(){
     sEl.textContent = savingsVal.toLocaleString('fr-FR');
     bEl.textContent = blockedVal.toLocaleString('fr-FR');
 
-    // Badge — cancel any pending hide before showing new one
+    // Badge — update text directly, flash background briefly
     if(badgeTimeout) clearTimeout(badgeTimeout);
-    badge.style.transition = 'none';
-    badge.style.opacity = '1';
-    badge.textContent = `+${amt}€ — ${shop.shop}`;
+    badge.textContent = `+${amt}€`;
+    badge.style.background = 'rgba(232,40,26,.25)';
+    badge.style.borderColor = 'var(--red)';
     badgeTimeout = setTimeout(()=>{
-      badge.style.transition = 'opacity .4s';
-      badge.style.opacity = '0';
-    }, 3200);
+      badge.style.background = '';
+      badge.style.borderColor = '';
+    }, 2000);
 
     // Prepend new item to ticker DOM without resetting CSS animation
     const el = document.getElementById('mc-ticker');
