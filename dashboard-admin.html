@@ -1762,6 +1762,10 @@ async function addMarchand(){
 
   if(!nom || !domaine){ toast('error', 'Champs manquants', 'Nom et domaine requis'); return; }
 
+  // Vérifier si le domaine existe déjà
+  const existing = allMarchands.find(m => m.domaine.toLowerCase() === domaine.toLowerCase());
+  if(existing){ toast('error', 'Domaine déjà utilisé', `"${domaine}" est déjà associé à ${existing.nom}`); return; }
+
   // Insert sans parrain_code d'abord pour tester
   const payload = { nom, domaine, email, plan, platform, commandes_mois: cmds, actif: true };
 
