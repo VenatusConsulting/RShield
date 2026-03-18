@@ -170,6 +170,34 @@ tr:hover td{background:rgba(255,255,255,.015)}
 .modal-body{padding:22px}
 .modal-footer{padding:14px 22px;border-top:0.5px solid var(--b);display:flex;gap:8px;justify-content:flex-end}
 
+/* ── FINANCE / CHURN / RÉSEAU / SCORING ── */
+.fin-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.fin-card{background:var(--s1);border:0.5px solid var(--b);border-radius:12px;padding:18px 20px;position:relative;overflow:hidden}
+.fin-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--b2),transparent)}
+.fin-val{font-size:1.9rem;font-weight:700;letter-spacing:-.035em;line-height:1;margin-bottom:4px}
+.fin-lbl{font-size:10.5px;color:var(--g1);margin-bottom:8px}
+.fin-bar-wrap{height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;margin-top:8px}
+.fin-bar{height:100%;border-radius:2px;transition:width 1s ease}
+.churn-risk{display:flex;flex-direction:column;gap:8px}
+.churn-item{background:var(--s1);border:0.5px solid var(--b);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:14px;transition:border-color .2s,transform .15s;cursor:pointer}
+.churn-item:hover{border-color:var(--b2);transform:translateX(3px)}
+.churn-item.risk-high{border-left:2px solid var(--red)}
+.churn-item.risk-med{border-left:2px solid var(--amber)}
+.churn-av{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.churn-reason{font-size:10.5px;color:var(--g1);margin-top:2px}
+.churn-action{margin-left:auto;font-size:10.5px;padding:4px 10px;border-radius:6px;font-weight:600;white-space:nowrap}
+.net-stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
+.net-stat{background:var(--s1);border:0.5px solid var(--b);border-radius:12px;padding:18px;text-align:center}
+.net-stat-val{font-size:2rem;font-weight:700;letter-spacing:-.03em;line-height:1;margin-bottom:5px}
+.net-stat-lbl{font-size:11px;color:var(--g1)}
+.score-dist{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.score-dist-bar{background:var(--s1);border:0.5px solid var(--b);border-radius:10px;padding:14px;text-align:center}
+.score-dist-val{font-size:1.4rem;font-weight:700;letter-spacing:-.025em;margin-bottom:4px}
+.score-dist-lbl{font-size:10px;color:var(--g1);margin-bottom:8px}
+.score-dist-pct{font-size:11px;font-weight:600}
+.prog-bar{height:4px;border-radius:2px;overflow:hidden;background:rgba(255,255,255,.06);margin-top:6px}
+.prog-fill{height:100%;border-radius:2px;transition:width 1s ease}
+
 /* ── ANIMATIONS ── */
 @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 .fade-up{animation:fadeUp .35s ease both}
@@ -199,6 +227,24 @@ tr:hover td{background:rgba(255,255,255,.015)}
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12c0-3.31 2.69-6 6-6s6 2.69 6 6"/><circle cx="8" cy="4" r="2.5"/></svg>
       Marchands
       <span class="sb-count" id="sb-count-marchands">0</span>
+    </div>
+    <div class="sb-section">Analyse</div>
+    <div class="sb-item" onclick="showPage('finance')">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12l4-4 3 3 5-6"/></svg>
+      Finances
+    </div>
+    <div class="sb-item" onclick="showPage('churn')">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2a6 6 0 1 0 0 12A6 6 0 0 0 8 2z"/><path d="M8 6v4M8 11v.01"/></svg>
+      Churn & rétention
+      <span class="sb-count" id="sb-count-churn" style="background:var(--amber)">0</span>
+    </div>
+    <div class="sb-item" onclick="showPage('reseau-sante')">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><ellipse cx="8" cy="4" rx="5" ry="2"/><path d="M3 4v4c0 1.1 2.24 2 5 2s5-.9 5-2V4"/><path d="M3 8v4c0 1.1 2.24 2 5 2s5-.9 5-2V8"/></svg>
+      Santé réseau
+    </div>
+    <div class="sb-item" onclick="showPage('scoring')">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg>
+      Moteur scoring
     </div>
     <div class="sb-section">Outils</div>
     <div class="sb-item" onclick="showPage('simulator')">
@@ -573,6 +619,179 @@ tr:hover td{background:rgba(255,255,255,.015)}
             <tr><td colspan="6" class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/></svg>Base vide — les fraudeurs confirmés apparaissent ici</td></tr>
           </tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- ── PAGE : FINANCES ── -->
+    <div class="page" id="page-finance">
+      <div class="fin-grid">
+        <div class="fin-card fade-up">
+          <div class="fin-lbl">MRR</div>
+          <div class="fin-val" id="fin-mrr" style="color:var(--amber)">—</div>
+          <span class="mc-delta delta-up" id="fin-mrr-d">—</span>
+          <div class="fin-bar-wrap"><div class="fin-bar" id="fin-mrr-bar" style="background:var(--amber);width:0%"></div></div>
+        </div>
+        <div class="fin-card fade-up" style="animation-delay:.06s">
+          <div class="fin-lbl">ARR (projection)</div>
+          <div class="fin-val" id="fin-arr" style="color:var(--green)">—</div>
+          <span class="mc-delta delta-up" id="fin-arr-d">—</span>
+          <div class="fin-bar-wrap"><div class="fin-bar" id="fin-arr-bar" style="background:var(--green);width:0%"></div></div>
+        </div>
+        <div class="fin-card fade-up" style="animation-delay:.12s">
+          <div class="fin-lbl">LTV moyen estimé</div>
+          <div class="fin-val" id="fin-ltv" style="color:var(--blue)">—</div>
+          <span class="mc-delta delta-up" id="fin-ltv-d">—</span>
+          <div class="fin-bar-wrap"><div class="fin-bar" id="fin-ltv-bar" style="background:var(--blue);width:0%"></div></div>
+        </div>
+        <div class="fin-card fade-up" style="animation-delay:.18s">
+          <div class="fin-lbl">Churn rate estimé</div>
+          <div class="fin-val" id="fin-churn" style="color:var(--red)">—</div>
+          <span class="mc-delta" id="fin-churn-d" style="font-size:10px;color:var(--g1)">—</span>
+          <div class="fin-bar-wrap"><div class="fin-bar" id="fin-churn-bar" style="background:var(--red);width:0%"></div></div>
+        </div>
+      </div>
+
+      <!-- Répartition plans -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px">
+        <div class="card fade-up" style="animation-delay:.24s">
+          <div class="card-header"><div class="card-title">Répartition des plans</div></div>
+          <div style="padding:18px;display:flex;flex-direction:column;gap:10px" id="fin-plans-dist"></div>
+        </div>
+        <div class="card fade-up" style="animation-delay:.3s">
+          <div class="card-header"><div class="card-title">Revenus par plan</div></div>
+          <div style="padding:18px;display:flex;flex-direction:column;gap:10px" id="fin-plans-rev"></div>
+        </div>
+      </div>
+
+      <!-- Marchands actifs -->
+      <div class="card fade-up" style="animation-delay:.36s">
+        <div class="card-header">
+          <div class="card-title">Détail financier par marchand</div>
+          <div class="card-sub" id="fin-total-label">—</div>
+        </div>
+        <table>
+          <thead><tr><th>Marchand</th><th>Plan</th><th>MRR</th><th>Fraudes bloquées</th><th>Économies</th><th>ROI client</th><th>Inscrit depuis</th></tr></thead>
+          <tbody id="fin-tb"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── PAGE : CHURN ── -->
+    <div class="page" id="page-churn">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px">
+        <div class="fin-card fade-up">
+          <div class="fin-lbl">Marchands à risque élevé</div>
+          <div class="fin-val" id="churn-high" style="color:var(--red)">—</div>
+          <span style="font-size:10.5px;color:var(--g1)">Action immédiate requise</span>
+        </div>
+        <div class="fin-card fade-up" style="animation-delay:.06s">
+          <div class="fin-lbl">Marchands à surveiller</div>
+          <div class="fin-val" id="churn-med" style="color:var(--amber)">—</div>
+          <span style="font-size:10.5px;color:var(--g1)">Relance recommandée</span>
+        </div>
+        <div class="fin-card fade-up" style="animation-delay:.12s">
+          <div class="fin-lbl">Marchands sains</div>
+          <div class="fin-val" id="churn-ok" style="color:var(--green)">—</div>
+          <span style="font-size:10.5px;color:var(--g1)">Engagement actif</span>
+        </div>
+      </div>
+
+      <div class="card fade-up" style="animation-delay:.18s">
+        <div class="card-header">
+          <div class="card-title">Marchands à risque de churn</div>
+          <div class="card-sub">Basé sur l'activité, l'ancienneté et le nombre de retours</div>
+        </div>
+        <div style="padding:14px" class="churn-risk" id="churn-list"></div>
+      </div>
+    </div>
+
+    <!-- ── PAGE : SANTÉ RÉSEAU ── -->
+    <div class="page" id="page-reseau-sante">
+      <div class="net-stat-grid">
+        <div class="net-stat fade-up">
+          <div class="net-stat-val" id="net-fingerprints" style="color:var(--red)">—</div>
+          <div class="net-stat-lbl">Fingerprints uniques dans la base</div>
+        </div>
+        <div class="net-stat fade-up" style="animation-delay:.06s">
+          <div class="net-stat-val" id="net-match-rate" style="color:var(--amber)">—</div>
+          <div class="net-stat-lbl">Taux de match inter-marchands</div>
+        </div>
+        <div class="net-stat fade-up" style="animation-delay:.12s">
+          <div class="net-stat-val" id="net-coverage" style="color:var(--green)">—</div>
+          <div class="net-stat-lbl">Couverture réseau (marchands actifs)</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px">
+        <div class="card fade-up" style="animation-delay:.18s">
+          <div class="card-header"><div class="card-title">Top fraudeurs multi-boutiques</div><div class="card-sub">Touchent 2+ marchands du réseau</div></div>
+          <table>
+            <thead><tr><th>Email</th><th>Tentatives</th><th>Boutiques touchées</th><th>Dernière activité</th></tr></thead>
+            <tbody id="net-top-fraudeurs"></tbody>
+          </table>
+        </div>
+        <div class="card fade-up" style="animation-delay:.24s">
+          <div class="card-header"><div class="card-title">Motifs les plus fréquents</div><div class="card-sub">Tous marchands confondus</div></div>
+          <div style="padding:16px;display:flex;flex-direction:column;gap:10px" id="net-motifs"></div>
+        </div>
+      </div>
+
+      <div class="card fade-up" style="animation-delay:.3s">
+        <div class="card-header"><div class="card-title">Signaux les plus détectés</div><div class="card-sub">Classement par fréquence sur le réseau</div></div>
+        <div style="padding:16px;display:flex;flex-direction:column;gap:8px" id="net-signaux"></div>
+      </div>
+    </div>
+
+    <!-- ── PAGE : MOTEUR SCORING ── -->
+    <div class="page" id="page-scoring">
+      <div class="score-dist">
+        <div class="score-dist-bar fade-up">
+          <div class="score-dist-lbl">Score 0–29</div>
+          <div class="score-dist-val" id="sc-low" style="color:var(--green)">—</div>
+          <div class="score-dist-pct" id="sc-low-pct" style="color:var(--green)">—</div>
+          <div class="prog-bar"><div class="prog-fill" id="sc-low-bar" style="background:var(--green);width:0%"></div></div>
+          <div style="font-size:9.5px;color:var(--g2);margin-top:6px">Faible risque</div>
+        </div>
+        <div class="score-dist-bar fade-up" style="animation-delay:.06s">
+          <div class="score-dist-lbl">Score 30–49</div>
+          <div class="score-dist-val" id="sc-med" style="color:var(--amber)">—</div>
+          <div class="score-dist-pct" id="sc-med-pct" style="color:var(--amber)">—</div>
+          <div class="prog-bar"><div class="prog-fill" id="sc-med-bar" style="background:var(--amber);width:0%"></div></div>
+          <div style="font-size:9.5px;color:var(--g2);margin-top:6px">Risque modéré</div>
+        </div>
+        <div class="score-dist-bar fade-up" style="animation-delay:.12s">
+          <div class="score-dist-lbl">Score 50–74</div>
+          <div class="score-dist-val" id="sc-high" style="color:var(--red)">—</div>
+          <div class="score-dist-pct" id="sc-high-pct" style="color:var(--red)">—</div>
+          <div class="prog-bar"><div class="prog-fill" id="sc-high-bar" style="background:var(--red);width:0%"></div></div>
+          <div style="font-size:9.5px;color:var(--g2);margin-top:6px">Risque élevé</div>
+        </div>
+        <div class="score-dist-bar fade-up" style="animation-delay:.18s">
+          <div class="score-dist-lbl">Score 75–100</div>
+          <div class="score-dist-val" id="sc-crit" style="color:var(--red)">—</div>
+          <div class="score-dist-pct" id="sc-crit-pct" style="color:var(--red)">—</div>
+          <div class="prog-bar"><div class="prog-fill" id="sc-crit-bar" style="background:#ff2d1a;width:0%"></div></div>
+          <div style="font-size:9.5px;color:var(--g2);margin-top:6px">Fraude probable</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px">
+        <div class="card fade-up" style="animation-delay:.24s">
+          <div class="card-header"><div class="card-title">Précision par type de motif</div><div class="card-sub">Score moyen par motif de retour</div></div>
+          <div style="padding:16px;display:flex;flex-direction:column;gap:10px" id="sc-motif-perf"></div>
+        </div>
+        <div class="card fade-up" style="animation-delay:.3s">
+          <div class="card-header"><div class="card-title">Signaux les plus discriminants</div><div class="card-sub">Contribution moyenne au score</div></div>
+          <div style="padding:16px;display:flex;flex-direction:column;gap:8px" id="sc-signal-perf"></div>
+        </div>
+      </div>
+
+      <div class="card fade-up" style="animation-delay:.36s">
+        <div class="card-header">
+          <div class="card-title">Indicateurs de fiabilité</div>
+          <div class="card-sub">Estimations basées sur les données disponibles</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);padding:18px;gap:14px" id="sc-reliability"></div>
       </div>
     </div>
 
@@ -1316,6 +1535,10 @@ const PAGE_TITLES = {
   'fiche-marchand':['Fiche marchand','— Détail'],
   simulator:['Simulateur de fraude','— Testez votre moteur de scoring'],
   reseau:['Base réseau','— Profils fraudeurs mutualisés'],
+  finance:['Finances','— MRR · ARR · LTV · Churn'],
+  churn:['Churn & rétention','— Marchands à risque'],
+  'reseau-sante':['Santé du réseau','— Performance de la base mutualisée'],
+  scoring:['Moteur de scoring','— Distribution et précision'],
 };
 
 function showPage(name){
@@ -1330,6 +1553,11 @@ function showPage(name){
   document.getElementById('topbar-title').textContent = t[0];
   document.getElementById('topbar-sub').textContent = t[1];
   document.getElementById('topbar-back').style.display = name === 'fiche-marchand' ? 'block' : 'none';
+  // Render analytics pages on demand
+  if(name === 'finance') renderFinance();
+  if(name === 'churn') renderChurn();
+  if(name === 'reseau-sante') renderReseauSante();
+  if(name === 'scoring') renderScoring();
 }
 
 // ── HELPERS ───────────────────────────────────────────────
@@ -1360,7 +1588,280 @@ function toast(type, title, sub){
   setTimeout(() => { el.style.opacity='0'; el.style.transform='translateY(8px)'; el.style.transition='all .3s'; setTimeout(()=>el.remove(),300); }, 3500);
 }
 
-// ── START ─────────────────────────────────────────────────
+// ── FINANCES ──────────────────────────────────────────────
+function renderFinance(){
+  const active = allMarchands.filter(m => m.actif !== false);
+  const mrr = active.reduce((s,m) => s + (PLAN_PRICES[m.plan]||0), 0);
+  const arr = mrr * 12;
+  // LTV estimé = MRR moyen × durée moyenne en mois (on estime 8 mois pour la bêta)
+  const avgMrr = active.length > 0 ? mrr / active.length : 0;
+  const ltv = Math.round(avgMrr * 8);
+  // Churn : marchands suspendus / total
+  const churned = allMarchands.filter(m => m.actif === false).length;
+  const churnRate = allMarchands.length > 0 ? Math.round((churned / allMarchands.length)*100) : 0;
+
+  // Métriques top
+  document.getElementById('fin-mrr').textContent = mrr > 0 ? `${mrr}€` : '0€';
+  document.getElementById('fin-arr').textContent = arr > 0 ? `${arr.toLocaleString('fr-FR')}€` : '0€';
+  document.getElementById('fin-ltv').textContent = ltv > 0 ? `${ltv}€` : '—';
+  document.getElementById('fin-churn').textContent = `${churnRate}%`;
+  document.getElementById('fin-mrr-d').textContent = `${active.length} marchands actifs`;
+  document.getElementById('fin-arr-d').textContent = mrr > 0 ? `Projection 12 mois` : 'Aucun plan actif';
+  document.getElementById('fin-ltv-d').textContent = `Durée moy. estimée : 8 mois`;
+  document.getElementById('fin-churn-d').textContent = churned > 0 ? `${churned} marchand(s) suspendu(s)` : 'Aucun churn détecté';
+
+  // Barres
+  const maxMrr = 5000;
+  setTimeout(()=>{
+    document.getElementById('fin-mrr-bar').style.width = Math.min((mrr/maxMrr)*100,100)+'%';
+    document.getElementById('fin-arr-bar').style.width = Math.min((arr/(maxMrr*12))*100,100)+'%';
+    document.getElementById('fin-ltv-bar').style.width = Math.min((ltv/1000)*100,100)+'%';
+    document.getElementById('fin-churn-bar').style.width = churnRate+'%';
+  }, 100);
+
+  // Répartition plans
+  const planCounts = {starter:0,pro:0,business:0};
+  const planRevs = {starter:0,pro:0,business:0};
+  active.forEach(m => { planCounts[m.plan]=(planCounts[m.plan]||0)+1; planRevs[m.plan]=(planRevs[m.plan]||0)+(PLAN_PRICES[m.plan]||0); });
+  const total = active.length || 1;
+  const planColors2 = {starter:'var(--blue)',pro:'var(--red)',business:'var(--amber)'};
+  document.getElementById('fin-plans-dist').innerHTML = Object.entries(planCounts).map(([p,c]) => `
+    <div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px">
+        <span style="color:${planColors2[p]};font-weight:600;text-transform:capitalize">${p}</span>
+        <span>${c} marchand${c>1?'s':''} — ${Math.round((c/total)*100)}%</span>
+      </div>
+      <div class="prog-bar"><div class="prog-fill" style="background:${planColors2[p]};width:${Math.round((c/total)*100)}%"></div></div>
+    </div>`).join('');
+  document.getElementById('fin-plans-rev').innerHTML = Object.entries(planRevs).map(([p,r]) => `
+    <div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px">
+        <span style="color:${planColors2[p]};font-weight:600;text-transform:capitalize">${p}</span>
+        <span style="font-weight:600">${r}€/mois</span>
+      </div>
+      <div class="prog-bar"><div class="prog-fill" style="background:${planColors2[p]};width:${mrr>0?Math.round((r/mrr)*100):0}%"></div></div>
+    </div>`).join('');
+
+  // Tableau détail
+  document.getElementById('fin-total-label').textContent = `Total MRR : ${mrr}€ · ARR : ${arr.toLocaleString('fr-FR')}€`;
+  if(active.length === 0){
+    document.getElementById('fin-tb').innerHTML = `<tr><td colspan="7" class="empty-state">Aucun marchand actif</td></tr>`;
+    return;
+  }
+  document.getElementById('fin-tb').innerHTML = active.map(m => {
+    const retours = allRetours.filter(r => r.marchand_id === m.id);
+    const fraudes = retours.filter(r => r.score >= 50);
+    const eco = fraudes.reduce((s,r)=>s+r.montant,0);
+    const roi = PLAN_PRICES[m.plan] > 0 ? Math.round(eco/PLAN_PRICES[m.plan]) : 0;
+    const days = Math.floor((new Date()-new Date(m.created_at))/86400000);
+    const pc = PLAN_COLORS[m.plan]||'var(--blue)';
+    return `<tr>
+      <td><div style="font-weight:500">${m.nom}</div><div style="font-size:10px;color:var(--g2)">${m.domaine}</div></td>
+      <td><span style="color:${pc};font-weight:600;font-size:11px;text-transform:capitalize">${m.plan}</span></td>
+      <td style="font-weight:600;color:var(--amber)">${PLAN_PRICES[m.plan]||0}€</td>
+      <td><span class="pill pill-red">${fraudes.length}</span></td>
+      <td style="color:var(--green);font-weight:600">${eco > 0 ? eco+'€' : '—'}</td>
+      <td>${roi > 0 ? `<span class="pill pill-green">${roi}×</span>` : '—'}</td>
+      <td style="font-size:11px;color:var(--g2)">${days < 1 ? "Aujourd'hui" : days < 30 ? `${days}j` : `${Math.floor(days/30)} mois`}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── CHURN ─────────────────────────────────────────────────
+function renderChurn(){
+  const risks = allMarchands.map(m => {
+    const retours = allRetours.filter(r => r.marchand_id === m.id);
+    const daysSince = Math.floor((new Date()-new Date(m.created_at))/86400000);
+    const daysSinceLastReturn = retours.length > 0
+      ? Math.floor((new Date()-new Date(retours[0].created_at))/86400000)
+      : daysSince;
+    let riskScore = 0; let reasons = [];
+    if(retours.length === 0 && daysSince > 7){ riskScore += 40; reasons.push('Aucune activité depuis l\'inscription') }
+    if(daysSinceLastReturn > 14){ riskScore += 30; reasons.push(`Dernier retour il y a ${daysSinceLastReturn}j`) }
+    if(m.actif === false){ riskScore = 100; reasons = ['Compte suspendu'] }
+    if(m.plan === 'starter' && retours.filter(r=>r.score>=50).length === 0){ riskScore += 20; reasons.push('Aucune fraude détectée — valeur non prouvée') }
+    return { ...m, riskScore, reasons, retours };
+  }).sort((a,b) => b.riskScore - a.riskScore);
+
+  const high = risks.filter(r => r.riskScore >= 60);
+  const med = risks.filter(r => r.riskScore >= 30 && r.riskScore < 60);
+  const ok = risks.filter(r => r.riskScore < 30);
+
+  document.getElementById('churn-high').textContent = high.length;
+  document.getElementById('churn-med').textContent = med.length;
+  document.getElementById('churn-ok').textContent = ok.length;
+  document.getElementById('sb-count-churn').textContent = high.length + med.length;
+
+  if(risks.length === 0){
+    document.getElementById('churn-list').innerHTML = `<div class="empty-state">Aucun marchand — ajoutez-en un d'abord</div>`;
+    return;
+  }
+
+  const actionMap = (score) => score >= 60
+    ? {label:'Appeler', color:'var(--red)', bg:'var(--red-dim)', border:'var(--red-b)'}
+    : score >= 30
+    ? {label:'Relancer', color:'var(--amber)', bg:'var(--ad)', border:'var(--ab)'}
+    : {label:'RAS', color:'var(--green)', bg:'var(--gd)', border:'var(--gb)'};
+
+  document.getElementById('churn-list').innerHTML = risks.map((m,i) => {
+    const ci = i % AVATAR_COLORS.length;
+    const initiales = (m.nom||'?').slice(0,2).toUpperCase();
+    const action = actionMap(m.riskScore);
+    const riskClass = m.riskScore >= 60 ? 'risk-high' : m.riskScore >= 30 ? 'risk-med' : '';
+    return `<div class="churn-item ${riskClass}" onclick="openFiche('${m.id}')">
+      <div class="churn-av" style="background:${AVATAR_COLORS[ci]};color:${AVATAR_TEXT[ci]}">${initiales}</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600">${m.nom} <span style="font-size:10px;color:var(--g2);font-weight:400">· ${m.domaine}</span></div>
+        <div class="churn-reason">${m.reasons.join(' · ') || 'Engagement satisfaisant'}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="text-align:right">
+          <div style="font-size:11px;color:var(--g1)">${m.retours.length} retour${m.retours.length>1?'s':''}</div>
+          <div style="font-size:10px;color:var(--g2);text-transform:capitalize">${m.plan}</div>
+        </div>
+        <div class="churn-action" style="background:${action.bg};color:${action.color};border:0.5px solid ${action.border}">${action.label}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── SANTÉ RÉSEAU ───────────────────────────────────────────
+async function renderReseauSante(){
+  const { data: fraudeurs } = await db.from('reseau_fraudeurs').select('*');
+  const f = fraudeurs || [];
+
+  document.getElementById('net-fingerprints').textContent = f.length;
+  const multiMarchand = f.filter(x => (x.marchands_touches||[]).length >= 2);
+  const matchRate = f.length > 0 ? Math.round((multiMarchand.length/f.length)*100) : 0;
+  document.getElementById('net-match-rate').textContent = `${matchRate}%`;
+  const coverage = allMarchands.length > 0 ? Math.round((allMarchands.filter(m=>m.actif!==false).length/allMarchands.length)*100) : 0;
+  document.getElementById('net-coverage').textContent = `${coverage}%`;
+
+  // Top fraudeurs multi-boutiques
+  const top = f.filter(x=>(x.marchands_touches||[]).length>=2).sort((a,b)=>b.nb_tentatives-a.nb_tentatives).slice(0,6);
+  document.getElementById('net-top-fraudeurs').innerHTML = top.length === 0
+    ? `<tr><td colspan="4" class="empty-state">Aucun fraudeur multi-boutiques détecté</td></tr>`
+    : top.map(r=>`<tr>
+        <td style="font-size:12px">${r.email}</td>
+        <td><span class="pill pill-red">${r.nb_tentatives}</span></td>
+        <td style="font-size:11px;color:var(--g1)">${(r.marchands_touches||[]).length} boutique(s)</td>
+        <td style="font-size:11px;color:var(--g2)">${new Date(r.derniere_activite).toLocaleDateString('fr-FR')}</td>
+      </tr>`).join('');
+
+  // Motifs fréquents
+  const motifCount = {};
+  allRetours.forEach(r => { motifCount[r.motif]=(motifCount[r.motif]||0)+1; });
+  const motifSorted = Object.entries(motifCount).sort((a,b)=>b[1]-a[1]);
+  const motifLabels2 = {colis_vide:'Colis vide',jamais_recu:'Jamais reçu',produit_endommage:'Prod. endommagé',mauvaise_taille:'Mauvaise taille',ne_correspond_pas:'Ne correspond pas',autre:'Autre'};
+  const maxMotif = motifSorted[0]?.[1] || 1;
+  document.getElementById('net-motifs').innerHTML = motifSorted.length === 0
+    ? `<div style="font-size:12px;color:var(--g2);padding:8px 0">Aucune donnée</div>`
+    : motifSorted.map(([m,c])=>`
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+          <span>${motifLabels2[m]||m}</span><span style="color:var(--g1)">${c} cas</span>
+        </div>
+        <div class="prog-bar"><div class="prog-fill" style="background:var(--red);width:${Math.round((c/maxMotif)*100)}%"></div></div>
+      </div>`).join('');
+
+  // Signaux fréquents
+  const sigCount = {};
+  allRetours.forEach(r => (r.signaux||[]).forEach(s => { const k=s.text||s; sigCount[k]=(sigCount[k]||0)+1; }));
+  const sigSorted = Object.entries(sigCount).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const maxSig = sigSorted[0]?.[1] || 1;
+  document.getElementById('net-signaux').innerHTML = sigSorted.length === 0
+    ? `<div style="font-size:12px;color:var(--g2);padding:8px 0">Aucune donnée de signal</div>`
+    : sigSorted.map(([s,c])=>`
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="flex:1">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+            <span style="color:var(--g1)">${s}</span><span style="font-weight:600">${c}×</span>
+          </div>
+          <div class="prog-bar"><div class="prog-fill" style="background:var(--amber);width:${Math.round((c/maxSig)*100)}%"></div></div>
+        </div>
+      </div>`).join('');
+}
+
+// ── SCORING PERFORMANCE ────────────────────────────────────
+function renderScoring(){
+  const total = allRetours.length || 1;
+  const low  = allRetours.filter(r=>r.score<30).length;
+  const med  = allRetours.filter(r=>r.score>=30&&r.score<50).length;
+  const high = allRetours.filter(r=>r.score>=50&&r.score<75).length;
+  const crit = allRetours.filter(r=>r.score>=75).length;
+
+  const set = (id,val,pct) => {
+    document.getElementById(id).textContent = val;
+    document.getElementById(id+'-pct').textContent = `${pct}%`;
+    setTimeout(()=>{ document.getElementById(id+'-bar').style.width = pct+'%'; }, 100);
+  };
+  set('sc-low',  low,  Math.round((low/total)*100));
+  set('sc-med',  med,  Math.round((med/total)*100));
+  set('sc-high', high, Math.round((high/total)*100));
+  set('sc-crit', crit, Math.round((crit/total)*100));
+
+  // Précision par motif
+  const motifScores = {};
+  allRetours.forEach(r => {
+    if(!motifScores[r.motif]) motifScores[r.motif] = [];
+    motifScores[r.motif].push(r.score);
+  });
+  const motifLabels3 = {colis_vide:'Colis vide',jamais_recu:'Jamais reçu',produit_endommage:'Prod. endommagé',mauvaise_taille:'Mauvaise taille',ne_correspond_pas:'Ne correspond pas',autre:'Autre'};
+  const motifPerf = Object.entries(motifScores).map(([m,scores]) => ({
+    motif:m, avg:Math.round(scores.reduce((s,v)=>s+v,0)/scores.length), count:scores.length
+  })).sort((a,b)=>b.avg-a.avg);
+
+  document.getElementById('sc-motif-perf').innerHTML = motifPerf.length === 0
+    ? `<div style="font-size:12px;color:var(--g2)">Aucune donnée</div>`
+    : motifPerf.map(m => {
+        const color = m.avg>=75?'var(--red)':m.avg>=50?'var(--red)':m.avg>=30?'var(--amber)':'var(--green)';
+        return `<div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+            <span>${motifLabels3[m.motif]||m.motif}</span>
+            <span style="color:${color};font-weight:600">moy. ${m.avg}/100 <span style="color:var(--g2);font-weight:400">(${m.count} cas)</span></span>
+          </div>
+          <div class="prog-bar"><div class="prog-fill" style="background:${color};width:${m.avg}%"></div></div>
+        </div>`;
+      }).join('');
+
+  // Signaux discriminants
+  const sigScoreMap = {};
+  allRetours.forEach(r => {
+    (r.signaux||[]).forEach(s => {
+      const k = s.text||s;
+      if(!sigScoreMap[k]) sigScoreMap[k] = [];
+      sigScoreMap[k].push(r.score);
+    });
+  });
+  const sigPerf = Object.entries(sigScoreMap).map(([s,scores])=>({
+    sig:s, avg:Math.round(scores.reduce((a,v)=>a+v,0)/scores.length), count:scores.length
+  })).sort((a,b)=>b.avg-a.avg).slice(0,6);
+  document.getElementById('sc-signal-perf').innerHTML = sigPerf.length === 0
+    ? `<div style="font-size:12px;color:var(--g2)">Aucune donnée</div>`
+    : sigPerf.map(s=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:0.5px solid var(--b)">
+        <span style="font-size:11.5px;color:var(--g1)">${s.sig}</span>
+        <span style="font-family:var(--mono);font-size:11px;color:var(--red);font-weight:600">+${s.avg} pts moy.</span>
+      </div>`).join('');
+
+  // Fiabilité
+  const fraudRate = total > 1 ? Math.round(((high+crit)/(total))*100) : 0;
+  const avgScore = total > 1 ? Math.round(allRetours.reduce((s,r)=>s+r.score,0)/allRetours.length) : 0;
+  const motorCoverage = allRetours.filter(r=>(r.signaux||[]).length>0).length;
+  document.getElementById('sc-reliability').innerHTML = `
+    <div style="text-align:center;padding:14px;background:var(--s2);border-radius:9px">
+      <div style="font-size:1.6rem;font-weight:700;color:var(--red);letter-spacing:-.025em">${fraudRate}%</div>
+      <div style="font-size:10.5px;color:var(--g1);margin-top:4px">Taux de fraude détecté</div>
+    </div>
+    <div style="text-align:center;padding:14px;background:var(--s2);border-radius:9px">
+      <div style="font-size:1.6rem;font-weight:700;color:var(--amber);letter-spacing:-.025em">${avgScore}</div>
+      <div style="font-size:10.5px;color:var(--g1);margin-top:4px">Score moyen global /100</div>
+    </div>
+    <div style="text-align:center;padding:14px;background:var(--s2);border-radius:9px">
+      <div style="font-size:1.6rem;font-weight:700;color:var(--green);letter-spacing:-.025em">${total>1?Math.round((motorCoverage/(total-1))*100):0}%</div>
+      <div style="font-size:10.5px;color:var(--g1);margin-top:4px">Retours avec signaux détectés</div>
+    </div>`;
+}
 initDB();
 </script>
 </body>
