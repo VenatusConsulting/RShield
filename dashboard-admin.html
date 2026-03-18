@@ -297,6 +297,11 @@ tr:hover td{background:rgba(255,255,255,.015)}
       Base réseau
     </div>
     <div class="sb-section">Système</div>
+    <div class="sb-item" onclick="showPage('affiliation')">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/><path d="M3 13c0-2.76 2.24-5 5-5s5 2.24 5 5"/><path d="M13 6a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/><path d="M15 11c0-1.66-1.34-3-3-3"/></svg>
+      Affiliation
+      <span class="sb-count" id="sb-count-affil" style="background:var(--amber);color:#000">0</span>
+    </div>
     <div class="sb-item" onclick="showPage('log')">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12M2 7h8M2 10h6M2 13h4"/></svg>
       Log d'activité
@@ -886,6 +891,76 @@ tr:hover td{background:rgba(255,255,255,.015)}
           <div class="card-sub">Estimations basées sur les données disponibles</div>
         </div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);padding:18px;gap:14px" id="sc-reliability"></div>
+      </div>
+    </div>
+
+    <!-- ── PAGE : AFFILIATION ── -->
+    <div class="page" id="page-affiliation">
+
+      <!-- Métriques globales -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px">
+        <div class="fin-card fade-up">
+          <div class="fin-lbl">Parrains actifs</div>
+          <div class="fin-val" id="affil-nb-parrains" style="color:var(--amber)">—</div>
+          <span style="font-size:10.5px;color:var(--g1)">marchands avec ≥1 filleul</span>
+        </div>
+        <div class="fin-card fade-up" style="animation-delay:.06s">
+          <div class="fin-lbl">Total filleuls inscrits</div>
+          <div class="fin-val" id="affil-nb-filleuls" style="color:var(--green)">—</div>
+          <span style="font-size:10.5px;color:var(--g1)">via code de parrainage</span>
+        </div>
+        <div class="fin-card fade-up" style="animation-delay:.12s">
+          <div class="fin-lbl">Ambassadeurs</div>
+          <div class="fin-val" id="affil-nb-ambassadeurs" style="color:var(--amber)">—</div>
+          <span style="font-size:10.5px;color:var(--g1)">≥3 filleuls parrainés</span>
+        </div>
+        <div class="fin-card fade-up" style="animation-delay:.18s">
+          <div class="fin-lbl">Mois offerts générés</div>
+          <div class="fin-val" id="affil-mois-offerts" style="color:var(--red)">—</div>
+          <span style="font-size:10.5px;color:var(--g1)" id="affil-valeur-offerte">valeur totale : —</span>
+        </div>
+      </div>
+
+      <!-- Classement parrains -->
+      <div class="card fade-up" style="animation-delay:.24s;margin-bottom:14px">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Classement des parrains</div>
+            <div class="card-sub" id="affil-parrain-count">—</div>
+          </div>
+          <button class="btn-sm btn-ghost" onclick="exportCSV('affiliation')">⬇ CSV</button>
+        </div>
+        <table>
+          <thead><tr>
+            <th>Marchand</th>
+            <th>Code parrainage</th>
+            <th>Filleuls</th>
+            <th>Badge</th>
+            <th>Mois offerts</th>
+            <th>MRR indirect généré</th>
+            <th>Inscrit depuis</th>
+          </tr></thead>
+          <tbody id="affil-tb-parrains"></tbody>
+        </table>
+      </div>
+
+      <!-- Filleuls récents -->
+      <div class="card fade-up" style="animation-delay:.3s">
+        <div class="card-header">
+          <div class="card-title">Filleuls inscrits</div>
+          <div class="card-sub" id="affil-filleul-count">—</div>
+        </div>
+        <table>
+          <thead><tr>
+            <th>Marchand filleul</th>
+            <th>Plan souscrit</th>
+            <th>Code utilisé</th>
+            <th>Parrain</th>
+            <th>Remise appliquée</th>
+            <th>Date inscription</th>
+          </tr></thead>
+          <tbody id="affil-tb-filleuls"></tbody>
+        </table>
       </div>
     </div>
 
@@ -1600,38 +1675,56 @@ function openAddMarchand(){ document.getElementById('modal-marchand').classList.
 function closeModal(id){ document.getElementById(id).classList.remove('show') }
 
 async function addMarchand(){
-  const nom = document.getElementById('add-nom').value;
-  const domaine = document.getElementById('add-domaine').value;
-  const email = document.getElementById('add-email').value;
+  const nom = document.getElementById('add-nom').value.trim();
+  const domaine = document.getElementById('add-domaine').value.trim();
+  const email = document.getElementById('add-email').value.trim();
   const plan = document.getElementById('add-plan').value;
   const platform = document.getElementById('add-platform').value;
   const cmds = parseInt(document.getElementById('add-cmds').value) || 0;
-  const parrainCode = (document.getElementById('add-parrain').value || '').trim().toUpperCase() || null;
+  const parrainRaw = (document.getElementById('add-parrain').value || '').trim().toUpperCase();
+  const parrainCode = parrainRaw || null;
 
   if(!nom || !domaine){ toast('error', 'Champs manquants', 'Nom et domaine requis'); return; }
 
-  const { error } = await db.from('marchands').insert({ nom, domaine, email, plan, platform, commandes_mois:cmds, actif:true, parrain_code: parrainCode });
-  if(error){ toast('error', 'Erreur Supabase', error.message); return; }
+  // Insert sans parrain_code d'abord pour tester
+  const payload = { nom, domaine, email, plan, platform, commandes_mois: cmds, actif: true };
 
-  // Si code parrain valide — notifier + log
-  if(parrainCode){
-    const parrain = allMarchands.find(m => generateAffiliCode(m) === parrainCode);
-    if(parrain){
-      toast('success', '🎁 Parrainage activé', `${nom} parrainé par ${parrain.nom} — -50% 1er mois appliqué`);
-      addLog('plan', 'Parrainage activé', `${nom} → parrain : ${parrain.nom} · 1 mois offert au parrain`);
+  // Ajouter parrain_code seulement si renseigné — évite l'erreur si colonne absente
+  if(parrainCode) payload.parrain_code = parrainCode;
+
+  const { error } = await db.from('marchands').insert(payload);
+  if(error){
+    // Si erreur sur parrain_code, réessayer sans
+    if(error.message.includes('parrain_code')){
+      const { error: error2 } = await db.from('marchands').insert({ nom, domaine, email, plan, platform, commandes_mois: cmds, actif: true });
+      if(error2){ toast('error', 'Erreur Supabase', error2.message); return; }
+      toast('warning', 'Marchand ajouté', `parrain_code non disponible — exécutez le SQL ALTER TABLE d'abord`);
     } else {
-      toast('warning', 'Code parrain inconnu', `"${parrainCode}" — réduction non appliquée`);
+      toast('error', 'Erreur Supabase', error.message);
+      return;
+    }
+  } else {
+    // Parrainage
+    if(parrainCode){
+      const parrain = allMarchands.find(m => generateAffiliCode(m) === parrainCode);
+      if(parrain){
+        toast('success', '🎁 Parrainage activé', `${nom} parrainé par ${parrain.nom} · -50% 1er mois`);
+        addLog('plan', 'Parrainage activé', `${nom} → parrain : ${parrain.nom}`);
+      } else {
+        toast('warning', 'Code parrain inconnu', `"${parrainCode}" — réduction non appliquée`);
+      }
+    } else {
+      toast('success', 'Marchand ajouté', `${nom} (${plan}) — sauvegardé`);
     }
   }
-  if(error){ toast('error', 'Erreur Supabase', error.message); return; }
 
-  toast('success', 'Marchand ajouté', `${nom} (${plan}) — sauvegardé dans Supabase`);
   addLog('marchand', 'Nouveau marchand', `${nom} · ${domaine} · ${plan}`);
   closeModal('modal-marchand');
   document.getElementById('add-nom').value = '';
   document.getElementById('add-domaine').value = '';
   document.getElementById('add-email').value = '';
   document.getElementById('add-cmds').value = '';
+  document.getElementById('add-parrain').value = '';
   await loadAll();
 }
 
@@ -1734,6 +1827,7 @@ const PAGE_TITLES = {
   churn:['Churn & rétention','— Marchands à risque'],
   'reseau-sante':['Santé du réseau','— Performance de la base mutualisée'],
   scoring:['Moteur de scoring','— Distribution et précision'],
+  affiliation:['Programme d\'affiliation','— Parrains · Filleuls · Ambassadeurs'],
   log:['Log d\'activité','— Historique des événements'],
   settings:['Paramètres','— Configuration du système'],
 };
@@ -1753,7 +1847,7 @@ function showPage(name){
   if(name === 'churn') renderChurn();
   if(name === 'reseau-sante') renderReseauSante();
   if(name === 'scoring') renderScoring();
-  if(name === 'log') renderLog();
+  if(name === 'affiliation') renderAffiliationPage();
   if(name === 'settings') renderSettings();
 }
 
@@ -2131,7 +2225,71 @@ function copyAffiliCode(){
   });
 }
 
-// ── AFFILIATION ───────────────────────────────────────────
+// ── AFFILIATION PAGE ──────────────────────────────────────
+function renderAffiliationPage(){
+  const parrainData = allMarchands.map(m => {
+    const code = generateAffiliCode(m);
+    const filleuls = allMarchands.filter(x => x.parrain_code === code);
+    return { ...m, code, filleuls, nbFilleuls: filleuls.length };
+  });
+  const avecFilleuls = parrainData.filter(p => p.nbFilleuls > 0).sort((a,b) => b.nbFilleuls - a.nbFilleuls);
+  const filleuls = allMarchands.filter(m => m.parrain_code);
+  const ambassadeurs = avecFilleuls.filter(p => p.nbFilleuls >= 3);
+  const totalMoisOfferts = avecFilleuls.reduce((s,p) => s + p.nbFilleuls, 0);
+  const valeurOfferte = filleuls.reduce((s,m) => s + (PLAN_PRICES[m.plan]||0) * 0.5, 0);
+
+  document.getElementById('affil-nb-parrains').textContent = avecFilleuls.length || '0';
+  document.getElementById('affil-nb-filleuls').textContent = filleuls.length || '0';
+  document.getElementById('affil-nb-ambassadeurs').textContent = ambassadeurs.length || '0';
+  document.getElementById('affil-mois-offerts').textContent = totalMoisOfferts || '0';
+  document.getElementById('affil-valeur-offerte').textContent = `valeur totale offerte : ${Math.round(valeurOfferte)}€`;
+  const badge = document.getElementById('sb-count-affil');
+  if(badge) badge.textContent = avecFilleuls.length;
+
+  document.getElementById('affil-parrain-count').textContent = `${avecFilleuls.length} parrain${avecFilleuls.length>1?'s':''} actif${avecFilleuls.length>1?'s':''}`;
+  const tbP = document.getElementById('affil-tb-parrains');
+  if(avecFilleuls.length === 0){
+    tbP.innerHTML = `<tr><td colspan="7" class="empty-state">Aucun parrainage — les codes sont visibles dans chaque fiche marchand</td></tr>`;
+  } else {
+    tbP.innerHTML = avecFilleuls.map((p,i) => {
+      const days = Math.floor((new Date()-new Date(p.created_at))/86400000);
+      const mrrIndirect = p.filleuls.reduce((s,f)=>s+(PLAN_PRICES[f.plan]||0),0);
+      return `<tr style="cursor:pointer" onclick="openFiche('${p.id}')">
+        <td><div style="display:flex;align-items:center;gap:8px">
+          <div style="width:28px;height:28px;border-radius:7px;background:${AVATAR_COLORS[i%AVATAR_COLORS.length]};color:${AVATAR_TEXT[i%AVATAR_COLORS.length]};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700">${(p.nom||'?').slice(0,2).toUpperCase()}</div>
+          <div><div style="font-weight:500">${p.nom}</div><div style="font-size:10px;color:var(--g2)">${p.domaine}</div></div>
+        </div></td>
+        <td><span style="font-family:var(--mono);font-size:11px;font-weight:600;color:var(--amber)">${p.code}</span></td>
+        <td><span class="pill pill-green">${p.nbFilleuls} filleul${p.nbFilleuls>1?'s':''}</span></td>
+        <td>${p.nbFilleuls>=3?'<span class="affil-badge affil-badge-ambassador">⭐ Ambassadeur</span>':'<span style="color:var(--g2);font-size:11px">—</span>'}</td>
+        <td style="font-weight:600;color:var(--amber)">${p.nbFilleuls} mois</td>
+        <td style="color:var(--green);font-weight:600">${mrrIndirect>0?mrrIndirect+'€/mois':'—'}</td>
+        <td style="font-size:11px;color:var(--g2)">${days<1?"Auj.":days<30?days+'j':Math.floor(days/30)+'mois'}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  document.getElementById('affil-filleul-count').textContent = `${filleuls.length} filleul${filleuls.length>1?'s':''}`;
+  const tbF = document.getElementById('affil-tb-filleuls');
+  if(filleuls.length === 0){
+    tbF.innerHTML = `<tr><td colspan="6" class="empty-state">Aucun filleul inscrit</td></tr>`;
+  } else {
+    tbF.innerHTML = filleuls.map(f => {
+      const parrain = parrainData.find(p => p.code === f.parrain_code);
+      const remise = Math.round((PLAN_PRICES[f.plan]||0)*0.5);
+      return `<tr style="cursor:pointer" onclick="openFiche('${f.id}')">
+        <td><div style="font-weight:500">${f.nom}</div><div style="font-size:10px;color:var(--g2)">${f.domaine}</div></td>
+        <td><span style="color:${PLAN_COLORS[f.plan]||'var(--blue)'};font-weight:600;text-transform:capitalize">${f.plan}</span></td>
+        <td><span style="font-family:var(--mono);font-size:11px;color:var(--amber)">${f.parrain_code}</span></td>
+        <td>${parrain?`<span style="font-weight:500">${parrain.nom}</span>`:'<span style="color:var(--g2);font-size:11px">Code inconnu</span>'}</td>
+        <td><span class="pill pill-amber">-${remise}€ (50%)</span></td>
+        <td style="font-size:11px;color:var(--g2)">${new Date(f.created_at).toLocaleDateString('fr-FR')}</td>
+      </tr>`;
+    }).join('');
+  }
+}
+
+// ── ACTIVITY LOG ─────────────────────────────────────────
 let activityLog = [];
 try { activityLog = JSON.parse(localStorage.getItem('rs_log') || '[]'); } catch(e) {}
 
