@@ -1461,7 +1461,7 @@ async function openFiche(marchandId){
   const fraudes = retours.filter(r => r.score >= 50);
   const legitimes = retours.filter(r => r.score < 30);
   const economies = fraudes.reduce((s,r) => s+r.montant, 0);
-  const prix = PLAN_PRICES[m.plan] || 29;
+  const prix = getMRR(m);
   const roi = prix > 0 ? Math.round(economies / prix) : 0;
   const scoreMoyen = fraudes.length > 0 ? Math.round(fraudes.reduce((s,r)=>s+r.score,0)/fraudes.length) : 0;
 
@@ -1629,6 +1629,18 @@ function sendRapportJ15(){
 // ── FICHE MARCHAND ────────────────────────────────────────
 const PLAN_COLORS = {starter:'var(--blue)',pro:'var(--red)',business:'var(--amber)'};
 const PLAN_PRICES = {starter:29,pro:79,business:199};
+
+// MRR réel — tient compte de la remise filleul 50% le premier mois
+function getMRR(m){
+  const base = PLAN_PRICES[m.plan] || 0;
+  if(!m.parrain_code) return base;
+  const daysSince = Math.floor((new Date() - new Date(m.created_at)) / 86400000);
+  return daysSince < 30 ? Math.round(base * 0.5) : base;
+}
+
+function isFirstMonth(m){
+  return m.parrain_code && Math.floor((new Date()-new Date(m.created_at))/86400000) < 30;
+}
 const AVATAR_COLORS = ['rgba(232,40,26,.15)','rgba(59,130,246,.15)','rgba(34,197,94,.15)','rgba(245,158,11,.15)','rgba(139,92,246,.15)'];
 const AVATAR_TEXT = ['var(--red)','var(--blue)','var(--green)','var(--amber)','#8B5CF6'];
 
@@ -1917,7 +1929,7 @@ function renderFinance(){
   // Répartition plans
   const planCounts = {starter:0,pro:0,business:0};
   const planRevs = {starter:0,pro:0,business:0};
-  active.forEach(m => { planCounts[m.plan]=(planCounts[m.plan]||0)+1; planRevs[m.plan]=(planRevs[m.plan]||0)+(PLAN_PRICES[m.plan]||0); });
+  active.forEach(m => { planCounts[m.plan]=(planCounts[m.plan]||0)+1; planRevs[m.plan]=(planRevs[m.plan]||0)+getMRR(m); });
   const total = active.length || 1;
   const planColors2 = {starter:'var(--blue)',pro:'var(--red)',business:'var(--amber)'};
   document.getElementById('fin-plans-dist').innerHTML = Object.entries(planCounts).map(([p,c]) => `
@@ -1948,12 +1960,14 @@ function renderFinance(){
     const fraudes = retours.filter(r => r.score >= 50);
     const eco = fraudes.reduce((s,r)=>s+r.montant,0);
     const roi = PLAN_PRICES[m.plan] > 0 ? Math.round(eco/PLAN_PRICES[m.plan]) : 0;
+    const mrrM = getMRR(m);
+    const isDiscount = isFirstMonth(m);
     const days = Math.floor((new Date()-new Date(m.created_at))/86400000);
     const pc = PLAN_COLORS[m.plan]||'var(--blue)';
     return `<tr>
       <td><div style="font-weight:500">${m.nom}</div><div style="font-size:10px;color:var(--g2)">${m.domaine}</div></td>
       <td><span style="color:${pc};font-weight:600;font-size:11px;text-transform:capitalize">${m.plan}</span></td>
-      <td style="font-weight:600;color:var(--amber)">${PLAN_PRICES[m.plan]||0}€</td>
+      <td style="font-weight:600;color:var(--amber)">${mrrM}€${isDiscount?` <span style="font-size:9px;color:var(--g2)">(-50% J${Math.floor((new Date()-new Date(m.created_at))/86400000)})</span>`:''}</td>
       <td><span class="pill pill-red">${fraudes.length}</span></td>
       <td style="color:var(--green);font-weight:600">${eco > 0 ? eco+'€' : '—'}</td>
       <td>${roi > 0 ? `<span class="pill pill-green">${roi}×</span>` : '—'}</td>
@@ -2257,7 +2271,7 @@ function renderAffiliationPage(){
   } else {
     tbP.innerHTML = avecFilleuls.map((p,i) => {
       const days = Math.floor((new Date()-new Date(p.created_at))/86400000);
-      const mrrIndirect = p.filleuls.reduce((s,f)=>s+(PLAN_PRICES[f.plan]||0),0);
+      const mrrIndirect = p.filleuls.reduce((s,f)=>s+getMRR(f),0);
       return `<tr style="cursor:pointer" onclick="openFiche('${p.id}')">
         <td><div style="display:flex;align-items:center;gap:8px">
           <div style="width:28px;height:28px;border-radius:7px;background:${AVATAR_COLORS[i%AVATAR_COLORS.length]};color:${AVATAR_TEXT[i%AVATAR_COLORS.length]};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700">${(p.nom||'?').slice(0,2).toUpperCase()}</div>
