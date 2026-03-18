@@ -232,6 +232,14 @@ tr:hover td{background:rgba(255,255,255,.015)}
 .toggle.on{background:var(--green);border-color:var(--gb)}
 .toggle::after{content:'';position:absolute;top:3px;left:3px;width:12px;height:12px;border-radius:50%;background:white;transition:transform .2s}
 .toggle.on::after{transform:translateX(16px)}
+/* ── AFFILIATION ── */
+.affil-code{background:var(--s2);border:0.5px solid var(--b2);border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:border-color .18s}
+.affil-code:hover{border-color:var(--red-b)}
+.affil-code-val{font-family:var(--mono);font-size:13px;font-weight:600;letter-spacing:.08em;color:var(--w);flex:1}
+.affil-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:10.5px;font-weight:700}
+.affil-badge-ambassador{background:linear-gradient(135deg,rgba(245,158,11,.15),rgba(245,158,11,.05));border:0.5px solid var(--ab);color:var(--amber)}
+.affil-filleul{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--s2);border-radius:8px;border:0.5px solid var(--b);font-size:12px}
+
 @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 .fade-up{animation:fadeUp .35s ease both}
 </style>
@@ -456,6 +464,41 @@ tr:hover td{background:rgba(255,255,255,.015)}
             <div class="fiche-metric-val" id="fiche-m-score">—</div>
             <div class="fiche-metric-lbl">Score moyen fraudes</div>
           </div>
+        </div>
+      </div>
+
+      <!-- Affiliation -->
+      <div style="background:linear-gradient(135deg,rgba(245,158,11,.06),rgba(245,158,11,.02));border:0.5px solid var(--ab);border-radius:12px;padding:16px 20px;margin-bottom:16px" id="fiche-affil-section">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="font-size:13px;font-weight:600">Programme de parrainage</div>
+            <span class="affil-badge affil-badge-ambassador" id="fiche-ambassador-badge" style="display:none">⭐ Ambassadeur</span>
+          </div>
+          <div style="font-size:11px;color:var(--g1)" id="fiche-affil-stats">—</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div>
+            <div style="font-size:10.5px;color:var(--g1);margin-bottom:6px">Code de parrainage unique</div>
+            <div class="affil-code" id="fiche-affil-code-wrap" onclick="copyAffiliCode()">
+              <span class="affil-code-val" id="fiche-affil-code">—</span>
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="5" width="8" height="8" rx="1.5"/><path d="M3 11V3h8"/></svg>
+              <span style="font-size:10px;color:var(--g2)" id="fiche-copy-label">Copier</span>
+            </div>
+            <div style="font-size:10px;color:var(--g2);margin-top:5px">Le filleul entre ce code à l'inscription → -50% premier mois</div>
+          </div>
+          <div>
+            <div style="font-size:10.5px;color:var(--g1);margin-bottom:6px">Avantages parrain</div>
+            <div style="display:flex;flex-direction:column;gap:5px">
+              <div style="display:flex;align-items:center;gap:7px;font-size:11.5px"><span style="color:var(--green)">✓</span> 1 filleul → 1 mois offert</div>
+              <div style="display:flex;align-items:center;gap:7px;font-size:11.5px"><span style="color:var(--green)">✓</span> 3 filleuls → badge Ambassadeur</div>
+              <div style="display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--g2)"><span>○</span> 5 filleuls → 2 mois offerts <span style="font-size:10px">(bientôt)</span></div>
+            </div>
+          </div>
+        </div>
+        <!-- Filleuls -->
+        <div id="fiche-filleuls-wrap" style="margin-top:12px;display:none">
+          <div style="font-size:10.5px;color:var(--g1);margin-bottom:7px">Filleuls parrainés</div>
+          <div style="display:flex;flex-direction:column;gap:5px" id="fiche-filleuls-list"></div>
         </div>
       </div>
 
@@ -985,8 +1028,8 @@ tr:hover td{background:rgba(255,255,255,.015)}
         </div>
       </div>
       <div class="field">
-        <label>Commandes / mois (estimé)</label>
-        <input type="number" id="add-cmds" placeholder="300">
+        <label>Code parrain utilisé <span style="color:var(--g2);font-weight:400">(optionnel — -50% 1er mois)</span></label>
+        <input type="text" id="add-parrain" placeholder="Ex: MODE-A3F2" style="text-transform:uppercase">
       </div>
     </div>
     <div class="modal-footer">
@@ -1352,6 +1395,9 @@ async function openFiche(marchandId){
   // Chart 7 jours
   buildChart(retours);
 
+  // Affiliation
+  renderAffiliation(m);
+
   // Table
   ficheTabMode = 'tous';
   document.querySelectorAll('.fiche-tab').forEach((t,i) => t.classList.toggle('active', i===0));
@@ -1560,10 +1606,23 @@ async function addMarchand(){
   const plan = document.getElementById('add-plan').value;
   const platform = document.getElementById('add-platform').value;
   const cmds = parseInt(document.getElementById('add-cmds').value) || 0;
+  const parrainCode = (document.getElementById('add-parrain').value || '').trim().toUpperCase() || null;
 
   if(!nom || !domaine){ toast('error', 'Champs manquants', 'Nom et domaine requis'); return; }
 
-  const { error } = await db.from('marchands').insert({ nom, domaine, email, plan, platform, commandes_mois:cmds, actif:true });
+  const { error } = await db.from('marchands').insert({ nom, domaine, email, plan, platform, commandes_mois:cmds, actif:true, parrain_code: parrainCode });
+  if(error){ toast('error', 'Erreur Supabase', error.message); return; }
+
+  // Si code parrain valide — notifier + log
+  if(parrainCode){
+    const parrain = allMarchands.find(m => generateAffiliCode(m) === parrainCode);
+    if(parrain){
+      toast('success', '🎁 Parrainage activé', `${nom} parrainé par ${parrain.nom} — -50% 1er mois appliqué`);
+      addLog('plan', 'Parrainage activé', `${nom} → parrain : ${parrain.nom} · 1 mois offert au parrain`);
+    } else {
+      toast('warning', 'Code parrain inconnu', `"${parrainCode}" — réduction non appliquée`);
+    }
+  }
   if(error){ toast('error', 'Erreur Supabase', error.message); return; }
 
   toast('success', 'Marchand ajouté', `${nom} (${plan}) — sauvegardé dans Supabase`);
@@ -2000,7 +2059,79 @@ function renderScoring(){
       <div style="font-size:10.5px;color:var(--g1);margin-top:4px">Retours avec signaux détectés</div>
     </div>`;
 }
-// ── ACTIVITY LOG ──────────────────────────────────────────
+// ── AFFILIATION ───────────────────────────────────────────
+function generateAffiliCode(marchand){
+  // Code déterministe basé sur le nom + id — toujours le même pour le même marchand
+  const base = (marchand.nom||'REF').replace(/[^a-zA-Z]/g,'').toUpperCase().slice(0,4);
+  const suffix = (marchand.id||'').replace(/-/g,'').slice(0,4).toUpperCase();
+  return `${base}-${suffix}`;
+}
+
+function renderAffiliation(m){
+  const code = generateAffiliCode(m);
+  document.getElementById('fiche-affil-code').textContent = code;
+
+  // Filleuls = marchands qui ont ce code comme parrain
+  // Pour l'instant on stocke dans les métadonnées du marchand (champ `parrain_code`)
+  const filleuls = allMarchands.filter(x => x.parrain_code === code);
+  const nbFilleuls = filleuls.length;
+  const moisOfferts = nbFilleuls; // 1 mois offert par filleul
+
+  document.getElementById('fiche-affil-stats').textContent =
+    nbFilleuls > 0
+      ? `${nbFilleuls} filleul${nbFilleuls>1?'s':''} · ${moisOfferts} mois offert${moisOfferts>1?'s':''}`
+      : 'Aucun filleul pour l\'instant';
+
+  // Badge Ambassadeur dès 3 filleuls
+  const badge = document.getElementById('fiche-ambassador-badge');
+  badge.style.display = nbFilleuls >= 3 ? 'inline-flex' : 'none';
+
+  // Liste filleuls
+  const wrap = document.getElementById('fiche-filleuls-wrap');
+  const list = document.getElementById('fiche-filleuls-list');
+  if(nbFilleuls > 0){
+    wrap.style.display = 'block';
+    list.innerHTML = filleuls.map(f => {
+      const days = Math.floor((new Date() - new Date(f.created_at)) / 86400000);
+      return `<div class="affil-filleul">
+        <span style="font-weight:600">${f.nom}</span>
+        <span style="color:var(--g2)">·</span>
+        <span style="color:var(--g1)">${f.domaine}</span>
+        <span style="color:var(--g2)">·</span>
+        <span class="pill pill-green" style="font-size:9.5px">-50% 1er mois</span>
+        <span style="margin-left:auto;font-size:10px;color:var(--g2)">Il y a ${days < 1 ? "aujourd'hui" : days+'j'}</span>
+      </div>`;
+    }).join('');
+  } else {
+    wrap.style.display = 'none';
+  }
+
+  // Lien de parrainage dans presse-papier
+  document.getElementById('fiche-affil-code-wrap').dataset.code = code;
+}
+
+function copyAffiliCode(){
+  const code = document.getElementById('fiche-affil-code').textContent;
+  const link = `https://refundshield.fr/inscription?ref=${code}`;
+  navigator.clipboard.writeText(link).then(() => {
+    document.getElementById('fiche-copy-label').textContent = '✓ Copié !';
+    setTimeout(() => document.getElementById('fiche-copy-label').textContent = 'Copier', 2000);
+    toast('success', 'Lien copié', `refundshield.fr/inscription?ref=${code}`);
+  }).catch(() => {
+    // Fallback pour file://
+    const el = document.createElement('textarea');
+    el.value = link;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+    document.getElementById('fiche-copy-label').textContent = '✓ Copié !';
+    setTimeout(() => document.getElementById('fiche-copy-label').textContent = 'Copier', 2000);
+    toast('success', 'Lien copié', `refundshield.fr/inscription?ref=${code}`);
+  });
+}
+
+// ── AFFILIATION ───────────────────────────────────────────
 let activityLog = [];
 try { activityLog = JSON.parse(localStorage.getItem('rs_log') || '[]'); } catch(e) {}
 
