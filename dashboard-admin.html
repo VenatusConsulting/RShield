@@ -936,8 +936,9 @@ tr:hover td{background:rgba(255,255,255,.015)}
             <th>Code parrainage</th>
             <th>Filleuls</th>
             <th>Badge</th>
-            <th>Mois offerts</th>
-            <th>MRR indirect généré</th>
+            <th>Récompense active</th>
+            <th>MRR parrain</th>
+            <th>MRR indirect</th>
             <th>Inscrit depuis</th>
           </tr></thead>
           <tbody id="affil-tb-parrains"></tbody>
@@ -1630,16 +1631,74 @@ function sendRapportJ15(){
 const PLAN_COLORS = {starter:'var(--blue)',pro:'var(--red)',business:'var(--amber)'};
 const PLAN_PRICES = {starter:29,pro:79,business:199};
 
-// MRR réel — tient compte de la remise filleul 50% le premier mois
+// Paliers d'affiliation
+const AFFIL_TIERS = [
+  { min:1,  label:'1 mois gratuit',              moisOfferts:1,  freeForever:false },
+  { min:3,  label:'3 mois gratuits + Ambassadeur',moisOfferts:3,  freeForever:false },
+  { min:5,  label:'6 mois gratuits + Early access',moisOfferts:6, freeForever:false },
+  { min:10, label:'Plan gratuit à vie',           moisOfferts:999,freeForever:true  },
+];
+
+function getAffilTier(nbFilleuls){
+  let tier = null;
+  for(const t of AFFIL_TIERS){ if(nbFilleuls >= t.min) tier = t; }
+  return tier;
+}
+
+function getNbFilleuls(m){
+  const code = generateAffiliCode(m);
+  return allMarchands.filter(x => x.parrain_code === code).length;
+}
+
+// MRR réel d'un marchand
+// — Filleul premier mois : -50%
+// — Parrain avec 10+ filleuls : 0€ (plan gratuit à vie)
+// — Parrain avec mois offerts en cours : 0€ jusqu'à épuisement
 function getMRR(m){
   const base = PLAN_PRICES[m.plan] || 0;
-  if(!m.parrain_code) return base;
-  const daysSince = Math.floor((new Date() - new Date(m.created_at)) / 86400000);
-  return daysSince < 30 ? Math.round(base * 0.5) : base;
+
+  // Filleul : -50% le premier mois
+  if(m.parrain_code){
+    const daysSince = Math.floor((new Date() - new Date(m.created_at)) / 86400000);
+    if(daysSince < 30) return Math.round(base * 0.5);
+  }
+
+  // Parrain : calculer ses filleuls et le tier atteint
+  const nbFilleuls = getNbFilleuls(m);
+  if(nbFilleuls === 0) return base;
+
+  const tier = getAffilTier(nbFilleuls);
+  if(!tier) return base;
+
+  // Plan gratuit à vie (10+ filleuls)
+  if(tier.freeForever) return 0;
+
+  // Mois offerts — on regarde depuis quand il a atteint ce palier
+  // Simplification : on compte les mois depuis le premier filleul
+  const filleuls = allMarchands.filter(x => x.parrain_code === generateAffiliCode(m));
+  if(filleuls.length === 0) return base;
+  const firstFilleulDate = new Date(Math.min(...filleuls.map(f => new Date(f.created_at))));
+  const monthsSinceFirst = Math.floor((new Date() - firstFilleulDate) / (30 * 86400000));
+  if(monthsSinceFirst < tier.moisOfferts) return 0;
+
+  return base;
 }
 
 function isFirstMonth(m){
   return m.parrain_code && Math.floor((new Date()-new Date(m.created_at))/86400000) < 30;
+}
+
+function isFreeForever(m){
+  return getNbFilleuls(m) >= 10;
+}
+
+function getMRRLabel(m){
+  const base = PLAN_PRICES[m.plan] || 0;
+  const mrr = getMRR(m);
+  if(mrr === 0 && isFreeForever(m)) return `<span style="color:var(--amber);font-size:10px">Gratuit à vie</span>`;
+  if(mrr === 0) return `<span style="color:var(--green);font-size:10px">Mois offert</span>`;
+  if(mrr < base) return `${mrr}€ <span style="font-size:9px;color:var(--g2)">(-50% J1)</span>`;
+  return `${mrr}€`;
 }
 const AVATAR_COLORS = ['rgba(232,40,26,.15)','rgba(59,130,246,.15)','rgba(34,197,94,.15)','rgba(245,158,11,.15)','rgba(139,92,246,.15)'];
 const AVATAR_TEXT = ['var(--red)','var(--blue)','var(--green)','var(--amber)','#8B5CF6'];
@@ -1819,7 +1878,7 @@ function updateMetrics(){
   const blocked = thisMonth.filter(r => r.score >= 50).length;
   const savings = thisMonth.filter(r => r.score >= 50).reduce((s,r) => s+r.montant, 0);
   const merchants = allMarchands.filter(m => m.actif !== false).length;
-  const mrr = allMarchands.reduce((s,m) => s+(PLAN_PRICES[m.plan]||0), 0);
+  const mrr = allMarchands.reduce((s,m) => s+getMRR(m), 0);
 
   document.getElementById('m-blocked').textContent = blocked;
   document.getElementById('m-savings').textContent = savings > 0 ? savings.toLocaleString('fr-FR')+'€' : '0€';
@@ -1898,7 +1957,7 @@ function toast(type, title, sub){
 // ── FINANCES ──────────────────────────────────────────────
 function renderFinance(){
   const active = allMarchands.filter(m => m.actif !== false);
-  const mrr = active.reduce((s,m) => s + (PLAN_PRICES[m.plan]||0), 0);
+  const mrr = active.reduce((s,m) => s + getMRR(m), 0);
   const arr = mrr * 12;
   // LTV estimé = MRR moyen × durée moyenne en mois (on estime 8 mois pour la bêta)
   const avgMrr = active.length > 0 ? mrr / active.length : 0;
@@ -1960,14 +2019,16 @@ function renderFinance(){
     const fraudes = retours.filter(r => r.score >= 50);
     const eco = fraudes.reduce((s,r)=>s+r.montant,0);
     const roi = PLAN_PRICES[m.plan] > 0 ? Math.round(eco/PLAN_PRICES[m.plan]) : 0;
-    const mrrM = getMRR(m);
-    const isDiscount = isFirstMonth(m);
+    const mrrLabel = getMRRLabel(m);
+    const nbF = getNbFilleuls(m);
+    const tier = getAffilTier(nbF);
+    const tierLabel = tier ? `<span style="font-size:9.5px;color:var(--amber)">↑ ${tier.label}</span>` : '';
     const days = Math.floor((new Date()-new Date(m.created_at))/86400000);
     const pc = PLAN_COLORS[m.plan]||'var(--blue)';
     return `<tr>
       <td><div style="font-weight:500">${m.nom}</div><div style="font-size:10px;color:var(--g2)">${m.domaine}</div></td>
       <td><span style="color:${pc};font-weight:600;font-size:11px;text-transform:capitalize">${m.plan}</span></td>
-      <td style="font-weight:600;color:var(--amber)">${mrrM}€${isDiscount?` <span style="font-size:9px;color:var(--g2)">(-50% J${Math.floor((new Date()-new Date(m.created_at))/86400000)})</span>`:''}</td>
+      <td style="font-weight:600;color:var(--amber)">${mrrLabel} ${tierLabel}</td>
       <td><span class="pill pill-red">${fraudes.length}</span></td>
       <td style="color:var(--green);font-weight:600">${eco > 0 ? eco+'€' : '—'}</td>
       <td>${roi > 0 ? `<span class="pill pill-green">${roi}×</span>` : '—'}</td>
@@ -2272,6 +2333,11 @@ function renderAffiliationPage(){
     tbP.innerHTML = avecFilleuls.map((p,i) => {
       const days = Math.floor((new Date()-new Date(p.created_at))/86400000);
       const mrrIndirect = p.filleuls.reduce((s,f)=>s+getMRR(f),0);
+      const tier = getAffilTier(p.nbFilleuls);
+      const mrrParrain = getMRR(p);
+      const tierLabel = tier?.freeForever
+        ? `<span style="font-size:9.5px;color:var(--amber)">♾ Gratuit à vie</span>`
+        : tier ? `<span style="font-size:9.5px;color:var(--amber)">🎁 ${tier.label}</span>` : '—';
       return `<tr style="cursor:pointer" onclick="openFiche('${p.id}')">
         <td><div style="display:flex;align-items:center;gap:8px">
           <div style="width:28px;height:28px;border-radius:7px;background:${AVATAR_COLORS[i%AVATAR_COLORS.length]};color:${AVATAR_TEXT[i%AVATAR_COLORS.length]};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700">${(p.nom||'?').slice(0,2).toUpperCase()}</div>
@@ -2280,7 +2346,8 @@ function renderAffiliationPage(){
         <td><span style="font-family:var(--mono);font-size:11px;font-weight:600;color:var(--amber)">${p.code}</span></td>
         <td><span class="pill pill-green">${p.nbFilleuls} filleul${p.nbFilleuls>1?'s':''}</span></td>
         <td>${p.nbFilleuls>=3?'<span class="affil-badge affil-badge-ambassador">⭐ Ambassadeur</span>':'<span style="color:var(--g2);font-size:11px">—</span>'}</td>
-        <td style="font-weight:600;color:var(--amber)">${p.nbFilleuls} mois</td>
+        <td>${tierLabel}</td>
+        <td style="color:${mrrParrain===0?'var(--green)':'var(--amber)'};font-weight:600">${mrrParrain===0?'<span style="font-size:10px">0€ (offert)</span>':mrrParrain+'€'}</td>
         <td style="color:var(--green);font-weight:600">${mrrIndirect>0?mrrIndirect+'€/mois':'—'}</td>
         <td style="font-size:11px;color:var(--g2)">${days<1?"Auj.":days<30?days+'j':Math.floor(days/30)+'mois'}</td>
       </tr>`;
