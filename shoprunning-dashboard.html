@@ -393,20 +393,36 @@ function subscribeToRetours(){
   if(!shopId) return;
   db.channel('shoprunning-retours')
     .on('postgres_changes', {
-      event: 'INSERT',
+      event: '*', // INSERT + UPDATE
       schema: 'public',
       table: 'retours',
       filter: `marchand_id=eq.${shopId}`
-    }, payload => {
-      const r = payload.new;
-      allRetours.unshift(r);
+    }, async payload => {
+      // Recharger la ligne depuis Supabase pour avoir les données complètes et à jour
+      const id = payload.new?.id;
+      if(!id) return;
+      const { data: r } = await db.from('retours').select('*').eq('id', id).single();
+      if(!r) return;
+
+      // Mettre à jour ou ajouter dans allRetours
+      const idx = allRetours.findIndex(x => x.id === r.id);
+      if(idx >= 0){ allRetours[idx] = r; } else { allRetours.unshift(r); }
+
       renderAll();
-      // Notification si score élevé
-      if(r.score >= 50){
-        toast('warning', '⚠ Alerte fraude', `${r.client_prenom} ${r.client_nom} — Score ${r.score}/100`);
-        showNotifBadge();
-      } else {
-        toast('info', '📬 Nouveau retour', `${r.client_prenom} ${r.client_nom} — ${r.montant}€`);
+
+      // Notification uniquement sur INSERT
+      if(payload.eventType === 'INSERT'){
+        if(r.score >= 75){
+          toast('warning', '🚨 Fraude probable', `${r.client_prenom} ${r.client_nom} — Score ${r.score}/100 — ${r.verdict}`);
+          showNotifBadge();
+        } else if(r.score >= 50){
+          toast('warning', '⚠ Risque élevé', `${r.client_prenom} ${r.client_nom} — Score ${r.score}/100`);
+          showNotifBadge();
+        } else if(r.score >= 30){
+          toast('info', '📬 Retour modéré', `${r.client_prenom} ${r.client_nom} — Score ${r.score}/100`);
+        } else {
+          toast('success', '✓ Retour légitime', `${r.client_prenom} ${r.client_nom} — Score ${r.score}/100`);
+        }
       }
     })
     .subscribe();
