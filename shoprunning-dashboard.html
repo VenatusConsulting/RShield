@@ -100,7 +100,26 @@ tr:hover td{background:rgba(255,255,255,.015)}
 .affil-code:hover{border-color:var(--red-b)}
 .affil-code-val{font-family:var(--mono);font-size:14px;font-weight:600;letter-spacing:.1em;color:var(--w);flex:1}
 
-/* ── TOAST ── */
+/* ── MODAL RETOUR ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);z-index:300;display:none;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal-retour{background:var(--s1);border:0.5px solid var(--b2);border-radius:16px;width:680px;max-width:95vw;max-height:90vh;overflow-y:auto;position:relative}
+.modal-retour-header{padding:20px 24px;border-bottom:0.5px solid var(--b);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--s1);z-index:1}
+.modal-retour-close{width:28px;height:28px;border-radius:50%;background:var(--s2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:var(--g1);transition:all .15s}
+.modal-retour-close:hover{background:var(--red-dim);color:var(--red)}
+.modal-body{padding:22px 24px}
+.modal-section{margin-bottom:20px}
+.modal-section-title{font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--g2);margin-bottom:10px}
+.modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.modal-field{background:var(--s2);border-radius:8px;padding:10px 13px}
+.modal-field-label{font-size:10px;color:var(--g2);margin-bottom:3px}
+.modal-field-val{font-size:13px;font-weight:500}
+.signal-item{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:7px;margin-bottom:6px;font-size:12px}
+.signal-red{background:var(--red-dim);border:0.5px solid var(--red-b)}
+.signal-amber{background:var(--ad);border:0.5px solid var(--ab)}
+.score-big{width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;font-family:var(--mono);border:2px solid}
+.modal-actions{display:flex;gap:8px;padding:16px 24px;border-top:0.5px solid var(--b);background:var(--s1);position:sticky;bottom:0}
+.btn-action{flex:1;padding:10px;border-radius:7px;font-family:var(--f);font-size:12.5px;font-weight:600;cursor:pointer;transition:all .15s;border:0.5px solid}
 .toast-wrap{position:fixed;bottom:20px;right:20px;z-index:999;display:flex;flex-direction:column;gap:8px;max-width:320px}
 .toast{background:var(--s1);border:0.5px solid var(--b2);border-radius:10px;padding:12px 16px;font-size:12px;display:flex;align-items:flex-start;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,.4);animation:toastIn .3s ease}
 @keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
@@ -352,6 +371,73 @@ tr:hover td{background:rgba(255,255,255,.015)}
   </main>
 </div>
 
+<!-- MODAL RETOUR -->
+<div class="modal-overlay" id="modal-retour" onclick="if(event.target===this)closeModal()">
+  <div class="modal-retour">
+    <div class="modal-retour-header">
+      <div>
+        <div style="font-size:14px;font-weight:700" id="modal-title">Détail du retour</div>
+        <div style="font-size:11px;color:var(--g1);margin-top:2px" id="modal-sub">—</div>
+      </div>
+      <div class="modal-retour-close" onclick="closeModal()">✕</div>
+    </div>
+    <div class="modal-body">
+
+      <!-- Score + verdict -->
+      <div style="display:flex;align-items:center;gap:20px;padding:16px;background:var(--s2);border-radius:10px;margin-bottom:20px" id="modal-score-block">
+        <div class="score-big" id="modal-score-circle">0</div>
+        <div style="flex:1">
+          <div style="font-size:16px;font-weight:700;margin-bottom:4px" id="modal-verdict">—</div>
+          <div style="font-size:12px;color:var(--g1);margin-bottom:8px" id="modal-action">—</div>
+          <div id="modal-verdict-pill"></div>
+        </div>
+      </div>
+
+      <!-- Infos client -->
+      <div class="modal-section">
+        <div class="modal-section-title">Informations client</div>
+        <div class="modal-grid">
+          <div class="modal-field"><div class="modal-field-label">Prénom</div><div class="modal-field-val" id="mf-prenom">—</div></div>
+          <div class="modal-field"><div class="modal-field-label">Nom</div><div class="modal-field-val" id="mf-nom">—</div></div>
+          <div class="modal-field"><div class="modal-field-label">Email</div><div class="modal-field-val" id="mf-email" style="font-family:var(--mono);font-size:12px">—</div></div>
+          <div class="modal-field"><div class="modal-field-label">Date de la demande</div><div class="modal-field-val" id="mf-date">—</div></div>
+        </div>
+      </div>
+
+      <!-- Infos commande -->
+      <div class="modal-section">
+        <div class="modal-section-title">Commande concernée</div>
+        <div class="modal-grid">
+          <div class="modal-field" style="grid-column:1/-1"><div class="modal-field-label">Produit(s)</div><div class="modal-field-val" id="mf-produit">—</div></div>
+          <div class="modal-field"><div class="modal-field-label">Montant</div><div class="modal-field-val" id="mf-montant" style="color:var(--amber);font-weight:700">—</div></div>
+          <div class="modal-field"><div class="modal-field-label">Motif déclaré</div><div class="modal-field-val" id="mf-motif">—</div></div>
+        </div>
+      </div>
+
+      <!-- Message client -->
+      <div class="modal-section" id="mf-message-section">
+        <div class="modal-section-title">Message du client</div>
+        <div style="background:var(--s2);border-radius:8px;padding:12px 14px;font-size:13px;color:var(--g1);line-height:1.6;font-style:italic" id="mf-message">—</div>
+      </div>
+
+      <!-- Signaux détectés -->
+      <div class="modal-section">
+        <div class="modal-section-title">Signaux détectés par RefundShield</div>
+        <div id="mf-signaux">
+          <div style="color:var(--g2);font-size:12px;padding:12px;text-align:center">Aucun signal détecté</div>
+        </div>
+      </div>
+
+    </div>
+    <!-- Actions -->
+    <div class="modal-actions">
+      <button class="btn-action" style="background:var(--red-dim);border-color:var(--red-b);color:var(--red)" onclick="actionRetour('bloquer')">🚫 Bloquer</button>
+      <button class="btn-action" style="background:rgba(255,255,255,.04);border-color:var(--b2);color:var(--g1)" onclick="actionRetour('preuves')">📷 Demander preuves</button>
+      <button class="btn-action" style="background:var(--gd);border-color:var(--gb);color:var(--green)" onclick="actionRetour('approuver')">✓ Approuver</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOASTS -->
 <div class="toast-wrap" id="toast-wrap"></div>
 
@@ -521,7 +607,7 @@ function renderRow(r){
   const pillClass = sc>=75?'pill-red':sc>=50?'pill-red':sc>=30?'pill-amber':'pill-green';
   const motifLabel = {colis_vide:'Colis vide',jamais_recu:'Jamais reçu',produit_endommage:'Endommagé',mauvaise_taille:'Mauvaise taille',ne_correspond_pas:'Non conforme'}[r.motif]||r.motif||'—';
   const date = r.created_at ? new Date(r.created_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—';
-  return `<tr>
+  return `<tr onclick="openRetour('${r.id}')" style="cursor:pointer">
     <td><div style="font-weight:500">${r.client_prenom||'—'} ${r.client_nom||''}</div><div style="font-size:10px;color:var(--g2)">${r.client_email||''}</div></td>
     <td style="font-size:11.5px;color:var(--g1)">${(r.produit||'—').slice(0,30)}</td>
     <td><span class="pill pill-gray">${motifLabel}</span></td>
@@ -538,7 +624,7 @@ function renderRowFull(r){
   const motifLabel = {colis_vide:'Colis vide',jamais_recu:'Jamais reçu',produit_endommage:'Endommagé',mauvaise_taille:'Mauvaise taille',ne_correspond_pas:'Non conforme'}[r.motif]||r.motif||'—';
   const date = r.created_at ? new Date(r.created_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—';
   const sigs = (r.signaux||[]).length;
-  return `<tr>
+  return `<tr onclick="openRetour('${r.id}')" style="cursor:pointer">
     <td><div style="font-weight:500">${r.client_prenom||'—'} ${r.client_nom||''}</div><div style="font-size:10px;color:var(--g2)">${r.client_email||''}</div></td>
     <td style="font-size:11.5px;color:var(--g1)">${(r.produit||'—').slice(0,25)}</td>
     <td><span class="pill pill-gray">${motifLabel}</span></td>
@@ -549,6 +635,83 @@ function renderRowFull(r){
     <td style="font-size:11px;color:var(--g1);max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.action_recommandee||'—'}</td>
     <td style="font-size:11px;color:var(--g2);white-space:nowrap">${date}</td>
   </tr>`;
+}
+
+// ── MODAL RETOUR ──────────────────────────────────────────
+let currentModalRetour = null;
+
+function openRetour(id){
+  const r = allRetours.find(x=>x.id===id);
+  if(!r) return;
+  currentModalRetour = r;
+  const sc = r.score;
+  const color = sc>=75?'var(--red)':sc>=50?'var(--red)':sc>=30?'var(--amber)':'var(--green)';
+  const bgColor = sc>=75?'var(--red-dim)':sc>=50?'var(--red-dim)':sc>=30?'var(--ad)':'var(--gd)';
+  const borderColor = sc>=75?'var(--red-b)':sc>=50?'var(--red-b)':sc>=30?'var(--ab)':'var(--gb)';
+  const motifLabels = {colis_vide:'Colis vide',jamais_recu:'Jamais reçu',produit_endommage:'Produit endommagé',mauvaise_taille:'Mauvaise taille / couleur',ne_correspond_pas:'Ne correspond pas à la description'};
+  const pillClass = sc>=50?'pill-red':sc>=30?'pill-amber':'pill-green';
+
+  document.getElementById('modal-title').textContent = `Retour — ${r.client_prenom||''} ${r.client_nom||''}`;
+  document.getElementById('modal-sub').textContent = `${r.produit||'—'} · ${r.montant||0}€ · ${new Date(r.created_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}`;
+
+  // Score
+  const circle = document.getElementById('modal-score-circle');
+  circle.textContent = sc;
+  circle.style.color = color;
+  circle.style.background = bgColor;
+  circle.style.borderColor = color;
+  document.getElementById('modal-verdict').textContent = r.verdict||'—';
+  document.getElementById('modal-verdict').style.color = color;
+  document.getElementById('modal-action').textContent = r.action_recommandee||'—';
+  document.getElementById('modal-verdict-pill').innerHTML = `<span class="pill ${pillClass}">${r.verdict||'—'}</span>`;
+
+  // Client
+  document.getElementById('mf-prenom').textContent = r.client_prenom||'—';
+  document.getElementById('mf-nom').textContent = r.client_nom||'—';
+  document.getElementById('mf-email').textContent = r.client_email||'—';
+  document.getElementById('mf-date').textContent = new Date(r.created_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+
+  // Commande
+  document.getElementById('mf-produit').textContent = r.produit||'—';
+  document.getElementById('mf-montant').textContent = `${r.montant||0}€`;
+  document.getElementById('mf-motif').textContent = motifLabels[r.motif]||r.motif||'—';
+
+  // Message
+  const msgSection = document.getElementById('mf-message-section');
+  if(r.message && r.message.trim()){
+    msgSection.style.display = 'block';
+    document.getElementById('mf-message').textContent = `"${r.message}"`;
+  } else {
+    msgSection.style.display = 'none';
+  }
+
+  // Signaux
+  const signaux = r.signaux || [];
+  const sigBox = document.getElementById('mf-signaux');
+  if(signaux.length === 0){
+    sigBox.innerHTML = `<div style="color:var(--g2);font-size:12px;padding:12px;text-align:center;background:var(--s2);border-radius:8px">✓ Aucun signal de fraude détecté</div>`;
+  } else {
+    sigBox.innerHTML = signaux.map(s=>`
+      <div class="signal-item signal-${s.risk||'amber'}">
+        <span style="font-size:14px">${s.risk==='red'?'🔴':'🟡'}</span>
+        <span style="flex:1">${s.text}</span>
+        <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:${s.risk==='red'?'var(--red)':'var(--amber)'}">${s.pts}</span>
+      </div>`).join('');
+  }
+
+  document.getElementById('modal-retour').classList.add('show');
+}
+
+function closeModal(){
+  document.getElementById('modal-retour').classList.remove('show');
+  currentModalRetour = null;
+}
+
+function actionRetour(action){
+  if(!currentModalRetour) return;
+  const labels = {bloquer:'Retour bloqué',preuves:'Preuves demandées',approuver:'Retour approuvé'};
+  toast(action==='approuver'?'success':action==='bloquer'?'error':'info', labels[action], `${currentModalRetour.client_prenom} ${currentModalRetour.client_nom}`);
+  closeModal();
 }
 
 function renderAlertes(){
