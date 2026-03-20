@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShopRunning.fr — Équipement Running & Trail</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --bg:#0A0A0A;--s1:#111;--s2:#171717;--s3:#1C1C1C;
+  --b:rgba(255,255,255,.08);--b2:rgba(255,255,255,.14);
+  --w:#F5F5F5;--g1:#888;--g2:#444;
+  --accent:#FF4D00;--accent-d:#CC3D00;
+  --green:#22C55E;--red:#E8281A;
+  --f:'Plus Jakarta Sans',sans-serif;--mono:'DM Mono',monospace;
+  --rs-red:#E8281A;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--f);background:var(--bg);color:var(--w);-webkit-font-smoothing:antialiased}
+a{text-decoration:none;color:inherit}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--g2)}
+
+/* ── NAV ── */
+nav{position:sticky;top:0;z-index:100;background:rgba(10,10,10,.95);backdrop-filter:blur(20px);border-bottom:0.5px solid var(--b);padding:0 48px;height:60px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-size:20px;font-weight:800;letter-spacing:-.03em}
+.nav-logo span{color:var(--accent)}
+.nav-links{display:flex;align-items:center;gap:28px}
+.nav-links a{font-size:13px;color:var(--g1);transition:color .15s}
+.nav-links a:hover{color:var(--w)}
+.nav-cart{position:relative;cursor:pointer}
+.cart-badge{position:absolute;top:-6px;right:-6px;background:var(--accent);color:#fff;font-size:9px;font-weight:700;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.nav-btn{background:var(--accent);color:#fff;padding:7px 18px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s}
+.nav-btn:hover{background:var(--accent-d)}
+
+/* ── HERO ── */
+.hero{padding:80px 48px;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;max-width:1200px;margin:0 auto}
+.hero-tag{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:16px}
+.hero-title{font-size:clamp(2.5rem,5vw,4rem);font-weight:800;letter-spacing:-.03em;line-height:1.05;margin-bottom:20px}
+.hero-title em{font-style:normal;color:var(--accent)}
+.hero-sub{font-size:1rem;color:var(--g1);line-height:1.7;margin-bottom:32px;font-weight:300}
+.hero-btns{display:flex;gap:10px}
+.btn-p{background:var(--accent);color:#fff;border:none;padding:12px 28px;border-radius:7px;font-family:var(--f);font-size:14px;font-weight:600;cursor:pointer;transition:all .15s}
+.btn-p:hover{background:var(--accent-d);transform:translateY(-1px)}
+.btn-g{background:transparent;color:var(--g1);border:0.5px solid var(--b2);padding:12px 24px;border-radius:7px;font-family:var(--f);font-size:14px;cursor:pointer;transition:all .15s}
+.btn-g:hover{color:var(--w);border-color:var(--w)}
+.hero-img{background:linear-gradient(135deg,var(--s2),var(--s3));border-radius:20px;height:400px;display:flex;align-items:center;justify-content:center;font-size:80px;border:0.5px solid var(--b)}
+
+/* ── PRODUCTS ── */
+.section{padding:60px 48px;max-width:1200px;margin:0 auto}
+.section-title{font-size:1.6rem;font-weight:700;letter-spacing:-.02em;margin-bottom:8px}
+.section-sub{font-size:13px;color:var(--g1);margin-bottom:36px}
+.products{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.product-card{background:var(--s1);border:0.5px solid var(--b);border-radius:12px;overflow:hidden;cursor:pointer;transition:all .2s}
+.product-card:hover{border-color:var(--b2);transform:translateY(-3px)}
+.product-img{height:180px;display:flex;align-items:center;justify-content:center;font-size:50px;background:var(--s2);border-bottom:0.5px solid var(--b)}
+.product-body{padding:14px}
+.product-name{font-size:13.5px;font-weight:600;margin-bottom:4px;letter-spacing:-.01em}
+.product-brand{font-size:11px;color:var(--g1);margin-bottom:8px}
+.product-price{font-size:16px;font-weight:700;color:var(--accent)}
+.product-old{font-size:11px;color:var(--g2);text-decoration:line-through;margin-left:6px}
+.add-btn{width:100%;margin-top:10px;background:var(--s3);border:0.5px solid var(--b2);color:var(--w);padding:8px;border-radius:6px;font-family:var(--f);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.add-btn:hover{background:var(--accent);border-color:var(--accent)}
+
+/* ── PAGES ── */
+.page{display:none}
+.page.active{display:block}
+
+/* ── CART SIDEBAR ── */
+.cart-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:none;backdrop-filter:blur(4px)}
+.cart-overlay.show{display:block}
+.cart-panel{position:fixed;right:0;top:0;bottom:0;width:400px;background:var(--s1);border-left:0.5px solid var(--b);z-index:201;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .3s ease}
+.cart-panel.show{transform:translateX(0)}
+.cart-header{padding:20px 24px;border-bottom:0.5px solid var(--b);display:flex;align-items:center;justify-content:space-between}
+.cart-title{font-size:15px;font-weight:700}
+.cart-close{width:28px;height:28px;border-radius:50%;background:var(--s2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:var(--g1)}
+.cart-items{flex:1;overflow-y:auto;padding:16px}
+.cart-item{display:flex;gap:12px;padding:12px 0;border-bottom:0.5px solid var(--b)}
+.cart-item-img{width:56px;height:56px;border-radius:8px;background:var(--s2);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
+.cart-item-name{font-size:13px;font-weight:500;margin-bottom:3px}
+.cart-item-price{font-size:13px;color:var(--accent);font-weight:600}
+.cart-item-remove{font-size:10px;color:var(--g2);cursor:pointer;margin-top:3px}
+.cart-item-remove:hover{color:var(--red)}
+.cart-footer{padding:20px 24px;border-top:0.5px solid var(--b)}
+.cart-total{display:flex;justify-content:space-between;font-size:15px;font-weight:700;margin-bottom:16px}
+.cart-checkout{width:100%;background:var(--accent);color:#fff;border:none;padding:14px;border-radius:8px;font-family:var(--f);font-size:14px;font-weight:700;cursor:pointer;transition:background .15s}
+.cart-checkout:hover{background:var(--accent-d)}
+.cart-empty{padding:48px;text-align:center;color:var(--g2)}
+
+/* ── CHECKOUT ── */
+.checkout-wrap{max-width:600px;margin:0 auto;padding:40px 24px}
+.form-section{background:var(--s1);border:0.5px solid var(--b);border-radius:12px;padding:24px;margin-bottom:16px}
+.form-title{font-size:14px;font-weight:700;margin-bottom:16px;letter-spacing:-.01em}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-field{margin-bottom:12px}
+.form-field label{font-size:11px;color:var(--g1);display:block;margin-bottom:5px}
+.form-field input,.form-field select{width:100%;background:var(--s2);border:0.5px solid var(--b2);border-radius:7px;padding:10px 12px;font-family:var(--f);font-size:13px;color:var(--w);outline:none;transition:border-color .18s}
+.form-field input:focus,.form-field select:focus{border-color:var(--accent)}
+.form-field select option{background:var(--s2)}
+
+/* ── ORDERS ── */
+.orders-wrap{max-width:800px;margin:0 auto;padding:40px 24px}
+.order-card{background:var(--s1);border:0.5px solid var(--b);border-radius:12px;padding:20px 24px;margin-bottom:12px}
+.order-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.order-id{font-family:var(--mono);font-size:12px;color:var(--g1)}
+.order-status{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.status-delivered{background:rgba(34,197,94,.1);color:var(--green);border:0.5px solid rgba(34,197,94,.2)}
+.status-transit{background:rgba(245,158,11,.1);color:#F59E0B;border:0.5px solid rgba(245,158,11,.2)}
+.order-items{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.order-item-chip{background:var(--s2);border-radius:6px;padding:6px 10px;font-size:11.5px;display:flex;align-items:center;gap:6px}
+.return-btn{background:transparent;border:0.5px solid var(--b2);color:var(--g1);padding:8px 16px;border-radius:6px;font-family:var(--f);font-size:12px;cursor:pointer;transition:all .15s}
+.return-btn:hover{border-color:var(--red);color:var(--red)}
+
+/* ── RETURN FORM ── */
+.return-wrap{max-width:600px;margin:0 auto;padding:40px 24px}
+.return-progress{display:flex;gap:0;margin-bottom:32px}
+.rp-step{flex:1;text-align:center;position:relative}
+.rp-step::after{content:'';position:absolute;top:14px;left:50%;right:-50%;height:1px;background:var(--b2);z-index:0}
+.rp-step:last-child::after{display:none}
+.rp-dot{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--b2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;margin:0 auto 6px;position:relative;z-index:1;background:var(--bg);transition:all .2s}
+.rp-step.active .rp-dot{border-color:var(--accent);background:var(--accent);color:#fff}
+.rp-step.done .rp-dot{border-color:var(--green);background:var(--green);color:#fff}
+.rp-label{font-size:10px;color:var(--g2)}
+.rp-step.active .rp-label{color:var(--w)}
+
+/* ── RS BADGE ── */
+.rs-badge{background:rgba(232,40,26,.08);border:0.5px solid rgba(232,40,26,.2);border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--g1);margin-bottom:16px}
+.rs-badge svg{width:16px;height:16px;flex-shrink:0}
+.rs-badge strong{color:var(--rs-red)}
+
+/* ── SUCCESS ── */
+.success-wrap{max-width:500px;margin:60px auto;padding:40px 24px;text-align:center}
+.success-icon{width:64px;height:64px;border-radius:50%;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:28px}
+.success-title{font-size:1.4rem;font-weight:700;margin-bottom:8px}
+.success-sub{font-size:13px;color:var(--g1);line-height:1.6;margin-bottom:24px}
+
+/* ── TOAST ── */
+.toast-wrap{position:fixed;bottom:20px;right:20px;z-index:500;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--s1);border:0.5px solid var(--b2);border-radius:10px;padding:12px 16px;font-size:12px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,.5);animation:toastIn .3s ease;min-width:260px}
+@keyframes toastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.toast-icon{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700}
+
+/* ── FOOTER ── */
+footer{border-top:0.5px solid var(--b);padding:28px 48px;display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--g2);margin-top:60px}
+.footer-rs{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--g2)}
+.footer-rs svg{width:14px;height:14px}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo" onclick="showPage('home')" style="cursor:pointer">Shop<span>Running</span>.fr</div>
+  <div class="nav-links">
+    <a href="#" onclick="showPage('home')">Accueil</a>
+    <a href="#" onclick="showPage('home')">Catalogue</a>
+    <a href="#" onclick="showPage('orders')">Mes commandes</a>
+  </div>
+  <div style="display:flex;align-items:center;gap:14px">
+    <div class="nav-cart" onclick="toggleCart()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+      <div class="cart-badge" id="cart-badge" style="display:none">0</div>
+    </div>
+    <button class="nav-btn" onclick="showPage('orders')">Mon compte</button>
+  </div>
+</nav>
+
+<!-- ── PAGE : HOME ── -->
+<div class="page active" id="page-home">
+  <div class="hero">
+    <div>
+      <div class="hero-tag">Nouvelle collection 2025</div>
+      <h1 class="hero-title">Courez plus <em>vite.</em><br>Plus loin. Plus fort.</h1>
+      <p class="hero-sub">Équipement running et trail de haute performance. Sélection des meilleures marques pour les runners exigeants.</p>
+      <div class="hero-btns">
+        <button class="btn-p" onclick="scrollToProducts()">Découvrir la collection</button>
+        <button class="btn-g" onclick="showPage('orders')">Mes commandes</button>
+      </div>
+    </div>
+    <div class="hero-img">🏃</div>
+  </div>
+
+  <div class="section" id="products-section">
+    <div class="section-title">Nouveautés</div>
+    <div class="section-sub">Les produits les plus populaires de la saison</div>
+    <div class="products" id="products-grid"></div>
+  </div>
+</div>
+
+<!-- ── PAGE : CHECKOUT ── -->
+<div class="page" id="page-checkout">
+  <div class="checkout-wrap">
+    <h2 style="font-size:1.3rem;font-weight:700;margin-bottom:24px;letter-spacing:-.02em">Finaliser la commande</h2>
+
+    <div class="form-section">
+      <div class="form-title">Vos informations</div>
+      <div class="form-grid">
+        <div class="form-field"><label>Prénom</label><input type="text" id="co-prenom" placeholder="Sophie"></div>
+        <div class="form-field"><label>Nom</label><input type="text" id="co-nom" placeholder="Martin"></div>
+      </div>
+      <div class="form-field"><label>Email</label><input type="email" id="co-email" placeholder="sophie.martin@gmail.com"></div>
+      <div class="form-field"><label>Téléphone</label><input type="tel" id="co-tel" placeholder="06 12 34 56 78"></div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-title">Adresse de livraison</div>
+      <div class="form-field"><label>Adresse</label><input type="text" id="co-adresse" placeholder="12 rue du Général de Gaulle"></div>
+      <div class="form-grid">
+        <div class="form-field"><label>Code postal</label><input type="text" id="co-cp" placeholder="67000"></div>
+        <div class="form-field"><label>Ville</label><input type="text" id="co-ville" placeholder="Strasbourg"></div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-title">Récapitulatif</div>
+      <div id="co-recap" style="margin-bottom:16px"></div>
+      <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:700;padding-top:12px;border-top:0.5px solid var(--b)">
+        <span>Total</span>
+        <span id="co-total" style="color:var(--accent)">0€</span>
+      </div>
+    </div>
+
+    <button class="btn-p" style="width:100%;padding:14px;font-size:15px" onclick="placeOrder()">
+      Confirmer la commande →
+    </button>
+  </div>
+</div>
+
+<!-- ── PAGE : ORDERS ── -->
+<div class="page" id="page-orders">
+  <div class="orders-wrap">
+    <h2 style="font-size:1.3rem;font-weight:700;margin-bottom:6px;letter-spacing:-.02em">Mes commandes</h2>
+    <p style="font-size:13px;color:var(--g1);margin-bottom:24px">Historique de vos achats et demandes de retour</p>
+    <div id="orders-list"></div>
+  </div>
+</div>
+
+<!-- ── PAGE : RETURN FORM ── -->
+<div class="page" id="page-return">
+  <div class="return-wrap">
+    <h2 style="font-size:1.3rem;font-weight:700;margin-bottom:6px;letter-spacing:-.02em">Demande de retour</h2>
+    <p style="font-size:13px;color:var(--g1);margin-bottom:24px">Remplissez ce formulaire pour initier votre retour</p>
+
+    <!-- Progress -->
+    <div class="return-progress">
+      <div class="rp-step active" id="rp1"><div class="rp-dot">1</div><div class="rp-label">Motif</div></div>
+      <div class="rp-step" id="rp2"><div class="rp-dot">2</div><div class="rp-label">Détails</div></div>
+      <div class="rp-step" id="rp3"><div class="rp-dot">3</div><div class="rp-label">Confirmation</div></div>
+    </div>
+
+    <!-- RefundShield badge -->
+    <div class="rs-badge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--rs-red)" stroke-width="1.8"><path d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.5C16.5 22.15 20 17.25 20 12V6L12 2z"/></svg>
+      <span>Cette boutique est protégée par <strong>RefundShield</strong> — les demandes de retour font l'objet d'une vérification automatique.</span>
+    </div>
+
+    <!-- Step 1 -->
+    <div id="return-step1">
+      <div class="form-section">
+        <div class="form-title">Commande concernée</div>
+        <div id="return-order-info" style="background:var(--s2);border-radius:8px;padding:12px 14px;font-size:13px;margin-bottom:4px"></div>
+      </div>
+      <div class="form-section">
+        <div class="form-title">Motif du retour</div>
+        <div style="display:flex;flex-direction:column;gap:8px" id="motif-options">
+          <label style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--s2);border-radius:8px;cursor:pointer;border:0.5px solid var(--b);transition:border-color .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="updateMotifStyle(this)">
+            <input type="radio" name="motif" value="colis_vide" style="accent-color:var(--accent)"> <span><strong style="font-size:13px">Colis vide</strong><br><span style="font-size:11px;color:var(--g1)">Le colis est arrivé sans le produit commandé</span></span>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--s2);border-radius:8px;cursor:pointer;border:0.5px solid var(--b);transition:border-color .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="updateMotifStyle(this)">
+            <input type="radio" name="motif" value="jamais_recu" style="accent-color:var(--accent)"> <span><strong style="font-size:13px">Jamais reçu</strong><br><span style="font-size:11px;color:var(--g1)">Le colis n'est jamais arrivé malgré le tracking</span></span>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--s2);border-radius:8px;cursor:pointer;border:0.5px solid var(--b);transition:border-color .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="updateMotifStyle(this)">
+            <input type="radio" name="motif" value="produit_endommage" style="accent-color:var(--accent)"> <span><strong style="font-size:13px">Produit endommagé</strong><br><span style="font-size:11px;color:var(--g1)">Le produit est arrivé cassé ou abîmé</span></span>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--s2);border-radius:8px;cursor:pointer;border:0.5px solid var(--b);transition:border-color .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="updateMotifStyle(this)">
+            <input type="radio" name="motif" value="mauvaise_taille" style="accent-color:var(--accent)"> <span><strong style="font-size:13px">Mauvaise taille / couleur</strong><br><span style="font-size:11px;color:var(--g1)">Le produit ne correspond pas à ma commande</span></span>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--s2);border-radius:8px;cursor:pointer;border:0.5px solid var(--b);transition:border-color .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="updateMotifStyle(this)">
+            <input type="radio" name="motif" value="ne_correspond_pas" style="accent-color:var(--accent)"> <span><strong style="font-size:13px">Ne correspond pas à la description</strong><br><span style="font-size:11px;color:var(--g1)">Le produit est différent de la fiche produit</span></span>
+          </label>
+        </div>
+      </div>
+      <button class="btn-p" style="width:100%" onclick="nextReturnStep(2)">Continuer →</button>
+    </div>
+
+    <!-- Step 2 -->
+    <div id="return-step2" style="display:none">
+      <div class="form-section">
+        <div class="form-title">Décrivez le problème</div>
+        <div class="form-field">
+          <label>Message (décrivez précisément)</label>
+          <textarea id="ret-message" style="width:100%;background:var(--s2);border:0.5px solid var(--b2);border-radius:7px;padding:10px 12px;font-family:var(--f);font-size:13px;color:var(--w);outline:none;resize:vertical;min-height:100px;transition:border-color .18s" placeholder="Décrivez votre problème en détail..." onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--b2)'"></textarea>
+        </div>
+        <div class="form-field">
+          <label>Photo (optionnel)</label>
+          <div style="background:var(--s2);border:0.5px dashed var(--b2);border-radius:7px;padding:20px;text-align:center;cursor:pointer;font-size:12px;color:var(--g1)" onclick="document.getElementById('ret-photo').click()">
+            📷 Cliquez pour ajouter une photo
+            <input type="file" id="ret-photo" accept="image/*" style="display:none">
+          </div>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="form-title">Vos coordonnées</div>
+        <div class="form-field"><label>Prénom</label><input type="text" id="ret-prenom" placeholder="Sophie"></div>
+        <div class="form-field"><label>Nom</label><input type="text" id="ret-nom" placeholder="Martin"></div>
+        <div class="form-field"><label>Email</label><input type="email" id="ret-email" placeholder="sophie.martin@gmail.com"></div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn-g" style="flex:1" onclick="nextReturnStep(1)">← Retour</button>
+        <button class="btn-p" style="flex:2" onclick="nextReturnStep(3)">Continuer →</button>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div id="return-step3" style="display:none">
+      <div class="form-section">
+        <div class="form-title">Récapitulatif de votre demande</div>
+        <div id="ret-recap" style="font-size:13px;line-height:1.8"></div>
+      </div>
+      <div class="form-section" style="background:rgba(232,40,26,.05);border-color:rgba(232,40,26,.2)">
+        <div style="font-size:12px;color:var(--g1);line-height:1.6">
+          <strong style="color:var(--w);display:block;margin-bottom:6px">ℹ️ Information importante</strong>
+          En soumettant cette demande, vous certifiez que les informations sont exactes. ShopRunning.fr utilise RefundShield pour analyser automatiquement les demandes de retour. Toute fausse déclaration peut entraîner le rejet de votre demande.
+        </div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn-g" style="flex:1" onclick="nextReturnStep(2)">← Retour</button>
+        <button class="btn-p" style="flex:2" id="submit-return-btn" onclick="submitReturn()">Envoyer ma demande →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── PAGE : SUCCESS ── -->
+<div class="page" id="page-success">
+  <div class="success-wrap">
+    <div class="success-icon" id="success-icon">✓</div>
+    <h2 class="success-title" id="success-title">Commande confirmée !</h2>
+    <p class="success-sub" id="success-sub">Votre commande a été enregistrée.</p>
+    <button class="btn-p" onclick="showPage('orders')">Voir mes commandes →</button>
+  </div>
+</div>
+
+<!-- CART PANEL -->
+<div class="cart-overlay" id="cart-overlay" onclick="toggleCart()"></div>
+<div class="cart-panel" id="cart-panel">
+  <div class="cart-header">
+    <div class="cart-title">Mon panier</div>
+    <div class="cart-close" onclick="toggleCart()">✕</div>
+  </div>
+  <div class="cart-items" id="cart-items-list"></div>
+  <div class="cart-footer">
+    <div class="cart-total"><span>Total</span><span id="cart-total-price" style="color:var(--accent)">0€</span></div>
+    <button class="cart-checkout" onclick="goCheckout()">Commander →</button>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div>© 2025 ShopRunning.fr — Équipement Running & Trail</div>
+  <div class="footer-rs">
+    <svg viewBox="0 0 24 24" fill="none" stroke="var(--rs-red)" stroke-width="1.8"><path d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.5C16.5 22.15 20 17.25 20 12V6L12 2z"/></svg>
+    Protégé par RefundShield
+  </div>
+</footer>
+
+<!-- TOASTS -->
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<script>
+// ── SUPABASE ──────────────────────────────────────────────
+const { createClient } = supabase;
+const db = createClient(
+  'https://uhtbzhjzghxvmgonfvoh.supabase.co',
+  'sb_publishable_UpUQcsIPNZtztCd6i6NSZA_n10kYJvJ'
+);
+
+// ShopRunning ID dans Supabase — on le trouve ou le crée au démarrage
+const SHOP_NAME = 'ShopRunning.fr';
+const SHOP_DOMAIN = 'shoprunning.fr';
+let SHOP_ID = null;
+
+// ── PRODUITS ──────────────────────────────────────────────
+const PRODUCTS = [
+  { id:1, name:'Nike Air Zoom Pegasus 41', brand:'Nike', price:139, emoji:'👟', cat:'Chaussures' },
+  { id:2, name:'Adidas Ultraboost 24', brand:'Adidas', price:189, oldPrice:220, emoji:'👟', cat:'Chaussures' },
+  { id:3, name:'Maillot Running Pro', brand:'Under Armour', price:49, emoji:'👕', cat:'Textile' },
+  { id:4, name:'Short Trail Salomon', brand:'Salomon', price:65, emoji:'🩳', cat:'Textile' },
+  { id:5, name:'Montre GPS Garmin Forerunner 265', brand:'Garmin', price:449, emoji:'⌚', cat:'Électronique' },
+  { id:6, name:'Veste Imperméable Trail', brand:'The North Face', price:199, oldPrice:249, emoji:'🧥', cat:'Textile' },
+  { id:7, name:'Chaussettes Running X-Socks', brand:'X-Socks', price:18, emoji:'🧦', cat:'Accessoires' },
+  { id:8, name:'Sac Hydratation 10L', brand:'Salomon', price:89, emoji:'🎒', cat:'Accessoires' },
+];
+
+// ── ÉTAT ─────────────────────────────────────────────────
+let cart = [];
+let orders = JSON.parse(localStorage.getItem('sr_orders') || '[]');
+let currentOrderForReturn = null;
+let currentReturnStep = 1;
+
+// ── INIT ─────────────────────────────────────────────────
+async function init(){
+  renderProducts();
+  renderOrders();
+  await ensureShopExists();
+}
+
+async function ensureShopExists(){
+  // Chercher ShopRunning dans les marchands
+  const { data } = await db.from('marchands')
+    .select('id')
+    .eq('domaine', SHOP_DOMAIN)
+    .single();
+
+  if(data){
+    SHOP_ID = data.id;
+  } else {
+    // Créer ShopRunning si pas encore dans la base
+    const { data: created } = await db.from('marchands').insert({
+      nom: SHOP_NAME,
+      domaine: SHOP_DOMAIN,
+      email: 'contact@shoprunning.fr',
+      plan: 'pro',
+      platform: 'shopify',
+      commandes_mois: 450,
+      actif: true,
+    }).select().single();
+    if(created) SHOP_ID = created.id;
+  }
+}
+
+// ── PRODUITS ─────────────────────────────────────────────
+function renderProducts(){
+  const grid = document.getElementById('products-grid');
+  grid.innerHTML = PRODUCTS.map(p => `
+    <div class="product-card" onclick="addToCart(${p.id})">
+      <div class="product-img">${p.emoji}</div>
+      <div class="product-body">
+        <div class="product-name">${p.name}</div>
+        <div class="product-brand">${p.brand} · ${p.cat}</div>
+        <div style="display:flex;align-items:baseline;gap:4px">
+          <div class="product-price">${p.price}€</div>
+          ${p.oldPrice?`<div class="product-old">${p.oldPrice}€</div>`:''}
+        </div>
+        <button class="add-btn">+ Ajouter au panier</button>
+      </div>
+    </div>`).join('');
+}
+
+function scrollToProducts(){
+  document.getElementById('products-section').scrollIntoView({behavior:'smooth'});
+}
+
+// ── PANIER ───────────────────────────────────────────────
+function addToCart(productId){
+  const p = PRODUCTS.find(x=>x.id===productId);
+  if(!p) return;
+  const existing = cart.find(x=>x.id===productId);
+  if(existing){ existing.qty++; } else { cart.push({...p, qty:1}); }
+  updateCartUI();
+  toast('success', `${p.emoji} Ajouté`, `${p.name} dans votre panier`);
+}
+
+function updateCartUI(){
+  const total = cart.reduce((s,i)=>s+i.price*i.qty,0);
+  const count = cart.reduce((s,i)=>s+i.qty,0);
+  const badge = document.getElementById('cart-badge');
+  badge.style.display = count > 0 ? 'flex' : 'none';
+  badge.textContent = count;
+  document.getElementById('cart-total-price').textContent = `${total}€`;
+  const list = document.getElementById('cart-items-list');
+  if(cart.length === 0){
+    list.innerHTML = `<div class="cart-empty">🛒<br><br>Votre panier est vide</div>`;
+    return;
+  }
+  list.innerHTML = cart.map(i=>`
+    <div class="cart-item">
+      <div class="cart-item-img">${i.emoji}</div>
+      <div style="flex:1">
+        <div class="cart-item-name">${i.name}</div>
+        <div class="cart-item-price">${i.price * i.qty}€ ${i.qty>1?`(×${i.qty})`:''}</div>
+        <div class="cart-item-remove" onclick="removeFromCart(${i.id})">Supprimer</div>
+      </div>
+    </div>`).join('');
+}
+
+function removeFromCart(id){
+  cart = cart.filter(x=>x.id!==id);
+  updateCartUI();
+}
+
+function toggleCart(){
+  document.getElementById('cart-overlay').classList.toggle('show');
+  document.getElementById('cart-panel').classList.toggle('show');
+}
+
+function goCheckout(){
+  if(cart.length===0){ toast('error','Panier vide','Ajoutez des produits d\'abord'); return; }
+  toggleCart();
+  // Pré-remplir récap
+  const total = cart.reduce((s,i)=>s+i.price*i.qty,0);
+  document.getElementById('co-total').textContent = `${total}€`;
+  document.getElementById('co-recap').innerHTML = cart.map(i=>`
+    <div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:0.5px solid var(--b)">
+      <span>${i.emoji} ${i.name} ×${i.qty}</span>
+      <span style="color:var(--accent)">${i.price*i.qty}€</span>
+    </div>`).join('');
+  showPage('checkout');
+}
+
+// ── COMMANDE ─────────────────────────────────────────────
+function placeOrder(){
+  const prenom = document.getElementById('co-prenom').value;
+  const nom = document.getElementById('co-nom').value;
+  const email = document.getElementById('co-email').value;
+  const adresse = document.getElementById('co-adresse').value;
+  const ville = document.getElementById('co-ville').value;
+
+  if(!prenom||!nom||!email){ toast('error','Champs manquants','Remplissez tous les champs obligatoires'); return; }
+
+  const order = {
+    id: `SR-${Date.now()}`,
+    date: new Date().toLocaleDateString('fr-FR'),
+    items: [...cart],
+    total: cart.reduce((s,i)=>s+i.price*i.qty,0),
+    client: { prenom, nom, email, adresse, ville },
+    status: 'delivered',
+    hasReturn: false,
+  };
+
+  orders.unshift(order);
+  saveOrders();
+  cart = [];
+  updateCartUI();
+  renderOrders();
+
+  document.getElementById('success-icon').textContent = '✓';
+  document.getElementById('success-title').textContent = 'Commande confirmée !';
+  document.getElementById('success-sub').textContent = `Commande ${order.id} — ${order.total}€ — Livraison estimée dans 3-5 jours ouvrés.`;
+  showPage('success');
+  toast('success', '🎉 Commande passée', `${order.id} — ${order.total}€`);
+}
+
+// ── COMMANDES ────────────────────────────────────────────
+function renderOrders(){
+  const list = document.getElementById('orders-list');
+  if(orders.length === 0){
+    list.innerHTML = `<div style="text-align:center;padding:48px;color:var(--g2)">
+      <div style="font-size:40px;margin-bottom:12px">📦</div>
+      <div style="font-size:14px;margin-bottom:8px">Aucune commande</div>
+      <div style="font-size:12px">Commandez des produits pour tester le système de retour</div>
+      <button class="btn-p" style="margin-top:16px" onclick="showPage('home')">Voir le catalogue →</button>
+    </div>`;
+    return;
+  }
+  list.innerHTML = orders.map(o=>`
+    <div class="order-card">
+      <div class="order-header">
+        <div>
+          <div style="font-size:14px;font-weight:600;margin-bottom:3px">${o.items.map(i=>i.name).join(', ').slice(0,50)}${o.items.map(i=>i.name).join(', ').length>50?'…':''}</div>
+          <div class="order-id">${o.id} · ${o.date} · ${o.total}€</div>
+        </div>
+        <span class="order-status ${o.status==='delivered'?'status-delivered':'status-transit'}">${o.status==='delivered'?'Livré':'En transit'}</span>
+      </div>
+      <div class="order-items">
+        ${o.items.map(i=>`<div class="order-item-chip">${i.emoji} ${i.name}</div>`).join('')}
+      </div>
+      ${o.hasReturn
+        ? `<div style="font-size:12px;color:var(--g1);padding:8px 12px;background:var(--s2);border-radius:6px">✓ Demande de retour soumise — en cours de traitement</div>`
+        : `<button class="return-btn" onclick="startReturn('${o.id}')">Faire une demande de retour</button>`
+      }
+    </div>`).join('');
+}
+
+function startReturn(orderId){
+  const order = orders.find(o=>o.id===orderId);
+  if(!order) return;
+  currentOrderForReturn = order;
+  currentReturnStep = 1;
+
+  // Pré-remplir les coordonnées si connues
+  document.getElementById('ret-prenom').value = order.client.prenom || '';
+  document.getElementById('ret-nom').value = order.client.nom || '';
+  document.getElementById('ret-email').value = order.client.email || '';
+
+  // Afficher la commande concernée
+  document.getElementById('return-order-info').innerHTML = `
+    <div style="font-weight:600;margin-bottom:4px">${order.items.map(i=>i.emoji+' '+i.name).join(', ')}</div>
+    <div style="font-size:11px;color:var(--g1)">${order.id} · ${order.date} · ${order.total}€</div>`;
+
+  // Reset form
+  document.querySelectorAll('input[name="motif"]').forEach(r=>r.checked=false);
+  document.getElementById('ret-message').value = '';
+  nextReturnStep(1);
+  showPage('return');
+}
+
+function nextReturnStep(step){
+  if(step===2){
+    const motif = document.querySelector('input[name="motif"]:checked');
+    if(!motif){ toast('error','Motif requis','Sélectionnez un motif de retour'); return; }
+  }
+  if(step===3){
+    const prenom = document.getElementById('ret-prenom').value;
+    const email = document.getElementById('ret-email').value;
+    if(!prenom||!email){ toast('error','Champs manquants','Remplissez vos coordonnées'); return; }
+    // Récap
+    const motif = document.querySelector('input[name="motif"]:checked')?.value;
+    const motifLabels = {colis_vide:'Colis vide',jamais_recu:'Jamais reçu',produit_endommage:'Produit endommagé',mauvaise_taille:'Mauvaise taille / couleur',ne_correspond_pas:'Ne correspond pas'};
+    document.getElementById('ret-recap').innerHTML = `
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid var(--b);font-size:13px"><span style="color:var(--g1)">Commande</span><span>${currentOrderForReturn?.id}</span></div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid var(--b);font-size:13px"><span style="color:var(--g1)">Produit(s)</span><span>${currentOrderForReturn?.items.map(i=>i.name).join(', ').slice(0,40)}</span></div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid var(--b);font-size:13px"><span style="color:var(--g1)">Motif</span><span>${motifLabels[motif]||motif}</span></div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid var(--b);font-size:13px"><span style="color:var(--g1)">Client</span><span>${document.getElementById('ret-prenom').value} ${document.getElementById('ret-nom').value}</span></div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:13px"><span style="color:var(--g1)">Email</span><span>${document.getElementById('ret-email').value}</span></div>`;
+  }
+
+  currentReturnStep = step;
+  [1,2,3].forEach(s=>{
+    document.getElementById(`return-step${s}`).style.display = s===step?'block':'none';
+    const dot = document.getElementById(`rp${s}`);
+    dot.className = `rp-step${s<step?' done':s===step?' active':''}`;
+  });
+}
+
+async function submitReturn(){
+  const btn = document.getElementById('submit-return-btn');
+  btn.textContent = 'Envoi en cours…';
+  btn.disabled = true;
+
+  const motif = document.querySelector('input[name="motif"]:checked')?.value;
+  const prenom = document.getElementById('ret-prenom').value;
+  const nom = document.getElementById('ret-nom').value;
+  const email = document.getElementById('ret-email').value;
+  const message = document.getElementById('ret-message').value;
+  const order = currentOrderForReturn;
+
+  if(!SHOP_ID){ await ensureShopExists(); }
+
+  // Envoyer à Supabase
+  const { error } = await db.from('retours').insert({
+    client_prenom: prenom,
+    client_nom: nom,
+    client_email: email,
+    marchand_id: SHOP_ID,
+    motif,
+    produit: order?.items.map(i=>i.name).join(', ') || 'Produit ShopRunning',
+    montant: order?.total || 0,
+    score: 0, // sera calculé par votre moteur
+    verdict: 'En attente d\'analyse',
+    action_recommandee: 'Analyse en cours',
+    signaux: [],
+    message,
+    sauvegarde: true,
+  });
+
+  btn.textContent = 'Envoyer ma demande →';
+  btn.disabled = false;
+
+  if(error){
+    toast('error', 'Erreur', error.message);
+    return;
+  }
+
+  // Marquer la commande comme ayant un retour
+  if(order){
+    order.hasReturn = true;
+    saveOrders();
+    renderOrders();
+  }
+
+  document.getElementById('success-icon').textContent = '📬';
+  document.getElementById('success-title').textContent = 'Demande envoyée !';
+  document.getElementById('success-sub').textContent = `Votre demande de retour a été soumise. ShopRunning.fr va l'analyser et vous recontactera sous 24-48h.`;
+  showPage('success');
+  toast('success', '📬 Retour soumis', 'Votre demande est en cours de traitement');
+}
+
+// ── HELPERS ──────────────────────────────────────────────
+function showPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(`page-${name}`).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function saveOrders(){
+  try{ localStorage.setItem('sr_orders', JSON.stringify(orders)); } catch(e){}
+}
+
+function updateMotifStyle(el){
+  el.style.borderColor = 'var(--b)';
+}
+
+function toast(type, title, sub){
+  const wrap = document.getElementById('toast-wrap');
+  const colors = {success:var(--green),error:'var(--red)',info:'#3B82F6',warning:'#F59E0B'};
+  const icons = {success:'✓',error:'✕',info:'i',warning:'!'};
+  const bgColors = {success:'rgba(34,197,94,.15)',error:'rgba(232,40,26,.15)',info:'rgba(59,130,246,.15)',warning:'rgba(245,158,11,.15)'};
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = `
+    <div class="toast-icon" style="background:${bgColors[type]};color:${type==='success'?'var(--green)':type==='error'?'var(--red)':type==='warning'?'#F59E0B':'#3B82F6'}">${icons[type]}</div>
+    <div><div style="font-weight:600;margin-bottom:2px">${title}</div><div style="color:var(--g1);font-size:11px">${sub}</div></div>`;
+  wrap.appendChild(el);
+  setTimeout(()=>{el.style.opacity='0';el.style.transition='opacity .3s';setTimeout(()=>el.remove(),300);},3000);
+}
+
+init();
+</script>
+</body>
+</html>
