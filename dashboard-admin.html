@@ -1167,10 +1167,42 @@ let currentReturn = null;
 
 // ── INIT DB TABLES ─────────────────────────────────────────
 async function initDB(){
-  // Create tables via RPC if not exist — using raw SQL via db.rpc
-  // Tables are created automatically by Supabase if we just try to insert
-  // We'll handle gracefully
   await loadAll();
+  subscribeAdminRealtime();
+}
+
+function subscribeAdminRealtime(){
+  db.channel('admin-retours-live')
+    .on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'retours',
+    }, async payload => {
+      const id = payload.new?.id;
+      if(!id) return;
+      const { data: r } = await db.from('retours').select('*').eq('id', id).single();
+      if(!r) return;
+      const idx = allRetours.findIndex(x => x.id === r.id);
+      if(idx >= 0){ allRetours[idx] = r; } else { allRetours.unshift(r); }
+      renderRetours();
+      updateMetrics();
+      document.getElementById('sb-count-retours').textContent = allRetours.length;
+      updateRecidivBadge();
+      if(payload.eventType === 'INSERT'){
+        const marchand = allMarchands.find(m => m.id === r.marchand_id);
+        const shop = marchand?.nom || 'Boutique inconnue';
+        if(r.score >= 75){
+          toast('error', `🚨 Fraude probable — ${shop}`, `${r.client_prenom} ${r.client_nom} · Score ${r.score}/100 · ${r.montant}€`);
+          addLog('fraud', `Fraude probable — Score ${r.score}`, `${r.client_prenom} ${r.client_nom} · ${shop} · ${r.montant}€`);
+        } else if(r.score >= 50){
+          toast('warning', `⚠ Risque élevé — ${shop}`, `${r.client_prenom} ${r.client_nom} · Score ${r.score}/100`);
+          addLog('fraud', `Risque élevé — Score ${r.score}`, `${r.client_prenom} ${r.client_nom} · ${shop}`);
+        } else {
+          toast('success', `📬 Nouveau retour — ${shop}`, `${r.client_prenom} ${r.client_nom} · Score ${r.score}/100`);
+        }
+      }
+    })
+    .subscribe();
 }
 
 // ── LOAD ALL DATA ──────────────────────────────────────────
