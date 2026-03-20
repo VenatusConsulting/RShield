@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShopRunning.fr — Dashboard RefundShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --red:#E8281A;--red-d:#C01E12;--red-dim:rgba(232,40,26,.09);--red-b:rgba(232,40,26,.22);
+  --bg:#0D0D0F;--s1:#121214;--s2:#171719;--s3:#1C1C1F;
+  --b:rgba(255,255,255,.065);--b2:rgba(255,255,255,.11);
+  --w:#EDECEA;--g1:#8C8C8C;--g2:#4C4C4C;
+  --green:#22C55E;--gd:rgba(34,197,94,.09);--gb:rgba(34,197,94,.22);
+  --amber:#F59E0B;--ad:rgba(245,158,11,.1);--ab:rgba(245,158,11,.22);
+  --blue:#3B82F6;
+  --f:'Plus Jakarta Sans',sans-serif;--mono:'DM Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--f);background:var(--bg);color:var(--w);min-height:100vh;-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--g2)}
+
+/* ── TOPBAR ── */
+.topbar{height:58px;background:var(--s1);border-bottom:0.5px solid var(--b);display:flex;align-items:center;padding:0 28px;gap:16px;position:sticky;top:0;z-index:50}
+.tb-shop{display:flex;align-items:center;gap:10px}
+.tb-shop-logo{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#FF4D00,#CC3D00);display:flex;align-items:center;justify-content:center;font-size:14px}
+.tb-shop-name{font-size:14px;font-weight:700;letter-spacing:-.01em}
+.tb-shop-plan{font-size:10px;color:var(--red);background:var(--red-dim);border:0.5px solid var(--red-b);padding:2px 7px;border-radius:10px;font-weight:600}
+.tb-rs{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:12px;color:var(--g1)}
+.tb-rs-badge{display:flex;align-items:center;gap:5px;background:var(--red-dim);border:0.5px solid var(--red-b);border-radius:20px;padding:4px 10px;font-size:11px;color:var(--red);font-weight:600}
+.tb-live{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--green);font-family:var(--mono);margin-left:12px}
+.tb-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.75)}}
+
+/* ── LAYOUT ── */
+.layout{display:grid;grid-template-columns:200px 1fr;min-height:calc(100vh - 58px)}
+.sidebar{background:var(--s1);border-right:0.5px solid var(--b);padding:12px 10px}
+.sb-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:7px;font-size:12.5px;color:var(--g1);cursor:pointer;transition:all .15s;margin-bottom:2px;border:0.5px solid transparent}
+.sb-item:hover{background:var(--s2);color:var(--w)}
+.sb-item.active{background:var(--red-dim);color:var(--w);border-color:var(--red-b)}
+.sb-item svg{width:14px;height:14px;opacity:.7;flex-shrink:0}
+.sb-item.active svg{opacity:1}
+.sb-count{margin-left:auto;background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:5px}
+.sb-section{font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--g2);padding:10px 8px 6px}
+.main{padding:24px 28px;overflow-y:auto}
+
+/* ── PAGES ── */
+.page{display:none}
+.page.active{display:block}
+
+/* ── CARDS ── */
+.metrics-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.metric-card{background:var(--s1);border:0.5px solid var(--b);border-radius:12px;padding:16px 18px;position:relative;overflow:hidden}
+.metric-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--red-b),transparent)}
+.mc-label{font-size:10.5px;color:var(--g1);margin-bottom:8px}
+.mc-val{font-size:1.7rem;font-weight:700;letter-spacing:-.03em;line-height:1;margin-bottom:4px}
+.mc-delta{font-size:10px;font-weight:600;padding:2px 6px;border-radius:10px}
+.delta-up{background:var(--gd);color:var(--green);border:0.5px solid var(--gb)}
+.delta-down{background:var(--red-dim);color:var(--red);border:0.5px solid var(--red-b)}
+.card{background:var(--s1);border:0.5px solid var(--b);border-radius:12px;overflow:hidden;margin-bottom:16px}
+.card-header{padding:14px 18px;border-bottom:0.5px solid var(--b);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-size:13px;font-weight:600;letter-spacing:-.01em}
+.card-sub{font-size:11px;color:var(--g1)}
+table{width:100%;border-collapse:collapse}
+th{font-size:10px;font-weight:600;color:var(--g2);text-transform:uppercase;letter-spacing:.06em;padding:10px 18px;text-align:left;border-bottom:0.5px solid var(--b);background:rgba(255,255,255,.015)}
+td{padding:12px 18px;font-size:12px;border-bottom:0.5px solid rgba(255,255,255,.03);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.015)}
+.pill{padding:2px 9px;border-radius:10px;font-size:10.5px;font-weight:600;display:inline-block}
+.pill-red{background:var(--red-dim);color:var(--red);border:0.5px solid var(--red-b)}
+.pill-amber{background:var(--ad);color:var(--amber);border:0.5px solid var(--ab)}
+.pill-green{background:var(--gd);color:var(--green);border:0.5px solid var(--gb)}
+.pill-blue{background:rgba(59,130,246,.1);color:var(--blue);border:0.5px solid rgba(59,130,246,.22)}
+.pill-gray{background:rgba(255,255,255,.06);color:var(--g1);border:0.5px solid var(--b2)}
+.empty-state{padding:48px;text-align:center;color:var(--g2);font-size:13px}
+
+/* ── ALERT PANEL ── */
+.alert-panel{background:linear-gradient(135deg,rgba(232,40,26,.1),rgba(232,40,26,.03));border:1px solid var(--red-b);border-radius:12px;padding:18px 20px;margin-bottom:16px;display:none}
+.alert-panel.show{display:block}
+.alert-header{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--red);margin-bottom:12px}
+.alert-item{background:rgba(0,0,0,.2);border-radius:8px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:14px}
+.alert-item:last-child{margin-bottom:0}
+.alert-info{}
+.alert-client{font-size:13px;font-weight:600;margin-bottom:3px}
+.alert-detail{font-size:11px;color:var(--g1)}
+.alert-score{text-align:center;flex-shrink:0}
+.score-circle{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;font-family:var(--mono);border:2px solid}
+.alert-actions{display:flex;gap:6px;flex-shrink:0}
+.btn-sm{padding:6px 12px;border-radius:6px;font-family:var(--f);font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;border:0.5px solid}
+.btn-block{background:var(--red-dim);border-color:var(--red-b);color:var(--red)}
+.btn-block:hover{background:rgba(232,40,26,.2)}
+.btn-approve{background:var(--gd);border-color:var(--gb);color:var(--green)}
+.btn-approve:hover{background:rgba(34,197,94,.2)}
+.btn-proof{background:rgba(255,255,255,.04);border-color:var(--b2);color:var(--g1)}
+.btn-proof:hover{background:rgba(255,255,255,.08);color:var(--w)}
+
+/* ── AFFILIATION ── */
+.affil-code{background:var(--s2);border:0.5px solid var(--b2);border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:border-color .18s}
+.affil-code:hover{border-color:var(--red-b)}
+.affil-code-val{font-family:var(--mono);font-size:14px;font-weight:600;letter-spacing:.1em;color:var(--w);flex:1}
+
+/* ── TOAST ── */
+.toast-wrap{position:fixed;bottom:20px;right:20px;z-index:999;display:flex;flex-direction:column;gap:8px;max-width:320px}
+.toast{background:var(--s1);border:0.5px solid var(--b2);border-radius:10px;padding:12px 16px;font-size:12px;display:flex;align-items:flex-start;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,.4);animation:toastIn .3s ease}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.toast-icon{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;font-size:11px;font-weight:700}
+.toast-title{font-weight:600;margin-bottom:2px}
+.toast-sub{color:var(--g1);font-size:11px}
+
+/* ── NOTIFICATION BADGE ── */
+.notif-badge{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--red);color:#fff;font-size:9px;font-weight:700;margin-left:auto;animation:notifPop .3s ease}
+@keyframes notifPop{from{transform:scale(0)}to{transform:scale(1)}}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.fade-up{animation:fadeUp .3s ease both}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="tb-shop">
+    <div class="tb-shop-logo">🏃</div>
+    <div>
+      <div class="tb-shop-name">ShopRunning.fr</div>
+    </div>
+    <span class="tb-shop-plan">Plan Pro</span>
+  </div>
+  <div class="tb-rs">
+    <div class="tb-rs-badge">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.5C16.5 22.15 20 17.25 20 12V6L12 2z"/></svg>
+      Protégé par RefundShield
+    </div>
+    <div class="tb-live"><span class="tb-dot"></span>Live</div>
+  </div>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-section">Tableau de bord</div>
+    <div class="sb-item active" onclick="showPage('dashboard')">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/></svg>
+      Vue d'ensemble
+    </div>
+    <div class="sb-item" onclick="showPage('retours')">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12M2 8h8M2 12h5"/></svg>
+      Mes retours
+      <span class="sb-count" id="sb-nb-retours">0</span>
+    </div>
+    <div class="sb-item" onclick="showPage('alertes')">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2a4 4 0 0 1 4 4c0 3 1.5 4 1.5 4h-11s1.5-1 1.5-4a4 4 0 0 1 4-4z"/></svg>
+      Alertes
+      <span class="sb-count" id="sb-nb-alertes" style="display:none">0</span>
+    </div>
+    <div class="sb-section">Mon compte</div>
+    <div class="sb-item" onclick="showPage('affiliation')">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/><path d="M3 13c0-2.76 2.24-5 5-5s5 2.24 5 5"/></svg>
+      Parrainage
+    </div>
+    <div class="sb-item" onclick="showPage('parametres')">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2.5"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2"/></svg>
+      Paramètres
+    </div>
+    <div style="margin-top:auto;padding:12px 8px 0;border-top:0.5px solid var(--b);margin-top:20px">
+      <a href="shoprunning.html" style="display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--g1);padding:7px 10px;border-radius:6px;transition:all .15s" onmouseover="this.style.color='var(--w)'" onmouseout="this.style.color='var(--g1)'">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 8l4-4 4 4 4-4"/><path d="M1 12l4-4 4 4 4-4"/></svg>
+        Voir ma boutique
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ── PAGE : DASHBOARD ── -->
+    <div class="page active" id="page-dashboard">
+
+      <!-- Alertes actives -->
+      <div class="alert-panel" id="alert-panel">
+        <div class="alert-header">
+          <span>⚠</span>
+          <span id="alert-panel-title">Alertes en attente</span>
+        </div>
+        <div id="alert-panel-list"></div>
+      </div>
+
+      <!-- Métriques -->
+      <div class="metrics-row">
+        <div class="metric-card fade-up">
+          <div class="mc-label">Retours analysés</div>
+          <div class="mc-val" id="m-total">0</div>
+          <span class="mc-delta delta-up" id="m-total-d">ce mois</span>
+        </div>
+        <div class="metric-card fade-up" style="animation-delay:.06s">
+          <div class="mc-label">Fraudes bloquées</div>
+          <div class="mc-val" id="m-fraudes" style="color:var(--red)">0</div>
+          <span class="mc-delta delta-down" id="m-fraudes-d">score ≥50</span>
+        </div>
+        <div class="metric-card fade-up" style="animation-delay:.12s">
+          <div class="mc-label">Économies générées</div>
+          <div class="mc-val" id="m-eco" style="color:var(--green)">0€</div>
+          <span class="mc-delta delta-up">montants bloqués</span>
+        </div>
+        <div class="metric-card fade-up" style="animation-delay:.18s">
+          <div class="mc-label">Score moyen fraudes</div>
+          <div class="mc-val" id="m-score" style="color:var(--amber)">—</div>
+          <span class="mc-delta" style="background:var(--ad);color:var(--amber);border:0.5px solid var(--ab)">sur 100</span>
+        </div>
+      </div>
+
+      <!-- Derniers retours -->
+      <div class="card fade-up" style="animation-delay:.24s">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Derniers retours analysés</div>
+            <div class="card-sub">Mis à jour en temps réel</div>
+          </div>
+          <button onclick="showPage('retours')" style="background:transparent;border:0.5px solid var(--b2);color:var(--g1);padding:5px 12px;border-radius:6px;font-family:var(--f);font-size:11px;cursor:pointer;transition:all .15s" onmouseover="this.style.color='var(--w)'" onmouseout="this.style.color='var(--g1)'">Voir tout →</button>
+        </div>
+        <table>
+          <thead><tr><th>Client</th><th>Produit</th><th>Motif</th><th>Montant</th><th>Score RS</th><th>Verdict</th><th>Date</th></tr></thead>
+          <tbody id="tb-recent"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── PAGE : RETOURS ── -->
+    <div class="page" id="page-retours">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Tous mes retours</div>
+            <div class="card-sub" id="retours-sub">Chargement…</div>
+          </div>
+          <select id="filter-score" onchange="filterRetours()" style="background:var(--s2);border:0.5px solid var(--b2);border-radius:6px;padding:6px 10px;font-family:var(--f);font-size:12px;color:var(--w);outline:none">
+            <option value="">Tous</option>
+            <option value="high">Fraude probable (≥75)</option>
+            <option value="med">Risque élevé (50-74)</option>
+            <option value="low">Faible risque (&lt;50)</option>
+          </select>
+        </div>
+        <table>
+          <thead><tr><th>Client</th><th>Produit</th><th>Motif</th><th>Montant</th><th>Score RS</th><th>Signaux</th><th>Verdict</th><th>Action</th><th>Date</th></tr></thead>
+          <tbody id="tb-all"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── PAGE : ALERTES ── -->
+    <div class="page" id="page-alertes">
+      <div style="margin-bottom:16px">
+        <h2 style="font-size:15px;font-weight:700;letter-spacing:-.01em">Alertes RefundShield</h2>
+        <p style="font-size:12px;color:var(--g1);margin-top:2px">Retours nécessitant votre attention</p>
+      </div>
+      <div id="alertes-list"></div>
+    </div>
+
+    <!-- ── PAGE : AFFILIATION ── -->
+    <div class="page" id="page-affiliation">
+      <div style="margin-bottom:20px">
+        <h2 style="font-size:15px;font-weight:700;letter-spacing:-.01em">Programme de parrainage</h2>
+        <p style="font-size:12px;color:var(--g1);margin-top:2px">Parrainez d'autres marchands et gagnez des mois gratuits</p>
+      </div>
+
+      <div style="background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(245,158,11,.02));border:0.5px solid var(--ab);border-radius:14px;padding:24px;margin-bottom:16px">
+        <div style="font-size:14px;font-weight:700;margin-bottom:16px">Votre code de parrainage</div>
+        <div class="affil-code" onclick="copyCode()">
+          <span class="affil-code-val" id="affil-code-display">—</span>
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="5" width="8" height="8" rx="1.5"/><path d="M3 11V3h8"/></svg>
+          <span style="font-size:11px;color:var(--g2)" id="copy-label">Copier le lien</span>
+        </div>
+        <div style="font-size:11px;color:var(--g2);margin-top:8px">Le marchand filleul obtient -50% sur son premier mois. Vous gagnez 1 mois gratuit.</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">
+        <div style="background:var(--s1);border:0.5px solid var(--b);border-radius:10px;padding:14px;text-align:center">
+          <div style="font-size:1.4rem;font-weight:700;color:var(--amber)" id="affil-filleuls">0</div>
+          <div style="font-size:10.5px;color:var(--g1);margin-top:3px">Filleuls</div>
+        </div>
+        <div style="background:var(--s1);border:0.5px solid var(--b);border-radius:10px;padding:14px;text-align:center">
+          <div style="font-size:1.4rem;font-weight:700;color:var(--green)" id="affil-mois">0</div>
+          <div style="font-size:10.5px;color:var(--g1);margin-top:3px">Mois offerts</div>
+        </div>
+        <div style="background:var(--s1);border:0.5px solid var(--b);border-radius:10px;padding:14px;text-align:center">
+          <div style="font-size:1.4rem;font-weight:700;color:var(--w)" id="affil-palier">—</div>
+          <div style="font-size:10.5px;color:var(--g1);margin-top:3px">Palier actuel</div>
+        </div>
+        <div style="background:var(--s1);border:0.5px solid var(--b);border-radius:10px;padding:14px;text-align:center">
+          <div style="font-size:1.4rem;font-weight:700;color:var(--w)" id="affil-next">1</div>
+          <div style="font-size:10.5px;color:var(--g1);margin-top:3px">Filleuls pour prochain palier</div>
+        </div>
+      </div>
+
+      <!-- Paliers -->
+      <div class="card">
+        <div class="card-header"><div class="card-title">Les paliers de récompense</div></div>
+        <div style="padding:16px;display:flex;flex-direction:column;gap:10px">
+          ${[
+            {n:1,label:'1 mois gratuit',icon:'🎁'},
+            {n:3,label:'3 mois gratuits + Badge Ambassadeur',icon:'⭐'},
+            {n:5,label:'6 mois gratuits + Accès Early Features',icon:'🚀'},
+            {n:10,label:'Plan gratuit à vie',icon:'♾️'},
+          ].map(t=>`
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--s2);border-radius:8px;border:0.5px solid var(--b)">
+              <span style="font-size:20px">${t.icon}</span>
+              <div>
+                <div style="font-size:13px;font-weight:600">${t.n} filleul${t.n>1?'s':''}</div>
+                <div style="font-size:11px;color:var(--g1)">${t.label}</div>
+              </div>
+            </div>`).join('')}
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PAGE : PARAMÈTRES ── -->
+    <div class="page" id="page-parametres">
+      <div style="margin-bottom:20px">
+        <h2 style="font-size:15px;font-weight:700;letter-spacing:-.01em">Paramètres de la boutique</h2>
+      </div>
+      <div style="background:var(--s1);border:0.5px solid var(--b);border-radius:12px;padding:22px;margin-bottom:14px">
+        <div style="font-size:13px;font-weight:600;margin-bottom:16px">Informations boutique</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div><div style="font-size:10.5px;color:var(--g1);margin-bottom:5px">Nom</div><div style="font-size:13px;font-weight:500">ShopRunning.fr</div></div>
+          <div><div style="font-size:10.5px;color:var(--g1);margin-bottom:5px">Domaine</div><div style="font-size:13px;font-weight:500;font-family:var(--mono)">shoprunning.fr</div></div>
+          <div><div style="font-size:10.5px;color:var(--g1);margin-bottom:5px">Plan</div><div><span class="pill pill-red">Pro — 79€/mois</span></div></div>
+          <div><div style="font-size:10.5px;color:var(--g1);margin-bottom:5px">Plateforme</div><div><span class="pill pill-green">Shopify</span></div></div>
+        </div>
+      </div>
+      <div style="background:var(--s1);border:0.5px solid var(--b);border-radius:12px;padding:22px">
+        <div style="font-size:13px;font-weight:600;margin-bottom:16px">Règles de scoring</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--s2);border-radius:8px">
+            <div><div style="font-size:12.5px;font-weight:500">Score ≥ 75</div><div style="font-size:11px;color:var(--g1)">Bloquer automatiquement + alerte</div></div>
+            <span class="pill pill-red">Activé</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--s2);border-radius:8px">
+            <div><div style="font-size:12.5px;font-weight:500">Score 50-74</div><div style="font-size:11px;color:var(--g1)">Demander preuves + alerte</div></div>
+            <span class="pill pill-amber">Activé</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--s2);border-radius:8px">
+            <div><div style="font-size:12.5px;font-weight:500">Score &lt; 30</div><div style="font-size:11px;color:var(--g1)">Approuver automatiquement</div></div>
+            <span class="pill pill-green">Activé</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- TOASTS -->
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<script>
+const { createClient } = supabase;
+const db = createClient(
+  'https://uhtbzhjzghxvmgonfvoh.supabase.co',
+  'sb_publishable_UpUQcsIPNZtztCd6i6NSZA_n10kYJvJ'
+);
+
+const SHOP_DOMAIN = 'shoprunning.fr';
+let shopId = null;
+let allRetours = [];
+
+// ── INIT ─────────────────────────────────────────────────
+async function init(){
+  await getShopId();
+  await loadRetours();
+  subscribeToRetours();
+}
+
+async function getShopId(){
+  const { data } = await db.from('marchands').select('id').eq('domaine', SHOP_DOMAIN).single();
+  if(data) shopId = data.id;
+}
+
+async function loadRetours(){
+  if(!shopId) return;
+  const { data } = await db.from('retours')
+    .select('*')
+    .eq('marchand_id', shopId)
+    .order('created_at', { ascending: false });
+  allRetours = data || [];
+  renderAll();
+}
+
+// ── REALTIME ─────────────────────────────────────────────
+function subscribeToRetours(){
+  if(!shopId) return;
+  db.channel('shoprunning-retours')
+    .on('postgres_changes', {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'retours',
+      filter: `marchand_id=eq.${shopId}`
+    }, payload => {
+      const r = payload.new;
+      allRetours.unshift(r);
+      renderAll();
+      // Notification si score élevé
+      if(r.score >= 50){
+        toast('warning', '⚠ Alerte fraude', `${r.client_prenom} ${r.client_nom} — Score ${r.score}/100`);
+        showNotifBadge();
+      } else {
+        toast('info', '📬 Nouveau retour', `${r.client_prenom} ${r.client_nom} — ${r.montant}€`);
+      }
+    })
+    .subscribe();
+}
+
+// ── RENDER ────────────────────────────────────────────────
+function renderAll(){
+  renderMetrics();
+  renderRecentTable();
+  renderAllTable();
+  renderAlertes();
+  renderAffiliation();
+}
+
+function renderMetrics(){
+  const fraudes = allRetours.filter(r=>r.score>=50);
+  const eco = fraudes.reduce((s,r)=>s+r.montant,0);
+  const scores = fraudes.map(r=>r.score);
+  const avgScore = scores.length>0 ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length) : 0;
+
+  document.getElementById('m-total').textContent = allRetours.length;
+  document.getElementById('m-fraudes').textContent = fraudes.length;
+  document.getElementById('m-eco').textContent = eco>0?`${eco}€`:'0€';
+  document.getElementById('m-score').textContent = avgScore>0?`${avgScore}`:'—';
+  document.getElementById('m-total-d').textContent = `${allRetours.length} total`;
+  document.getElementById('m-fraudes-d').textContent = `${fraudes.length} bloquées`;
+  document.getElementById('sb-nb-retours').textContent = allRetours.length;
+
+  const alertes = allRetours.filter(r=>r.score>=50);
+  const alertBadge = document.getElementById('sb-nb-alertes');
+  if(alertes.length>0){
+    alertBadge.style.display='flex';
+    alertBadge.textContent=alertes.length;
+  }
+
+  // Alert panel sur dashboard
+  const panel = document.getElementById('alert-panel');
+  const highAlert = allRetours.filter(r=>r.score>=50).slice(0,3);
+  if(highAlert.length>0){
+    panel.classList.add('show');
+    document.getElementById('alert-panel-title').textContent = `${highAlert.length} retour${highAlert.length>1?'s':''} suspect${highAlert.length>1?'s':''} — action requise`;
+    document.getElementById('alert-panel-list').innerHTML = highAlert.map(r=>renderAlertItem(r)).join('');
+  } else {
+    panel.classList.remove('show');
+  }
+}
+
+function renderAlertItem(r){
+  const sc = r.score;
+  const color = sc>=75?'var(--red)':sc>=50?'var(--red)':'var(--amber)';
+  const motifLabel = {colis_vide:'Colis vide',jamais_recu:'Jamais reçu',produit_endommage:'Endommagé',mauvaise_taille:'Mauvaise taille',ne_correspond_pas:'Non conforme'}[r.motif]||r.motif;
+  const sigs = (r.signaux||[]).length;
+  return `<div class="alert-item">
+    <div class="alert-info" style="flex:1">
+      <div class="alert-client">${r.client_prenom||'—'} ${r.client_nom||''}</div>
+      <div class="alert-detail">${r.produit||'—'} · ${r.montant}€ · ${motifLabel} · ${sigs} signal${sigs>1?'s':''}</div>
+    </div>
+    <div class="alert-score">
+      <div class="score-circle" style="background:${sc>=50?'var(--red-dim)':'var(--ad)'};color:${color};border-color:${color}">${sc}</div>
+    </div>
+    <div class="alert-actions">
+      <button class="btn-sm btn-block">Bloquer</button>
+      <button class="btn-sm btn-proof">Preuves</button>
+      <button class="btn-sm btn-approve">Approuver</button>
+    </div>
+  </div>`;
+}
+
+function renderRecentTable(){
+  const tb = document.getElementById('tb-recent');
+  const rows = allRetours.slice(0,6);
+  if(rows.length===0){
+    tb.innerHTML=`<tr><td colspan="7" class="empty-state">Aucun retour reçu — <a href="shoprunning.html" style="color:var(--red)">ouvrez la boutique</a> et soumettez un retour test</td></tr>`;
+    return;
+  }
+  tb.innerHTML = rows.map(r=>renderRow(r)).join('');
+}
+
+function renderAllTable(){
+  const filter = document.getElementById('filter-score')?.value||'';
+  let rows = allRetours;
+  if(filter==='high') rows = allRetours.filter(r=>r.score>=75);
+  if(filter==='med') rows = allRetours.filter(r=>r.score>=50&&r.score<75);
+  if(filter==='low') rows = allRetours.filter(r=>r.score<50);
+  document.getElementById('retours-sub').textContent = `${rows.length} retour${rows.length>1?'s':''} analysé${rows.length>1?'s':''}`;
+  const tb = document.getElementById('tb-all');
+  if(rows.length===0){
+    tb.innerHTML=`<tr><td colspan="9" class="empty-state">Aucun retour</td></tr>`;
+    return;
+  }
+  tb.innerHTML = rows.map(r=>renderRowFull(r)).join('');
+}
+
+function renderRow(r){
+  const sc = r.score;
+  const pillClass = sc>=75?'pill-red':sc>=50?'pill-red':sc>=30?'pill-amber':'pill-green';
+  const motifLabel = {colis_vide:'Colis vide',jamais_recu:'Jamais reçu',produit_endommage:'Endommagé',mauvaise_taille:'Mauvaise taille',ne_correspond_pas:'Non conforme'}[r.motif]||r.motif||'—';
+  const date = r.created_at ? new Date(r.created_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—';
+  return `<tr>
+    <td><div style="font-weight:500">${r.client_prenom||'—'} ${r.client_nom||''}</div><div style="font-size:10px;color:var(--g2)">${r.client_email||''}</div></td>
+    <td style="font-size:11.5px;color:var(--g1)">${(r.produit||'—').slice(0,30)}</td>
+    <td><span class="pill pill-gray">${motifLabel}</span></td>
+    <td style="font-weight:600">${r.montant||0}€</td>
+    <td><div style="width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:var(--mono);background:${sc>=50?'var(--red-dim)':sc>=30?'var(--ad)':'var(--gd)'};color:${sc>=50?'var(--red)':sc>=30?'var(--amber)':'var(--green)'};border:0.5px solid ${sc>=50?'var(--red-b)':sc>=30?'var(--ab)':'var(--gb)'}">${sc}</div></td>
+    <td><span class="pill ${pillClass}">${r.verdict||'En attente'}</span></td>
+    <td style="font-size:11px;color:var(--g2);white-space:nowrap">${date}</td>
+  </tr>`;
+}
+
+function renderRowFull(r){
+  const sc = r.score;
+  const pillClass = sc>=75?'pill-red':sc>=50?'pill-red':sc>=30?'pill-amber':'pill-green';
+  const motifLabel = {colis_vide:'Colis vide',jamais_recu:'Jamais reçu',produit_endommage:'Endommagé',mauvaise_taille:'Mauvaise taille',ne_correspond_pas:'Non conforme'}[r.motif]||r.motif||'—';
+  const date = r.created_at ? new Date(r.created_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—';
+  const sigs = (r.signaux||[]).length;
+  return `<tr>
+    <td><div style="font-weight:500">${r.client_prenom||'—'} ${r.client_nom||''}</div><div style="font-size:10px;color:var(--g2)">${r.client_email||''}</div></td>
+    <td style="font-size:11.5px;color:var(--g1)">${(r.produit||'—').slice(0,25)}</td>
+    <td><span class="pill pill-gray">${motifLabel}</span></td>
+    <td style="font-weight:600">${r.montant||0}€</td>
+    <td><div style="width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:var(--mono);background:${sc>=50?'var(--red-dim)':sc>=30?'var(--ad)':'var(--gd)'};color:${sc>=50?'var(--red)':sc>=30?'var(--amber)':'var(--green)'};border:0.5px solid ${sc>=50?'var(--red-b)':sc>=30?'var(--ab)':'var(--gb)'}">${sc}</div></td>
+    <td style="font-size:11px;color:var(--g1)">${sigs} signal${sigs>1?'s':''}</td>
+    <td><span class="pill ${pillClass}">${r.verdict||'En attente'}</span></td>
+    <td style="font-size:11px;color:var(--g1);max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.action_recommandee||'—'}</td>
+    <td style="font-size:11px;color:var(--g2);white-space:nowrap">${date}</td>
+  </tr>`;
+}
+
+function renderAlertes(){
+  const list = document.getElementById('alertes-list');
+  const alertes = allRetours.filter(r=>r.score>=50);
+  if(alertes.length===0){
+    list.innerHTML=`<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:32px;height:32px;margin:0 auto 12px;display:block;opacity:.3"><path d="M8 2a4 4 0 0 1 4 4c0 3 1.5 4 1.5 4h-11s1.5-1 1.5-4a4 4 0 0 1 4-4z"/></svg>Aucune alerte — votre boutique est saine</div>`;
+    return;
+  }
+  list.innerHTML = `<div style="background:var(--s1);border:0.5px solid var(--b);border-radius:12px;overflow:hidden">
+    ${alertes.map(r=>`<div style="padding:16px 18px;border-bottom:0.5px solid var(--b)">${renderAlertItem(r)}</div>`).join('')}
+  </div>`;
+}
+
+function renderAffiliation(){
+  if(!shopId) return;
+  // Générer le code (même logique que l'admin)
+  const code = `SHOP-${shopId.replace(/-/g,'').slice(0,4).toUpperCase()}`;
+  document.getElementById('affil-code-display').textContent = code;
+
+  // Compter les filleuls
+  const filleuls = 0; // sera alimenté par les vraies données
+  document.getElementById('affil-filleuls').textContent = filleuls;
+  document.getElementById('affil-mois').textContent = filleuls;
+  document.getElementById('affil-palier').textContent = filleuls>=10?'Gratuit à vie':filleuls>=5?'Early access':filleuls>=3?'Ambassadeur':filleuls>=1?'Starter':'—';
+  document.getElementById('affil-next').textContent = filleuls>=10?'Max atteint':filleuls>=5?10-filleuls:filleuls>=3?5-filleuls:filleuls>=1?3-filleuls:1;
+}
+
+function copyCode(){
+  const code = document.getElementById('affil-code-display').textContent;
+  const link = `https://refundshield.fr/inscription?ref=${code}`;
+  navigator.clipboard?.writeText(link).then(()=>{
+    document.getElementById('copy-label').textContent = '✓ Copié !';
+    setTimeout(()=>document.getElementById('copy-label').textContent='Copier le lien',2000);
+    toast('success','Lien copié',`refundshield.fr/inscription?ref=${code}`);
+  }).catch(()=>{
+    const el=document.createElement('textarea');
+    el.value=link;document.body.appendChild(el);el.select();document.execCommand('copy');document.body.removeChild(el);
+    document.getElementById('copy-label').textContent = '✓ Copié !';
+    setTimeout(()=>document.getElementById('copy-label').textContent='Copier le lien',2000);
+  });
+}
+
+function filterRetours(){ renderAllTable(); }
+
+function showNotifBadge(){
+  const badge = document.getElementById('sb-nb-alertes');
+  badge.style.display='flex';
+  badge.textContent = parseInt(badge.textContent||0)+1;
+}
+
+function showPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
+  document.getElementById(`page-${name}`).classList.add('active');
+  document.querySelectorAll('.sb-item').forEach(item=>{
+    if(item.getAttribute('onclick')===`showPage('${name}')`) item.classList.add('active');
+  });
+}
+
+function toast(type,title,sub){
+  const wrap=document.getElementById('toast-wrap');
+  const colors={success:'var(--green)',error:'var(--red)',info:'var(--blue)',warning:'var(--amber)'};
+  const icons={success:'✓',error:'✕',info:'i',warning:'!'};
+  const el=document.createElement('div');
+  el.className='toast';
+  el.innerHTML=`<div class="toast-icon" style="background:${colors[type]}22;color:${colors[type]}">${icons[type]}</div><div><div class="toast-title">${title}</div><div class="toast-sub">${sub}</div></div>`;
+  wrap.appendChild(el);
+  setTimeout(()=>{el.style.opacity='0';el.style.transition='opacity .3s';setTimeout(()=>el.remove(),300);},4000);
+}
+
+init();
+</script>
+</body>
+</html>
