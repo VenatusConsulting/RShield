@@ -198,7 +198,25 @@ tr:hover td{background:rgba(255,255,255,.015)}
 .prog-bar{height:4px;border-radius:2px;overflow:hidden;background:rgba(255,255,255,.06);margin-top:6px}
 .prog-fill{height:100%;border-radius:2px;transition:width 1s ease}
 
-/* ── SEARCH ── */
+/* ── MODAL RETOUR DETAIL ── */
+.modal-detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);z-index:400;display:none;align-items:center;justify-content:center}
+.modal-detail-overlay.show{display:flex}
+.modal-detail{background:var(--s1);border:0.5px solid var(--b2);border-radius:16px;width:700px;max-width:95vw;max-height:90vh;overflow-y:auto}
+.mdr-header{padding:20px 24px;border-bottom:0.5px solid var(--b);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--s1);z-index:1}
+.mdr-close{width:28px;height:28px;border-radius:50%;background:var(--s2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:var(--g1);transition:all .15s;flex-shrink:0}
+.mdr-close:hover{background:var(--red-dim);color:var(--red)}
+.mdr-body{padding:22px 24px}
+.mdr-section{margin-bottom:20px}
+.mdr-section-title{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--g2);margin-bottom:10px;padding-bottom:6px;border-bottom:0.5px solid var(--b)}
+.mdr-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mdr-field{background:var(--s2);border-radius:8px;padding:10px 13px}
+.mdr-label{font-size:10px;color:var(--g2);margin-bottom:3px}
+.mdr-val{font-size:13px;font-weight:500}
+.mdr-signal{display:flex;align-items:center;gap:10px;padding:10px 13px;border-radius:8px;margin-bottom:6px;font-size:12px}
+.mdr-signal:last-child{margin-bottom:0}
+.mdr-signal-red{background:var(--red-dim);border:0.5px solid var(--red-b)}
+.mdr-signal-amber{background:var(--ad);border:0.5px solid var(--ab)}
+.mdr-footer{padding:16px 24px;border-top:0.5px solid var(--b);display:flex;gap:8px;position:sticky;bottom:0;background:var(--s1)}
 .search-bar{position:relative;display:flex;align-items:center}
 .search-bar input{background:var(--s2);border:0.5px solid var(--b2);border-radius:7px;padding:6px 12px 6px 32px;font-family:var(--f);font-size:12px;color:var(--w);outline:none;width:200px;transition:all .2s}
 .search-bar input:focus{border-color:var(--red-b);width:260px}
@@ -1081,6 +1099,82 @@ tr:hover td{background:rgba(255,255,255,.015)}
   </div><!-- /content -->
 </main>
 
+<!-- MODAL : Détail retour -->
+<div class="modal-detail-overlay" id="modal-retour-admin" onclick="if(event.target===this)closeRetourAdmin()">
+  <div class="modal-detail">
+    <div class="mdr-header">
+      <div>
+        <div style="font-size:14px;font-weight:700" id="mdr-title">Détail du retour</div>
+        <div style="font-size:11px;color:var(--g1);margin-top:2px" id="mdr-sub">—</div>
+      </div>
+      <div class="mdr-close" onclick="closeRetourAdmin()">✕</div>
+    </div>
+    <div class="mdr-body">
+
+      <!-- Score bloc -->
+      <div style="display:flex;align-items:center;gap:20px;padding:18px;background:var(--s2);border-radius:12px;margin-bottom:22px">
+        <div id="mdr-score-circle" style="width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;font-family:var(--mono);border:2px solid;flex-shrink:0">0</div>
+        <div style="flex:1">
+          <div style="font-size:17px;font-weight:700;margin-bottom:4px" id="mdr-verdict">—</div>
+          <div style="font-size:12px;color:var(--g1);margin-bottom:10px" id="mdr-action">—</div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <span id="mdr-pill"></span>
+            <span id="mdr-sig-count" style="font-size:11px;color:var(--g2)"></span>
+          </div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:10px;color:var(--g2);margin-bottom:4px">Marchand</div>
+          <div style="font-size:12.5px;font-weight:600" id="mdr-marchand">—</div>
+        </div>
+      </div>
+
+      <!-- Client -->
+      <div class="mdr-section">
+        <div class="mdr-section-title">Client</div>
+        <div class="mdr-grid">
+          <div class="mdr-field"><div class="mdr-label">Prénom</div><div class="mdr-val" id="mdr-prenom">—</div></div>
+          <div class="mdr-field"><div class="mdr-label">Nom</div><div class="mdr-val" id="mdr-nom">—</div></div>
+          <div class="mdr-field" style="grid-column:1/-1"><div class="mdr-label">Email</div><div class="mdr-val" id="mdr-email" style="font-family:var(--mono);font-size:12px">—</div></div>
+        </div>
+      </div>
+
+      <!-- Commande -->
+      <div class="mdr-section">
+        <div class="mdr-section-title">Commande</div>
+        <div class="mdr-grid">
+          <div class="mdr-field" style="grid-column:1/-1"><div class="mdr-label">Produit(s)</div><div class="mdr-val" id="mdr-produit">—</div></div>
+          <div class="mdr-field"><div class="mdr-label">Montant</div><div class="mdr-val" id="mdr-montant" style="color:var(--amber);font-weight:700">—</div></div>
+          <div class="mdr-field"><div class="mdr-label">Motif déclaré</div><div class="mdr-val" id="mdr-motif">—</div></div>
+          <div class="mdr-field"><div class="mdr-label">Date</div><div class="mdr-val" id="mdr-date" style="font-size:12px">—</div></div>
+        </div>
+      </div>
+
+      <!-- Message -->
+      <div class="mdr-section" id="mdr-message-section">
+        <div class="mdr-section-title">Message du client</div>
+        <div style="background:var(--s2);border-radius:8px;padding:13px 15px;font-size:13px;color:var(--g1);line-height:1.6;font-style:italic;border-left:3px solid var(--b2)" id="mdr-message">—</div>
+      </div>
+
+      <!-- Signaux -->
+      <div class="mdr-section">
+        <div class="mdr-section-title">Signaux détectés</div>
+        <div id="mdr-signaux"></div>
+      </div>
+
+      <!-- Récidive -->
+      <div class="mdr-section" id="mdr-recidive-section" style="display:none">
+        <div class="mdr-section-title">Historique réseau</div>
+        <div id="mdr-recidive-list"></div>
+      </div>
+
+    </div>
+    <div class="mdr-footer">
+      <button class="btn-sm btn-red" style="flex:1;padding:10px" onclick="addToReseau()">+ Ajouter à la base réseau</button>
+      <button class="btn-sm btn-ghost" style="flex:1;padding:10px" onclick="closeRetourAdmin()">Fermer</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL : Changer plan -->
 <div class="modal-overlay" id="modal-plan">
   <div class="modal">
@@ -1262,7 +1356,117 @@ async function createTables(){
 }
 
 // ── SCORING ENGINE ─────────────────────────────────────────
-// ── BLACKLIST EMAILS JETABLES (300+ domaines) ─────────────
+// ── MODAL DÉTAIL RETOUR (ADMIN) ───────────────────────────
+let currentAdminRetour = null;
+
+function openRetourAdmin(id){
+  const r = allRetours.find(x=>x.id===id);
+  if(!r) return;
+  currentAdminRetour = r;
+
+  const sc = r.score;
+  const color = sc>=75?'var(--red)':sc>=50?'var(--red)':sc>=30?'var(--amber)':'var(--green)';
+  const bgColor = sc>=75?'var(--red-dim)':sc>=50?'var(--red-dim)':sc>=30?'var(--ad)':'var(--gd)';
+  const borderColor = sc>=75?'var(--red-b)':sc>=50?'var(--red-b)':sc>=30?'var(--ab)':'var(--gb)';
+  const pillClass = sc>=50?'pill-red':sc>=30?'pill-amber':'pill-green';
+  const motifLabels = {colis_vide:'Colis vide',jamais_recu:'Jamais reçu',produit_endommage:'Produit endommagé',mauvaise_taille:'Mauvaise taille / couleur',ne_correspond_pas:'Ne correspond pas',autre:'Autre'};
+  const marchand = allMarchands.find(m=>m.id===r.marchand_id);
+  const signaux = r.signaux || [];
+
+  document.getElementById('mdr-title').textContent = `Retour — ${r.client_prenom||''} ${r.client_nom||''}`;
+  document.getElementById('mdr-sub').textContent = `${r.produit||'—'} · ${r.montant||0}€`;
+
+  // Score
+  const circle = document.getElementById('mdr-score-circle');
+  circle.textContent = sc;
+  circle.style.color = color;
+  circle.style.background = bgColor;
+  circle.style.borderColor = color;
+  document.getElementById('mdr-verdict').textContent = r.verdict||'—';
+  document.getElementById('mdr-verdict').style.color = color;
+  document.getElementById('mdr-action').textContent = r.action_recommandee||'—';
+  document.getElementById('mdr-pill').innerHTML = `<span class="pill ${pillClass}">${r.verdict||'—'}</span>`;
+  document.getElementById('mdr-sig-count').textContent = `${signaux.length} signal${signaux.length>1?'s':''} détecté${signaux.length>1?'s':''}`;
+  document.getElementById('mdr-marchand').textContent = marchand?.nom || 'Boutique inconnue';
+
+  // Client
+  document.getElementById('mdr-prenom').textContent = r.client_prenom||'—';
+  document.getElementById('mdr-nom').textContent = r.client_nom||'—';
+  document.getElementById('mdr-email').textContent = r.client_email||'—';
+
+  // Commande
+  document.getElementById('mdr-produit').textContent = r.produit||'—';
+  document.getElementById('mdr-montant').textContent = `${r.montant||0}€`;
+  document.getElementById('mdr-motif').textContent = motifLabels[r.motif]||r.motif||'—';
+  document.getElementById('mdr-date').textContent = new Date(r.created_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+
+  // Message
+  const msgSection = document.getElementById('mdr-message-section');
+  if(r.message && r.message.trim()){
+    msgSection.style.display = 'block';
+    document.getElementById('mdr-message').textContent = `"${r.message}"`;
+  } else {
+    msgSection.style.display = 'none';
+  }
+
+  // Signaux
+  const sigBox = document.getElementById('mdr-signaux');
+  if(signaux.length === 0){
+    sigBox.innerHTML = `<div style="color:var(--g2);font-size:12px;padding:12px 14px;background:var(--s2);border-radius:8px;text-align:center">✓ Aucun signal de fraude détecté</div>`;
+  } else {
+    sigBox.innerHTML = signaux.map(s=>`
+      <div class="mdr-signal mdr-signal-${s.risk||'amber'}">
+        <span style="font-size:15px">${s.risk==='red'?'🔴':'🟡'}</span>
+        <span style="flex:1;font-weight:500">${s.text}</span>
+        <span style="font-family:var(--mono);font-size:12px;font-weight:700;color:${s.risk==='red'?'var(--red)':'var(--amber)'}">${s.pts}</span>
+      </div>`).join('');
+  }
+
+  // Récidive — chercher d'autres retours du même client
+  const matches = detecterRecidive(r.client_prenom, r.client_nom, r.client_email)
+    .filter(m => m.retour.id !== r.id);
+  const recSection = document.getElementById('mdr-recidive-section');
+  if(matches.length > 0){
+    recSection.style.display = 'block';
+    document.getElementById('mdr-recidive-list').innerHTML = matches.map(m=>`
+      <div style="background:var(--red-dim);border:0.5px solid var(--red-b);border-radius:8px;padding:10px 13px;margin-bottom:6px;font-size:12px">
+        <div style="font-weight:600;color:var(--red);margin-bottom:3px">⚠ ${m.detail}</div>
+        <div style="color:var(--g1)">Score ${m.retour.score}/100 ${m.marchand?'· chez '+m.marchand.nom:''} · ${new Date(m.retour.created_at).toLocaleDateString('fr-FR')}</div>
+      </div>`).join('');
+  } else {
+    recSection.style.display = 'none';
+  }
+
+  document.getElementById('modal-retour-admin').classList.add('show');
+}
+
+function closeRetourAdmin(){
+  document.getElementById('modal-retour-admin').classList.remove('show');
+  currentAdminRetour = null;
+}
+
+async function addToReseau(){
+  if(!currentAdminRetour) return;
+  const r = currentAdminRetour;
+  const fpHash = `fp_${r.client_email?.split('@')[0]||'unknown'}_${Date.now()}`;
+
+  const { error } = await db.from('reseau_fraudeurs').upsert({
+    fingerprint: fpHash,
+    email: r.client_email,
+    signaux: r.signaux || [],
+    nb_tentatives: 1,
+    marchands_touches: [r.marchand_id].filter(Boolean),
+    derniere_activite: new Date().toISOString(),
+  }, { onConflict: 'fingerprint' });
+
+  if(error){ toast('error','Erreur',error.message); return; }
+  toast('success','Ajouté au réseau',`${r.client_prenom} ${r.client_nom} signalé dans la base mutualisée`);
+  addLog('fraud','Ajouté à la base réseau',`${r.client_prenom} ${r.client_nom} · ${r.client_email}`);
+  closeRetourAdmin();
+  await loadReseau();
+}
+
+// ── MOTEUR DE SCORING ─────────────────────────────────────
 const DISPOSABLE_DOMAINS = new Set([
   // Classiques
   'tempmail.org','guerrillamail.com','yopmail.com','mailinator.com','throwam.com',
@@ -2098,7 +2302,7 @@ function renderRetours(data){
       const date = new Date(r.created_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
       const motifLabel = {colis_vide:'Colis vide',jamais_recu:'Jamais reçu',produit_endommage:'Prod. endommagé',mauvaise_taille:'Mauvaise taille',ne_correspond_pas:'Ne correspond pas',autre:'Autre'}[r.motif]||r.motif;
       const sigCount = (r.signaux||[]).length;
-      return `<tr>
+      return `<tr onclick="openRetourAdmin('${r.id}')" style="cursor:pointer">
         <td><div style="font-weight:500">${r.client_prenom} ${r.client_nom}</div><div style="font-size:10px;color:var(--g2)">${r.client_email}</div></td>
         <td>${marchand?`<span style="font-size:11px">${marchand.nom}</span>`:`<span style="color:var(--g2);font-size:11px">—</span>`}</td>
         <td><span class="pill pill-gray">${motifLabel}</span></td>
