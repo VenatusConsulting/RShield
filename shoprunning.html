@@ -638,8 +638,11 @@ async function submitReturn(){
 
   if(!SHOP_ID){ await ensureShopExists(); }
 
+  // ── Calcul du score avant insert ──
+  const scoring = calculerScore({ motif, email, message });
+
   // Envoyer à Supabase
-  const { error } = await db.from('retours').insert({
+  const { data: inserted, error } = await db.from('retours').insert({
     client_prenom: prenom,
     client_nom: nom,
     client_email: email,
@@ -647,13 +650,13 @@ async function submitReturn(){
     motif,
     produit: order?.items.map(i=>i.name).join(', ') || 'Produit ShopRunning',
     montant: order?.total || 0,
-    score: 0, // sera calculé par votre moteur
-    verdict: 'En attente d\'analyse',
-    action_recommandee: 'Analyse en cours',
-    signaux: [],
+    score: scoring.score,
+    verdict: scoring.verdict,
+    action_recommandee: scoring.action,
+    signaux: scoring.signaux,
     message,
     sauvegarde: true,
-  });
+  }).select().single();
 
   btn.textContent = 'Envoyer ma demande →';
   btn.disabled = false;
@@ -675,6 +678,57 @@ async function submitReturn(){
   document.getElementById('success-sub').textContent = `Votre demande de retour a été soumise. ShopRunning.fr va l'analyser et vous recontactera sous 24-48h.`;
   showPage('success');
   toast('success', '📬 Retour soumis', 'Votre demande est en cours de traitement');
+}
+
+// ── MOTEUR DE SCORING ────────────────────────────────────
+const DISPOSABLE = new Set(['tempmail.org','guerrillamail.com','yopmail.com','mailinator.com',
+  'throwam.com','trashmail.com','sharklasers.com','grr.la','spam4.me','tempinbox.com',
+  'tempr.email','dispostable.com','maildrop.cc','spamgourmet.com','mailnull.com',
+  'trashmail.net','trashmail.io','trashmail.me','fakeinbox.com','jetable.fr',
+  'poubelle.fr','courrieltemporaire.com','filzmail.com','mytrashmail.com','tempemail.co',
+  'tempemail.net','tempmail2.com','tempmailapp.com','10minutemail.com','guerrillamail.info',
+  'guerrillamail.biz','guerrillamail.net','guerrillamail.org','discard.email','discardmail.com']);
+
+const SCRIPT_PHRASES = ['colis vide','rien dedans','boîte vide','jamais reçu','pas livré','volé','manquant','emballage vide'];
+
+function calculerScore({ motif, email, message }){
+  let score = 0;
+  const signaux = [];
+  const msg = (message||'').toLowerCase();
+  const emailLower = (email||'').toLowerCase().trim();
+  const domain = emailLower.split('@')[1] || '';
+
+  // Motif
+  if(motif==='colis_vide'){   score+=20; signaux.push({text:'Motif : colis vide (signal fort)',pts:'+20',risk:'red'}); }
+  if(motif==='jamais_recu'){  score+=18; signaux.push({text:'Motif : jamais reçu',pts:'+18',risk:'red'}); }
+  if(motif==='produit_endommage'){ score+=8; signaux.push({text:'Motif : produit endommagé',pts:'+8',risk:'amber'}); }
+
+  // Email jetable
+  if(DISPOSABLE.has(domain)){
+    score+=18; signaux.push({text:`Email jetable détecté : @${domain}`,pts:'+18',risk:'red'});
+  } else if(/\d{6,}/.test(emailLower.split('@')[0])){
+    score+=12; signaux.push({text:'Email généré automatiquement',pts:'+12',risk:'amber'});
+  }
+
+  // Message suspect
+  const found = SCRIPT_PHRASES.filter(p=>msg.includes(p));
+  if(found.length>=2){ score+=12; signaux.push({text:`Message suspect — "${found[0]}", "${found[1]}"`,pts:'+12',risk:'red'}); }
+  else if(found.length===1){ score+=6; signaux.push({text:`Phrase suspecte : "${found[0]}"`,pts:'+6',risk:'amber'}); }
+
+  // Message très court (moins de 20 chars) pour motif grave
+  if((motif==='colis_vide'||motif==='jamais_recu') && msg.length < 20){
+    score+=8; signaux.push({text:'Description trop courte pour le motif',pts:'+8',risk:'amber'});
+  }
+
+  score = Math.min(100, score);
+
+  let verdict, action;
+  if(score>=75){      verdict='Fraude probable';   action='Bloquer & signaler au réseau'; }
+  else if(score>=50){ verdict='Risque élevé';       action='Demander preuves (photo, vidéo)'; }
+  else if(score>=30){ verdict='Risque modéré';      action='Surveillance renforcée'; }
+  else {              verdict='Faible risque';      action='Approuver le remboursement'; }
+
+  return { score, verdict, action, signaux };
 }
 
 // ── HELPERS ──────────────────────────────────────────────
