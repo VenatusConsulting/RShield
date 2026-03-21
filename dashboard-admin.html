@@ -1278,31 +1278,55 @@ function subscribeAdminRealtime(){
       const { data: r } = await db.from('retours').select('*').eq('id', id).single();
       if(!r) return;
 
-      // Auto-recalculer si INSERT avec score = 0 ou si récidive non détectée
+      // Auto-recalculer si INSERT
       if(payload.eventType === 'INSERT'){
+        // 1 — Vérifier dans reseau_fraudeurs d'abord (base mutualisée)
+        const emailNorm = normaliserEmailAdmin(r.client_email);
+        const { data: reseauMatch } = await db.from('reseau_fraudeurs')
+          .select('*')
+          .eq('email', emailNorm)
+          .single();
+
         const recidiveMatches = detecterRecidive(r.client_prenom, r.client_nom, r.client_email);
+        if(reseauMatch){
+          recidiveMatches.unshift({
+            type:'email_exact',
+            retour:{ score: reseauMatch.nb_tentatives * 20, created_at: reseauMatch.derniere_activite },
+            marchand: null,
+            detail:`Email dans la base réseau — ${reseauMatch.nb_tentatives} tentative${reseauMatch.nb_tentatives>1?'s':''} sur ${(reseauMatch.marchands_touches||[]).length} boutique${(reseauMatch.marchands_touches||[]).length>1?'s':''}`
+          });
+        }
+
         const emailAnalyse = analyserEmail(r.client_email);
         const result = calculateScore({
           motif: r.motif, message: r.message||'',
-          vpn:false,
+          vpn: false,
           emailJetable: emailAnalyse.suspect,
           emailRaison: emailAnalyse.raison,
-          reseau:false, delai:false, script:false,
-          recidive: recidiveMatches.length>0,
+          reseau: !!reseauMatch,
+          delai: false, script: false,
+          recidive: recidiveMatches.length > 0,
           recidiveMatches,
         });
-        // Mettre à jour Supabase avec le score complet
+
+        // Mettre à jour le retour avec le score complet
         await db.from('retours').update({
           score: result.score,
           verdict: result.verdict,
           action_recommandee: result.action,
           signaux: result.signals,
         }).eq('id', r.id);
-        // Mettre à jour l'objet local
         r.score = result.score;
         r.verdict = result.verdict;
         r.action_recommandee = result.action;
         r.signaux = result.signals;
+
+        // 2 — Alimenter reseau_fraudeurs automatiquement
+        // Score ≥ 30 OU motif grave (colis vide / jamais reçu)
+        const motifGrave = ['colis_vide','jamais_recu'].includes(r.motif);
+        if(result.score >= 30 || motifGrave){
+          await alimenterReseau(r);
+        }
       }
 
       const idx = allRetours.findIndex(x => x.id === r.id);
@@ -1548,6 +1572,56 @@ async function addToReseau(){
   await loadReseau();
 }
 
+// ── NORMALISATION EMAIL (admin) ───────────────────────────
+function normaliserEmailAdmin(email){
+  if(!email) return '';
+  const lower = email.toLowerCase().trim();
+  const [local, domain] = lower.split('@');
+  if(!domain) return lower;
+  const localClean = local.split('+')[0];
+  const localFinal = domain === 'gmail.com' ? localClean.replace(/\./g,'') : localClean;
+  return `${localFinal}@${domain}`;
+}
+
+// ── ALIMENTATION AUTOMATIQUE RÉSEAU ───────────────────────
+async function alimenterReseau(r){
+  const emailNorm = normaliserEmailAdmin(r.client_email);
+  const fingerprint = `fp_${emailNorm.replace(/[@.]/g,'_')}_rs`;
+
+  // Chercher si déjà dans la base
+  const { data: existing } = await db.from('reseau_fraudeurs')
+    .select('*')
+    .eq('email', emailNorm)
+    .single();
+
+  if(existing){
+    // Mettre à jour — incrémenter tentatives + ajouter marchand
+    const marchands = existing.marchands_touches || [];
+    if(r.marchand_id && !marchands.includes(r.marchand_id)){
+      marchands.push(r.marchand_id);
+    }
+    await db.from('reseau_fraudeurs').update({
+      nb_tentatives: (existing.nb_tentatives || 1) + 1,
+      marchands_touches: marchands,
+      derniere_activite: new Date().toISOString(),
+      signaux: r.signaux || existing.signaux,
+    }).eq('id', existing.id);
+  } else {
+    // Créer une nouvelle entrée
+    await db.from('reseau_fraudeurs').insert({
+      fingerprint,
+      email: emailNorm,
+      signaux: r.signaux || [],
+      nb_tentatives: 1,
+      marchands_touches: r.marchand_id ? [r.marchand_id] : [],
+      derniere_activite: new Date().toISOString(),
+    });
+  }
+
+  // Recharger la base réseau
+  await loadReseau();
+}
+
 // ── MOTEUR DE SCORING ─────────────────────────────────────
 const DISPOSABLE_DOMAINS = new Set([
   // Classiques
@@ -1670,34 +1744,35 @@ function normaliserNom(prenom, nom){
 // Cherche les correspondances d'un client dans tous les retours existants
 function detecterRecidive(prenom, nom, email){
   const matches = [];
-  const emailNorm = (email||'').toLowerCase().trim();
+  const emailNorm = normaliserEmailAdmin(email||'');
   const nomNorm = normaliserNom(prenom, nom);
 
   allRetours.forEach(r => {
     if(!r.client_email && !r.client_prenom) return;
-    const rEmail = (r.client_email||'').toLowerCase().trim();
+    const rEmailNorm = normaliserEmailAdmin(r.client_email||'');
     const rNom = normaliserNom(r.client_prenom||'', r.client_nom||'');
     const marchand = allMarchands.find(m => m.id === r.marchand_id);
 
-    // 1 — Email exact
-    if(emailNorm && rEmail && emailNorm === rEmail && r.score >= 40){
+    // 1 — Email exact normalisé
+    const scoreMin = ['colis_vide','jamais_recu'].includes(r.motif) ? 15 : 30;
+    if(emailNorm && rEmailNorm && emailNorm === rEmailNorm && r.score >= scoreMin){
       matches.push({ type:'email_exact', retour:r, marchand, detail:`Email identique : ${email}` });
       return;
     }
 
-    // 2 — Email même partie locale (sophie@ = sophie@hotmail = sophie@gmail)
+    // 2 — Partie locale identique
     const localEmail = emailNorm.split('@')[0];
-    const localR = rEmail.split('@')[0];
-    if(localEmail && localR && localEmail === localR && localEmail.length > 3 && r.score >= 50){
+    const localR = rEmailNorm.split('@')[0];
+    if(localEmail && localR && localEmail === localR && localEmail.length > 3 && r.score >= scoreMin){
       matches.push({ type:'email_similaire', retour:r, marchand, detail:`Partie email identique : "${localEmail}@…"` });
       return;
     }
 
-    // 3 — Nom similaire (distance ≤ 2 et longueur > 5)
+    // 3 — Nom similaire (distance ≤ 2)
     if(nomNorm.length > 5 && rNom.length > 5){
       const dist = levenshtein(nomNorm, rNom);
-      if(dist <= 2 && dist > 0 && r.score >= 50){
-        matches.push({ type:'nom_similaire', retour:r, marchand, detail:`Nom similaire : "${rNom}" (distance ${dist})` });
+      if(dist <= 2 && dist > 0 && r.score >= scoreMin){
+        matches.push({ type:'nom_similaire', retour:r, marchand, detail:`Nom similaire : "${rNom}" (écart ${dist})` });
       }
     }
   });
