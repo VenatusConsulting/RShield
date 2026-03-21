@@ -524,7 +524,7 @@ function placeOrder(){
     date: new Date().toLocaleDateString('fr-FR'),
     items: [...cart],
     total: cart.reduce((s,i)=>s+i.price*i.qty,0),
-    client: { prenom, nom, email, adresse, ville },
+    client: { prenom, nom, email, adresse, cp: document.getElementById('co-cp').value, ville },
     status: 'delivered',
     hasReturn: false,
   };
@@ -638,18 +638,32 @@ async function submitReturn(){
 
   if(!SHOP_ID){ await ensureShopExists(); }
 
-  // ── Calcul du score avant insert ──
-  const scoring = calculerScore({ motif, email, message });
+  // ── Normaliser l'email (ignorer le +alias) ──
+  const emailNorm = normaliserEmail(email);
+
+  // ── Vérifier la récidive dans Supabase ──
+  const recidive = await verifierRecidive(
+    prenom, nom, emailNorm,
+    order?.client?.adresse || '',
+    order?.client?.cp || '',
+    order?.client?.ville || ''
+  );
+
+  // ── Calcul du score ──
+  const scoring = calculerScore({ motif, email: emailNorm, message, recidive });
 
   // Envoyer à Supabase
   const { data: inserted, error } = await db.from('retours').insert({
     client_prenom: prenom,
     client_nom: nom,
-    client_email: email,
+    client_email: emailNorm,
     marchand_id: SHOP_ID,
     motif,
     produit: order?.items.map(i=>i.name).join(', ') || 'Produit ShopRunning',
     montant: order?.total || 0,
+    adresse_livraison: order?.client?.adresse || null,
+    code_postal: order?.client?.cp || null,
+    ville: order?.client?.ville || null,
     score: scoring.score,
     verdict: scoring.verdict,
     action_recommandee: scoring.action,
@@ -680,6 +694,125 @@ async function submitReturn(){
   toast('success', '📬 Retour soumis', 'Votre demande est en cours de traitement');
 }
 
+// ── NORMALISATION EMAIL ───────────────────────────────────
+function normaliserEmail(email){
+  if(!email) return '';
+  const lower = email.toLowerCase().trim();
+  const [local, domain] = lower.split('@');
+  if(!domain) return lower;
+  // Ignorer le +alias (sophie+1@gmail.com → sophie@gmail.com)
+  const localClean = local.split('+')[0];
+  // Normaliser les points dans Gmail (so.phie = sophie)
+  const localFinal = domain === 'gmail.com' ? localClean.replace(/\./g,'') : localClean;
+  return `${localFinal}@${domain}`;
+}
+
+// ── LEVENSHTEIN ───────────────────────────────────────────
+function levenshtein(a, b){
+  a = a.toLowerCase().trim();
+  b = b.toLowerCase().trim();
+  const m = a.length, n = b.length;
+  const dp = Array.from({length:m+1}, (_,i) =>
+    Array.from({length:n+1}, (_,j) => i===0?j:j===0?i:0));
+  for(let i=1;i<=m;i++) for(let j=1;j<=n;j++)
+    dp[i][j] = a[i-1]===b[j-1] ? dp[i-1][j-1] : 1+Math.min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1]);
+  return dp[m][n];
+}
+
+// ── NORMALISATION ADRESSE ─────────────────────────────────
+function normaliserAdresse(adresse){
+  if(!adresse) return '';
+  return adresse.toLowerCase()
+    .replace(/\brue\b/g,'r').replace(/\bboulevard\b/g,'bd').replace(/\bavenue\b/g,'av')
+    .replace(/[^\w\s]/g,' ').replace(/\s+/g,' ').trim();
+}
+
+// ── VÉRIFICATION RÉCIDIVE VIA SUPABASE ───────────────────
+async function verifierRecidive(prenom, nom, emailNorm, adresse, cp, ville){
+  const matches = [];
+  try {
+    const { data: retours } = await db.from('retours')
+      .select('id,client_prenom,client_nom,client_email,score,verdict,created_at,marchand_id,motif,adresse_livraison,code_postal,ville')
+      .order('created_at', { ascending: false })
+      .limit(500);
+
+    if(!retours || retours.length === 0) return matches;
+
+    const nomComplet = `${prenom} ${nom}`.toLowerCase().trim();
+    const nomFamille = (nom||'').toLowerCase().trim();
+    const adresseNorm = normaliserAdresse(adresse);
+    const cpNorm = (cp||'').trim();
+    const villeNorm = (ville||'').toLowerCase().trim();
+
+    for(const r of retours){
+      const rEmailNorm = normaliserEmail(r.client_email||'');
+      const rNom = `${r.client_prenom||''} ${r.client_nom||''}`.toLowerCase().trim();
+      const rNomFamille = (r.client_nom||'').toLowerCase().trim();
+      const rAdresseNorm = normaliserAdresse(r.adresse_livraison);
+      const rCp = (r.code_postal||'').trim();
+      const rVille = (r.ville||'').toLowerCase().trim();
+      const scoreMin = ['colis_vide','jamais_recu'].includes(r.motif) ? 15 : 30;
+      if(r.score < scoreMin) continue;
+
+      // 1 — Email exact normalisé
+      if(emailNorm && rEmailNorm && emailNorm === rEmailNorm){
+        matches.push({ type:'email_exact', retour:r, detail:`Email identique : ${emailNorm}` });
+        continue;
+      }
+
+      // 2 — Alias email (partie locale identique)
+      const localInput = emailNorm.split('@')[0];
+      const localR = rEmailNorm.split('@')[0];
+      if(localInput && localR && localInput === localR && localInput.length > 3){
+        matches.push({ type:'email_local', retour:r, detail:`Email similaire (alias) : "${localInput}@…"` });
+        continue;
+      }
+
+      // 3 — Adresse exacte identique
+      if(adresseNorm && rAdresseNorm && adresseNorm === rAdresseNorm && adresseNorm.length > 5){
+        matches.push({ type:'adresse_exacte', retour:r, detail:`Adresse identique : "${adresse}"` });
+        continue;
+      }
+
+      // 4 — Adresse similaire (Levenshtein ≤ 3)
+      if(adresseNorm && rAdresseNorm && adresseNorm.length > 8 && rAdresseNorm.length > 8){
+        const distA = levenshtein(adresseNorm, rAdresseNorm);
+        if(distA <= 3 && distA > 0){
+          matches.push({ type:'adresse_similaire', retour:r, detail:`Adresse similaire : "${adresse}" ≈ "${r.adresse_livraison}"` });
+          continue;
+        }
+      }
+
+      // 5 — Même CP + même nom de famille
+      if(cpNorm && rCp && cpNorm === rCp && nomFamille && rNomFamille && nomFamille === rNomFamille && nomFamille.length > 2){
+        matches.push({ type:'cp_nom', retour:r, detail:`Même code postal ${cpNorm} + nom "${nom}"` });
+        continue;
+      }
+
+      // 6 — Même ville + même nom de famille
+      if(villeNorm && rVille && villeNorm === rVille && nomFamille && rNomFamille && nomFamille === rNomFamille && nomFamille.length > 2){
+        matches.push({ type:'ville_nom', retour:r, detail:`Même ville "${ville}" + nom "${nom}"` });
+        continue;
+      }
+
+      // 7 — Nom similaire Levenshtein ≤ 2
+      if(nomComplet.length > 4 && rNom.length > 4){
+        const dist = levenshtein(nomComplet, rNom);
+        if(dist <= 2 && dist > 0){
+          matches.push({ type:'nom_similaire', retour:r, detail:`Nom proche : "${r.client_prenom} ${r.client_nom}" (écart ${dist})` });
+        }
+      }
+    }
+  } catch(e){ console.warn('Vérification récidive:', e); }
+
+  const seen = new Set();
+  return matches.filter(m => {
+    if(seen.has(m.retour.id)) return false;
+    seen.add(m.retour.id);
+    return true;
+  });
+}
+
 // ── MOTEUR DE SCORING ────────────────────────────────────
 const DISPOSABLE = new Set(['tempmail.org','guerrillamail.com','yopmail.com','mailinator.com',
   'throwam.com','trashmail.com','sharklasers.com','grr.la','spam4.me','tempinbox.com',
@@ -691,7 +824,7 @@ const DISPOSABLE = new Set(['tempmail.org','guerrillamail.com','yopmail.com','ma
 
 const SCRIPT_PHRASES = ['colis vide','rien dedans','boîte vide','jamais reçu','pas livré','volé','manquant','emballage vide'];
 
-function calculerScore({ motif, email, message }){
+function calculerScore({ motif, email, message, recidive = [] }){
   let score = 0;
   const signaux = [];
   const msg = (message||'').toLowerCase();
@@ -715,9 +848,28 @@ function calculerScore({ motif, email, message }){
   if(found.length>=2){ score+=12; signaux.push({text:`Message suspect — "${found[0]}", "${found[1]}"`,pts:'+12',risk:'red'}); }
   else if(found.length===1){ score+=6; signaux.push({text:`Phrase suspecte : "${found[0]}"`,pts:'+6',risk:'amber'}); }
 
-  // Message très court (moins de 20 chars) pour motif grave
+  // Message trop court
   if((motif==='colis_vide'||motif==='jamais_recu') && msg.length < 20){
     score+=8; signaux.push({text:'Description trop courte pour le motif',pts:'+8',risk:'amber'});
+  }
+
+  // ── Récidive auto-détectée ──
+  for(const m of recidive){
+    if(m.type==='email_exact'){
+      score+=30; signaux.push({text:`Récidive confirmée — ${m.detail}`,pts:'+30',risk:'red'});
+    } else if(m.type==='email_local'){
+      score+=20; signaux.push({text:`Alias email détecté — ${m.detail}`,pts:'+20',risk:'red'});
+    } else if(m.type==='adresse_exacte'){
+      score+=25; signaux.push({text:`Adresse identique à un fraudeur connu — ${m.detail}`,pts:'+25',risk:'red'});
+    } else if(m.type==='adresse_similaire'){
+      score+=18; signaux.push({text:`Adresse similaire — ${m.detail}`,pts:'+18',risk:'red'});
+    } else if(m.type==='cp_nom'){
+      score+=15; signaux.push({text:`Même code postal + même nom — ${m.detail}`,pts:'+15',risk:'amber'});
+    } else if(m.type==='ville_nom'){
+      score+=12; signaux.push({text:`Même ville + même nom — ${m.detail}`,pts:'+12',risk:'amber'});
+    } else if(m.type==='nom_similaire'){
+      score+=15; signaux.push({text:`Identité proche — ${m.detail}`,pts:'+15',risk:'amber'});
+    }
   }
 
   score = Math.min(100, score);
