@@ -522,6 +522,7 @@ function placeOrder(){
   const order = {
     id: `SR-${Date.now()}`,
     date: new Date().toLocaleDateString('fr-FR'),
+    dateISO: new Date().toISOString(),
     items: [...cart],
     total: cart.reduce((s,i)=>s+i.price*i.qty,0),
     client: { prenom, nom, email, adresse, cp: document.getElementById('co-cp').value, ville },
@@ -573,11 +574,14 @@ function renderOrders(){
     </div>`).join('');
 }
 
+let formOpenedAt = null; // timestamp d'ouverture du formulaire
+
 function startReturn(orderId){
   const order = orders.find(o=>o.id===orderId);
   if(!order) return;
   currentOrderForReturn = order;
   currentReturnStep = 1;
+  formOpenedAt = Date.now(); // démarrer le chrono
 
   // Pré-remplir les coordonnées si connues
   document.getElementById('ret-prenom').value = order.client.prenom || '';
@@ -638,7 +642,23 @@ async function submitReturn(){
 
   if(!SHOP_ID){ await ensureShopExists(); }
 
-  // ── Normaliser l'email (ignorer le +alias) ──
+  // ── Signaux comportementaux ──
+  const tempsFormulaire = formOpenedAt ? Math.floor((Date.now() - formOpenedAt) / 1000) : null;
+  const heureActuelle = new Date().getHours(); // 0-23
+  const nbCommandesClient = orders.filter(o =>
+    o.client?.email?.toLowerCase() === email.toLowerCase()
+  ).length;
+
+  // Délai commande → retour
+  let delaiHeures = null;
+  let dateCommande = null;
+  if(order?.dateISO){
+    const diffMs = Date.now() - new Date(order.dateISO).getTime();
+    delaiHeures = Math.floor(diffMs / 3600000);
+  }
+  if(order?.dateISO) dateCommande = order.dateISO;
+
+  // ── Normaliser l'email ──
   const emailNorm = normaliserEmail(email);
 
   // ── Vérifier la récidive dans Supabase ──
@@ -649,10 +669,13 @@ async function submitReturn(){
     order?.client?.ville || ''
   );
 
-  // ── Calcul du score ──
-  const scoring = calculerScore({ motif, email: emailNorm, message, recidive });
+  // ── Calcul du score complet ──
+  const scoring = calculerScore({
+    motif, email: emailNorm, message, recidive,
+    tempsFormulaire, heureActuelle, nbCommandesClient, delaiHeures,
+  });
 
-  // Envoyer à Supabase
+  // ── Envoyer à Supabase ──
   const { data: inserted, error } = await db.from('retours').insert({
     client_prenom: prenom,
     client_nom: nom,
@@ -664,6 +687,9 @@ async function submitReturn(){
     adresse_livraison: order?.client?.adresse || null,
     code_postal: order?.client?.cp || null,
     ville: order?.client?.ville || null,
+    date_commande: dateCommande,
+    temps_formulaire_secondes: tempsFormulaire,
+    nb_commandes_client: nbCommandesClient,
     score: scoring.score,
     verdict: scoring.verdict,
     action_recommandee: scoring.action,
@@ -824,33 +850,69 @@ const DISPOSABLE = new Set(['tempmail.org','guerrillamail.com','yopmail.com','ma
 
 const SCRIPT_PHRASES = ['colis vide','rien dedans','boîte vide','jamais reçu','pas livré','volé','manquant','emballage vide'];
 
-function calculerScore({ motif, email, message, recidive = [] }){
+function calculerScore({ motif, email, message, recidive = [], tempsFormulaire, heureActuelle, nbCommandesClient, delaiHeures }){
   let score = 0;
   const signaux = [];
   const msg = (message||'').toLowerCase();
   const emailLower = (email||'').toLowerCase().trim();
   const domain = emailLower.split('@')[1] || '';
 
-  // Motif
+  // ── Motif ──
   if(motif==='colis_vide'){   score+=20; signaux.push({text:'Motif : colis vide (signal fort)',pts:'+20',risk:'red'}); }
   if(motif==='jamais_recu'){  score+=18; signaux.push({text:'Motif : jamais reçu',pts:'+18',risk:'red'}); }
   if(motif==='produit_endommage'){ score+=8; signaux.push({text:'Motif : produit endommagé',pts:'+8',risk:'amber'}); }
 
-  // Email jetable
+  // ── Email jetable ──
   if(DISPOSABLE.has(domain)){
     score+=18; signaux.push({text:`Email jetable détecté : @${domain}`,pts:'+18',risk:'red'});
   } else if(/\d{6,}/.test(emailLower.split('@')[0])){
     score+=12; signaux.push({text:'Email généré automatiquement',pts:'+12',risk:'amber'});
   }
 
-  // Message suspect
+  // ── Message suspect ──
   const found = SCRIPT_PHRASES.filter(p=>msg.includes(p));
   if(found.length>=2){ score+=12; signaux.push({text:`Message suspect — "${found[0]}", "${found[1]}"`,pts:'+12',risk:'red'}); }
   else if(found.length===1){ score+=6; signaux.push({text:`Phrase suspecte : "${found[0]}"`,pts:'+6',risk:'amber'}); }
 
-  // Message trop court
   if((motif==='colis_vide'||motif==='jamais_recu') && msg.length < 20){
     score+=8; signaux.push({text:'Description trop courte pour le motif',pts:'+8',risk:'amber'});
+  }
+
+  // ── Signal vitesse de navigation ──
+  if(tempsFormulaire !== null && tempsFormulaire !== undefined){
+    if(tempsFormulaire < 25){
+      score+=20; signaux.push({text:`Formulaire rempli en ${tempsFormulaire}s — vitesse anormale (bot probable)`,pts:'+20',risk:'red'});
+    } else if(tempsFormulaire < 60){
+      score+=10; signaux.push({text:`Formulaire rempli très rapidement (${tempsFormulaire}s)`,pts:'+10',risk:'amber'});
+    }
+  }
+
+  // ── Signal heure de la demande ──
+  if(heureActuelle !== null && heureActuelle !== undefined){
+    if(heureActuelle >= 1 && heureActuelle <= 5){
+      score+=8; signaux.push({text:`Demande à ${heureActuelle}h — horaire suspect (fraude organisée)`,pts:'+8',risk:'amber'});
+    }
+  }
+
+  // ── Signal historique d'achat ──
+  if(nbCommandesClient !== null && nbCommandesClient !== undefined){
+    if(nbCommandesClient === 1 && (motif==='colis_vide'||motif==='jamais_recu')){
+      score+=15; signaux.push({text:'Premier achat → retour grave immédiat (profil fraudeur)',pts:'+15',risk:'red'});
+    } else if(nbCommandesClient === 1){
+      score+=5; signaux.push({text:'Premier achat sur la boutique',pts:'+5',risk:'amber'});
+    }
+  }
+
+  // ── Signal délai commande → retour ──
+  if(delaiHeures !== null && delaiHeures !== undefined){
+    if(delaiHeures < 0){
+      // Retour demandé avant livraison estimée — impossible logistiquement
+      score+=25; signaux.push({text:'Retour demandé avant la livraison — impossible logistiquement',pts:'+25',risk:'red'});
+    } else if(delaiHeures < 2){
+      score+=12; signaux.push({text:`Retour demandé ${delaiHeures}h après commande — délai anormalement court`,pts:'+12',risk:'red'});
+    } else if(delaiHeures < 12){
+      score+=6; signaux.push({text:`Retour demandé ${delaiHeures}h après commande`,pts:'+6',risk:'amber'});
+    }
   }
 
   // ── Récidive auto-détectée ──
