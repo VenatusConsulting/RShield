@@ -326,19 +326,22 @@ tr:hover td{background:rgba(255,255,255,.015)}
       <div class="card">
         <div class="card-header"><div class="card-title">Les paliers de récompense</div></div>
         <div style="padding:16px;display:flex;flex-direction:column;gap:10px">
-          ${[
-            {n:1,label:'1 mois gratuit',icon:'🎁'},
-            {n:3,label:'3 mois gratuits + Badge Ambassadeur',icon:'⭐'},
-            {n:5,label:'6 mois gratuits + Accès Early Features',icon:'🚀'},
-            {n:10,label:'Plan gratuit à vie',icon:'♾️'},
-          ].map(t=>`
-            <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--s2);border-radius:8px;border:0.5px solid var(--b)">
-              <span style="font-size:20px">${t.icon}</span>
-              <div>
-                <div style="font-size:13px;font-weight:600">${t.n} filleul${t.n>1?'s':''}</div>
-                <div style="font-size:11px;color:var(--g1)">${t.label}</div>
-              </div>
-            </div>`).join('')}
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--s2);border-radius:8px;border:0.5px solid var(--b)">
+            <span style="font-size:20px">🎁</span>
+            <div><div style="font-size:13px;font-weight:600">1 filleul</div><div style="font-size:11px;color:var(--g1)">1 mois gratuit</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--s2);border-radius:8px;border:0.5px solid var(--b)">
+            <span style="font-size:20px">⭐</span>
+            <div><div style="font-size:13px;font-weight:600">3 filleuls</div><div style="font-size:11px;color:var(--g1)">3 mois gratuits + Badge Ambassadeur</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--s2);border-radius:8px;border:0.5px solid var(--b)">
+            <span style="font-size:20px">🚀</span>
+            <div><div style="font-size:13px;font-weight:600">5 filleuls</div><div style="font-size:11px;color:var(--g1)">6 mois gratuits + Accès Early Features</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--s2);border-radius:8px;border:0.5px solid var(--ab)">
+            <span style="font-size:20px">♾️</span>
+            <div><div style="font-size:13px;font-weight:600;color:var(--amber)">10 filleuls</div><div style="font-size:11px;color:var(--g1)">Plan gratuit à vie</div></div>
+          </div>
         </div>
       </div>
     </div>
@@ -707,16 +710,19 @@ function openRetour(id){
     msgSection.style.display = 'none';
   }
 
-  // Signaux
+  // Signaux — grouper les récidives et signaux réseau
   const signaux = r.signaux || [];
   const sigBox = document.getElementById('mf-signaux');
   if(signaux.length === 0){
     sigBox.innerHTML = `<div style="color:var(--g2);font-size:12px;padding:12px;text-align:center;background:var(--s2);border-radius:8px">✓ Aucun signal de fraude détecté</div>`;
   } else {
-    sigBox.innerHTML = signaux.map(s=>`
+    sigBox.innerHTML = grouperSignaux(signaux, r).map(s=>`
       <div class="signal-item signal-${s.risk||'amber'}">
         <span style="font-size:14px">${s.risk==='red'?'🔴':'🟡'}</span>
-        <span style="flex:1">${s.text}</span>
+        <div style="flex:1">
+          <div>${s.text}</div>
+          ${s.detail?`<div style="font-size:10.5px;color:${s.risk==='red'?'var(--red)':'var(--amber)'};opacity:.8;margin-top:2px">${s.detail}</div>`:''}
+        </div>
         <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:${s.risk==='red'?'var(--red)':'var(--amber)'}">${s.pts}</span>
       </div>`).join('');
   }
@@ -744,7 +750,11 @@ function renderAlertes(){
     return;
   }
   list.innerHTML = `<div style="background:var(--s1);border:0.5px solid var(--b);border-radius:12px;overflow:hidden">
-    ${alertes.map(r=>`<div style="padding:16px 18px;border-bottom:0.5px solid var(--b)">${renderAlertItem(r)}</div>`).join('')}
+    ${alertes.map(r=>`
+      <div style="padding:16px 18px;border-bottom:0.5px solid var(--b);cursor:pointer;transition:background .15s" onclick="openRetour('${r.id}')" onmouseover="this.style.background='rgba(255,255,255,.02)'" onmouseout="this.style.background='transparent'">
+        ${renderAlertItem(r)}
+        <div style="font-size:10.5px;color:var(--g2);margin-top:8px">Cliquez pour voir le détail complet →</div>
+      </div>`).join('')}
   </div>`;
 }
 
@@ -775,6 +785,63 @@ function copyCode(){
     document.getElementById('copy-label').textContent = '✓ Copié !';
     setTimeout(()=>document.getElementById('copy-label').textContent='Copier le lien',2000);
   });
+}
+
+// ── GROUPER LES SIGNAUX ───────────────────────────────────
+function grouperSignaux(signaux, r){
+  const recidiveMots = ['Récidive','Alias email','Adresse identique','Adresse similaire',
+    'Identité proche','code postal','même ville','réseau','base anti','Fingerprint'];
+  const reseauMots = ['réseau','base anti','Fingerprint','mutualisée'];
+
+  const reseauSignaux  = signaux.filter(s => reseauMots.some(m => s.text?.includes(m)));
+  const recidiveSignaux = signaux.filter(s =>
+    !reseauSignaux.includes(s) && recidiveMots.some(m => s.text?.includes(m))
+  );
+  const autresSignaux = signaux.filter(s =>
+    !reseauSignaux.includes(s) && !recidiveSignaux.includes(s)
+  );
+
+  const grouped = [...autresSignaux];
+
+  // Grouper réseau partenaire
+  if(reseauSignaux.length > 0){
+    const totalPts = reseauSignaux.reduce((s,x)=>s+(parseInt((x.pts||'0').replace('+',''))||0),0);
+    grouped.push({
+      text: 'Client identifié dans notre base anti-fraude',
+      detail: `Ce profil a été signalé dans notre réseau de protection partenaire.`,
+      pts: `+${totalPts}`, risk: 'red'
+    });
+  }
+
+  // Grouper récidive même boutique — compter par TYPE de signal
+  if(recidiveSignaux.length > 0){
+    // Grouper par type de correspondance
+    const byType = {};
+    recidiveSignaux.forEach(s => {
+      let type = 'autre';
+      if(s.text?.includes('email') || s.text?.includes('Email')) type = 'email';
+      else if(s.text?.includes('Adresse') || s.text?.includes('adresse')) type = 'adresse';
+      else if(s.text?.includes('nom') || s.text?.includes('Nom') || s.text?.includes('Identité')) type = 'nom';
+      else if(s.text?.includes('postal') || s.text?.includes('ville')) type = 'zone';
+      if(!byType[type]) byType[type] = [];
+      byType[type].push(s);
+    });
+
+    const typeLabels = { email:'email', adresse:'adresse', nom:'identité', zone:'zone géo', autre:'correspondance' };
+    const totalPts = recidiveSignaux.reduce((s,x)=>s+(parseInt((x.pts||'0').replace('+',''))||0),0);
+
+    const details = Object.entries(byType).map(([type, items]) =>
+      `${typeLabels[type]} (×${items.length})`
+    ).join(' · ');
+
+    grouped.push({
+      text: `Récidiviste — ${recidiveSignaux.length} correspondance${recidiveSignaux.length>1?'s':''} détectée${recidiveSignaux.length>1?'s':''}`,
+      detail: `Signaux : ${details}. Ce client a déjà soumis des retours sur cette boutique.`,
+      pts: `+${totalPts}`, risk: 'red'
+    });
+  }
+
+  return grouped;
 }
 
 // ── DÉCISION FEEDBACK ─────────────────────────────────────
