@@ -1869,16 +1869,20 @@ function detecterRecidive(prenom, nom, email, adresse, cp, ville){
       matches.push({ type:'email_similaire', retour:r, marchand, detail:`Alias email : "${localEmail}@…"` });
       return;
     }
-    // 3 — Adresse exacte
-    if(adresseNorm && rAdresseNorm && adresseNorm === rAdresseNorm && adresseNorm.length > 5){
-      matches.push({ type:'adresse_exacte', retour:r, marchand, detail:`Adresse identique : "${adresse}"` });
+    // 3 — Adresse exacte — même zone géographique obligatoire
+    const memeVille = villeNorm && rVille && villeNorm === rVille;
+    const memeCp = cpNorm && rCp && cpNorm === rCp;
+    const memeZone = memeVille || memeCp;
+
+    if(adresseNorm && rAdresseNorm && adresseNorm === rAdresseNorm && adresseNorm.length > 5 && memeZone){
+      matches.push({ type:'adresse_exacte', retour:r, marchand, detail:`Adresse identique : "${adresse}", ${ville||cp}` });
       return;
     }
-    // 4 — Adresse similaire
-    if(adresseNorm && rAdresseNorm && adresseNorm.length > 8 && rAdresseNorm.length > 8){
+    // 4 — Adresse similaire — même zone obligatoire
+    if(adresseNorm && rAdresseNorm && adresseNorm.length > 8 && rAdresseNorm.length > 8 && memeZone){
       const distA = levenshtein(adresseNorm, rAdresseNorm);
       if(distA <= 3 && distA > 0){
-        matches.push({ type:'adresse_similaire', retour:r, marchand, detail:`Adresse similaire : "${adresse}"` });
+        matches.push({ type:'adresse_similaire', retour:r, marchand, detail:`Adresse similaire dans la même zone : "${adresse}"` });
         return;
       }
     }
