@@ -87,6 +87,14 @@ tr:hover td{background:rgba(255,255,255,.015)}
 .pill-green{background:var(--gd);color:var(--green);border:0.5px solid var(--gb)}
 .pill-blue{background:var(--bd);color:var(--blue);border:0.5px solid var(--bb)}
 .pill-gray{background:rgba(255,255,255,.06);color:var(--g1);border:0.5px solid var(--b2)}
+.btn-decision{padding:4px 10px;border-radius:6px;font-family:var(--f);font-size:10.5px;font-weight:600;cursor:pointer;border:0.5px solid;transition:all .15s}
+.btn-rembourse{background:var(--gd);border-color:var(--gb);color:var(--green)}
+.btn-rembourse:hover{background:rgba(34,197,94,.25)}
+.btn-fraude-d{background:var(--red-dim);border-color:var(--red-b);color:var(--red)}
+.btn-fraude-d:hover{background:rgba(232,40,26,.2)}
+.decision-tag{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;display:inline-flex;align-items:center;gap:3px}
+.dt-rembourse{background:var(--gd);color:var(--green);border:0.5px solid var(--gb)}
+.dt-fraude{background:var(--red-dim);color:var(--red);border:0.5px solid var(--red-b)}
 .score-badge{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:var(--mono)}
 .empty-state{padding:48px;text-align:center;color:var(--g2);font-size:13px}
 .empty-state svg{width:32px;height:32px;margin:0 auto 12px;opacity:.3;display:block}
@@ -319,6 +327,11 @@ tr:hover td{background:rgba(255,255,255,.015)}
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/><path d="M3 13c0-2.76 2.24-5 5-5s5 2.24 5 5"/><path d="M13 6a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/><path d="M15 11c0-1.66-1.34-3-3-3"/></svg>
       Affiliation
       <span class="sb-count" id="sb-count-affil" style="background:var(--amber);color:#000">0</span>
+    </div>
+    <div class="sb-item" onclick="showPage('calibration')">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 8h12M8 2v12"/><circle cx="8" cy="8" r="3"/></svg>
+      Calibration moteur
+      <span class="sb-count" id="sb-count-calib" style="background:var(--amber);color:#000">0</span>
     </div>
     <div class="sb-item" onclick="showPage('log')">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12M2 7h8M2 10h6M2 13h4"/></svg>
@@ -943,6 +956,66 @@ tr:hover td{background:rgba(255,255,255,.015)}
       </div>
     </div>
 
+    <!-- ── PAGE : CALIBRATION ── -->
+    <div class="page" id="page-calibration">
+      <div style="margin-bottom:18px">
+        <h2 style="font-size:15px;font-weight:700;letter-spacing:-.01em">Calibration du moteur</h2>
+        <p style="font-size:12px;color:var(--g1);margin-top:2px">Étiquetez chaque retour pour améliorer la précision du scoring</p>
+      </div>
+
+      <!-- Métriques calibration -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px">
+        <div class="fin-card fade-up">
+          <div class="fin-lbl">Retours étiquetés</div>
+          <div class="fin-val" id="cal-total" style="color:var(--blue)">—</div>
+          <span style="font-size:10.5px;color:var(--g1)">sur <span id="cal-total-all">—</span> total</span>
+        </div>
+        <div class="fin-card fade-up" style="animation-delay:.06s">
+          <div class="fin-lbl">Faux positifs</div>
+          <div class="fin-val" id="cal-fp" style="color:var(--amber)">—</div>
+          <span style="font-size:10.5px;color:var(--g1)">score élevé → légitime</span>
+        </div>
+        <div class="fin-card fade-up" style="animation-delay:.12s">
+          <div class="fin-lbl">Faux négatifs</div>
+          <div class="fin-val" id="cal-fn" style="color:var(--red)">—</div>
+          <span style="font-size:10.5px;color:var(--g1)">score faible → fraude</span>
+        </div>
+        <div class="fin-card fade-up" style="animation-delay:.18s">
+          <div class="fin-lbl">Précision moteur</div>
+          <div class="fin-val" id="cal-precision" style="color:var(--green)">—</div>
+          <span style="font-size:10.5px;color:var(--g1)">sur retours étiquetés</span>
+        </div>
+      </div>
+
+      <!-- Alertes faux positifs/négatifs -->
+      <div id="cal-alerts" style="margin-bottom:16px"></div>
+
+      <!-- Tableau calibration -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Retours à étiqueter</div>
+            <div class="card-sub" id="cal-sub">Cliquez ✓ ou ✗ pour chaque retour</div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <select id="cal-filter" onchange="renderCalibration()" style="background:var(--s2);border:0.5px solid var(--b2);border-radius:6px;padding:6px 10px;font-family:var(--f);font-size:12px;color:var(--w);outline:none">
+              <option value="all">Tous</option>
+              <option value="pending">Non étiquetés</option>
+              <option value="rembourse">Remboursés</option>
+              <option value="fraude">Fraudes confirmées</option>
+            </select>
+            <button class="btn-sm btn-ghost" onclick="exportCSV('calibration')">⬇ CSV dataset</button>
+          </div>
+        </div>
+        <table>
+          <thead><tr>
+            <th>Client</th><th>Marchand</th><th>Motif</th><th>Score RS</th><th>Verdict RS</th><th>Décision réelle</th><th>Erreur moteur</th><th>Date</th>
+          </tr></thead>
+          <tbody id="tb-calibration"></tbody>
+        </table>
+      </div>
+    </div>
+
     <!-- ── PAGE : AFFILIATION ── -->
     <div class="page" id="page-affiliation">
 
@@ -1378,6 +1451,9 @@ async function loadRetours(){
   renderRetours();
   document.getElementById('sb-count-retours').textContent = allRetours.length;
   updateRecidivBadge();
+  // Badge calibration = retours sans décision
+  const calibBadge = document.getElementById('sb-count-calib');
+  if(calibBadge) calibBadge.textContent = allRetours.filter(r=>!r.decision_finale).length;
 }
 
 async function loadReseau(){
@@ -2518,6 +2594,14 @@ function renderRetours(data){
       const date = new Date(r.created_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
       const motifLabel = {colis_vide:'Colis vide',jamais_recu:'Jamais reçu',produit_endommage:'Prod. endommagé',mauvaise_taille:'Mauvaise taille',ne_correspond_pas:'Ne correspond pas',autre:'Autre'}[r.motif]||r.motif;
       const sigCount = (r.signaux||[]).length;
+      const decisionCell = r.decision_finale === 'rembourse'
+        ? `<span class="decision-tag dt-rembourse">✓ Remboursé</span>`
+        : r.decision_finale === 'fraude'
+        ? `<span class="decision-tag dt-fraude">✗ Fraude</span>`
+        : `<div style="display:flex;gap:4px" onclick="event.stopPropagation()">
+            <button class="btn-decision btn-rembourse" onclick="enregistrerDecisionAdmin('${r.id}','rembourse')">✓</button>
+            <button class="btn-decision btn-fraude-d" onclick="enregistrerDecisionAdmin('${r.id}','fraude')">✗</button>
+           </div>`;
       return `<tr onclick="openRetourAdmin('${r.id}')" style="cursor:pointer">
         <td><div style="font-weight:500">${r.client_prenom} ${r.client_nom}</div><div style="font-size:10px;color:var(--g2)">${r.client_email}</div></td>
         <td>${marchand?`<span style="font-size:11px">${marchand.nom}</span>`:`<span style="color:var(--g2);font-size:11px">—</span>`}</td>
@@ -2526,7 +2610,7 @@ function renderRetours(data){
         <td><div class="score-badge" style="background:${sc>=50?'var(--red-dim)':sc>=30?'var(--ad)':'var(--gd)'};color:${ringColor};border:0.5px solid ${sc>=50?'var(--red-b)':sc>=30?'var(--ab)':'var(--gb)'}">${sc}</div></td>
         <td><span style="font-size:11px;color:var(--g1)">${sigCount} signal${sigCount>1?'s':''}</span></td>
         <td><span class="pill ${pillClass}">${r.verdict}</span></td>
-        <td style="font-size:11px;color:var(--g1);max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.action_recommandee}</td>
+        <td>${decisionCell}</td>
         <td style="font-size:11px;color:var(--g2);white-space:nowrap">${date}</td>
       </tr>`;
     }).join('');
@@ -2598,6 +2682,7 @@ const PAGE_TITLES = {
   'reseau-sante':['Santé du réseau','— Performance de la base mutualisée'],
   scoring:['Moteur de scoring','— Distribution et précision'],
   affiliation:['Programme d\'affiliation','— Parrains · Filleuls · Ambassadeurs'],
+  calibration:['Calibration du moteur','— Feedback · Faux positifs · Précision'],
   log:['Log d\'activité','— Historique des événements'],
   settings:['Paramètres','— Configuration du système'],
 };
@@ -2618,6 +2703,7 @@ function showPage(name){
   if(name === 'reseau-sante') renderReseauSante();
   if(name === 'scoring') renderScoring();
   if(name === 'affiliation') renderAffiliationPage();
+  if(name === 'calibration') renderCalibration();
   if(name === 'settings') renderSettings();
 }
 
@@ -3000,7 +3086,129 @@ function copyAffiliCode(){
   });
 }
 
-// ── AFFILIATION PAGE ──────────────────────────────────────
+// ── DÉCISION FEEDBACK ADMIN ───────────────────────────────
+async function enregistrerDecisionAdmin(id, decision){
+  const { error } = await db.from('retours').update({
+    decision_finale: decision,
+    decision_date: new Date().toISOString(),
+  }).eq('id', id);
+  if(error){ toast('error','Erreur',error.message); return; }
+  const idx = allRetours.findIndex(r=>r.id===id);
+  if(idx>=0){
+    allRetours[idx].decision_finale = decision;
+    allRetours[idx].decision_date = new Date().toISOString();
+  }
+  const label = decision==='rembourse'?'✓ Remboursé enregistré':'✗ Fraude confirmée';
+  toast(decision==='rembourse'?'success':'error', label, 'Feedback sauvegardé');
+  addLog('system','Feedback marchand',`${decision==='rembourse'?'Remboursé':'Fraude confirmée'} — ${allRetours[allRetours.findIndex(r=>r.id===id)]?.client_prenom||''}`);
+  renderRetours();
+  if(document.getElementById('page-calibration').classList.contains('active')) renderCalibration();
+}
+
+// ── CALIBRATION ───────────────────────────────────────────
+function renderCalibration(){
+  const filter = document.getElementById('cal-filter')?.value || 'all';
+  let rows = allRetours;
+  if(filter === 'pending')   rows = allRetours.filter(r=>!r.decision_finale);
+  if(filter === 'rembourse') rows = allRetours.filter(r=>r.decision_finale==='rembourse');
+  if(filter === 'fraude')    rows = allRetours.filter(r=>r.decision_finale==='fraude');
+
+  // Métriques
+  const etiquetes = allRetours.filter(r=>r.decision_finale);
+  const sansDecision = allRetours.filter(r=>!r.decision_finale).length;
+
+  // Faux positifs : score ≥ 50 mais décision = remboursé
+  const fauxPositifs = etiquetes.filter(r=>r.score>=50 && r.decision_finale==='rembourse');
+  // Faux négatifs : score < 50 mais décision = fraude
+  const fauxNegatifs = etiquetes.filter(r=>r.score<50 && r.decision_finale==='fraude');
+  // Vrais positifs + vrais négatifs
+  const corrects = etiquetes.filter(r=>
+    (r.score>=50 && r.decision_finale==='fraude') ||
+    (r.score<50 && r.decision_finale==='rembourse')
+  );
+  const precision = etiquetes.length > 0
+    ? Math.round((corrects.length/etiquetes.length)*100)
+    : 0;
+
+  document.getElementById('cal-total').textContent = etiquetes.length;
+  document.getElementById('cal-total-all').textContent = allRetours.length;
+  document.getElementById('cal-fp').textContent = fauxPositifs.length;
+  document.getElementById('cal-fn').textContent = fauxNegatifs.length;
+  document.getElementById('cal-precision').textContent = etiquetes.length>0?`${precision}%`:'—';
+  document.getElementById('cal-sub').textContent = `${sansDecision} retour${sansDecision>1?'s':''} en attente d'étiquetage`;
+
+  // Badge sidebar
+  const badge = document.getElementById('sb-count-calib');
+  if(badge) badge.textContent = sansDecision;
+
+  // Alertes erreurs moteur
+  const alertBox = document.getElementById('cal-alerts');
+  const alerts = [];
+  if(fauxPositifs.length > 0){
+    alerts.push(`<div style="background:var(--ad);border:0.5px solid var(--ab);border-radius:8px;padding:12px 14px;font-size:12px">
+      <strong style="color:var(--amber)">⚠ ${fauxPositifs.length} faux positif${fauxPositifs.length>1?'s':''}</strong>
+      <span style="color:var(--g1);margin-left:8px">Le moteur a sur-scoré des clients légitimes — envisagez de baisser certains poids dans Paramètres</span>
+    </div>`);
+  }
+  if(fauxNegatifs.length > 0){
+    alerts.push(`<div style="background:var(--red-dim);border:0.5px solid var(--red-b);border-radius:8px;padding:12px 14px;font-size:12px;margin-top:8px">
+      <strong style="color:var(--red)">🚨 ${fauxNegatifs.length} faux négatif${fauxNegatifs.length>1?'s':''}</strong>
+      <span style="color:var(--g1);margin-left:8px">Des fraudes ont eu un score faible — envisagez d'augmenter certains poids ou d'ajouter des signaux</span>
+    </div>`);
+  }
+  alertBox.innerHTML = alerts.join('');
+
+  // Tableau
+  const tb = document.getElementById('tb-calibration');
+  if(rows.length === 0){
+    tb.innerHTML = `<tr><td colspan="8" class="empty-state">Aucun retour à afficher</td></tr>`;
+    return;
+  }
+
+  tb.innerHTML = rows.map(r => {
+    const sc = r.score;
+    const marchand = allMarchands.find(m=>m.id===r.marchand_id);
+    const motifLabel = {colis_vide:'Colis vide',jamais_recu:'Jamais reçu',produit_endommage:'Endommagé',mauvaise_taille:'Mauvaise taille',ne_correspond_pas:'Non conforme'}[r.motif]||r.motif||'—';
+    const date = new Date(r.created_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+    const ringColor = sc>=50?'var(--red)':sc>=30?'var(--amber)':'var(--green)';
+
+    // Décision
+    let decisionCell = '';
+    if(r.decision_finale === 'rembourse'){
+      decisionCell = `<span class="decision-tag dt-rembourse">✓ Remboursé</span>`;
+    } else if(r.decision_finale === 'fraude'){
+      decisionCell = `<span class="decision-tag dt-fraude">✗ Fraude</span>`;
+    } else {
+      decisionCell = `<div style="display:flex;gap:4px" onclick="event.stopPropagation()">
+        <button class="btn-decision btn-rembourse" onclick="enregistrerDecisionAdmin('${r.id}','rembourse')">✓ Remboursé</button>
+        <button class="btn-decision btn-fraude-d" onclick="enregistrerDecisionAdmin('${r.id}','fraude')">✗ Fraude</button>
+      </div>`;
+    }
+
+    // Erreur moteur
+    let erreurCell = '<span style="color:var(--g2);font-size:11px">—</span>';
+    if(r.decision_finale === 'rembourse' && sc >= 50){
+      erreurCell = `<span style="color:var(--amber);font-size:11px;font-weight:600">⚠ Faux positif (${sc})</span>`;
+    } else if(r.decision_finale === 'fraude' && sc < 50){
+      erreurCell = `<span style="color:var(--red);font-size:11px;font-weight:600">🚨 Faux négatif (${sc})</span>`;
+    } else if(r.decision_finale){
+      erreurCell = `<span style="color:var(--green);font-size:11px">✓ Correct</span>`;
+    }
+
+    return `<tr onclick="openRetourAdmin('${r.id}')" style="cursor:pointer">
+      <td><div style="font-weight:500">${r.client_prenom||''} ${r.client_nom||''}</div><div style="font-size:10px;color:var(--g2)">${r.client_email||''}</div></td>
+      <td style="font-size:11.5px">${marchand?.nom||'—'}</td>
+      <td><span class="pill pill-gray">${motifLabel}</span></td>
+      <td><div class="score-badge" style="background:${sc>=50?'var(--red-dim)':sc>=30?'var(--ad)':'var(--gd)'};color:${ringColor};border:0.5px solid ${sc>=50?'var(--red-b)':sc>=30?'var(--ab)':'var(--gb)'}">${sc}</div></td>
+      <td><span class="pill ${sc>=75?'pill-red':sc>=50?'pill-red':sc>=30?'pill-amber':'pill-green'}">${r.verdict||'—'}</span></td>
+      <td onclick="event.stopPropagation()">${decisionCell}</td>
+      <td>${erreurCell}</td>
+      <td style="font-size:11px;color:var(--g2);white-space:nowrap">${date}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── DÉCISION FEEDBACK ADMIN ───────────────────────────────
 function renderAffiliationPage(){
   const parrainData = allMarchands.map(m => {
     const code = generateAffiliCode(m);
