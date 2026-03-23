@@ -1486,6 +1486,61 @@ async function createTables(){
 }
 
 // ── SCORING ENGINE ─────────────────────────────────────────
+// ── GROUPER SIGNAUX ───────────────────────────────────────
+function grouperSignauxAdmin(signaux, r){
+  const reseauMots = ['réseau','base anti','Fingerprint','mutualisée'];
+  const recidiveMots = ['Récidive','Alias email','Adresse identique','Adresse similaire',
+    'Identité proche','code postal','même ville'];
+
+  const reseauSignaux   = signaux.filter(s => reseauMots.some(m => s.text?.includes(m)));
+  const recidiveSignaux = signaux.filter(s =>
+    !reseauSignaux.includes(s) && recidiveMots.some(m => s.text?.includes(m))
+  );
+  const autresSignaux = signaux.filter(s =>
+    !reseauSignaux.includes(s) && !recidiveSignaux.includes(s)
+  );
+
+  const grouped = [...autresSignaux];
+
+  // Réseau partenaire — bloc unique neutre RGPD
+  if(reseauSignaux.length > 0){
+    const totalPts = reseauSignaux.reduce((s,x)=>s+(parseInt((x.pts||'0').replace('+',''))||0),0);
+    grouped.push({
+      text: 'Identifié dans la base réseau mutualisée',
+      detail: `Profil connu — ${reseauSignaux.length} correspondance${reseauSignaux.length>1?'s':''} dans le réseau partenaire`,
+      pts: `+${totalPts}`, risk: 'red'
+    });
+  }
+
+  // Récidive — grouper par type avec compteur
+  if(recidiveSignaux.length > 0){
+    const byType = {};
+    recidiveSignaux.forEach(s => {
+      let type = 'autre';
+      if(s.text?.includes('email') || s.text?.includes('Email') || s.text?.includes('Alias')) type = 'email';
+      else if(s.text?.includes('Adresse') || s.text?.includes('adresse')) type = 'adresse';
+      else if(s.text?.includes('Identité') || s.text?.includes('Nom') || s.text?.includes('similaire')) type = 'nom';
+      else if(s.text?.includes('postal') || s.text?.includes('ville')) type = 'zone';
+      if(!byType[type]) byType[type] = [];
+      byType[type].push(s);
+    });
+
+    const typeLabels = { email:'email', adresse:'adresse', nom:'identité', zone:'zone géo', autre:'correspondance' };
+    const totalPts = recidiveSignaux.reduce((s,x)=>s+(parseInt((x.pts||'0').replace('+',''))||0),0);
+    const details = Object.entries(byType)
+      .map(([type, items]) => `${typeLabels[type]} (×${items.length})`)
+      .join(' · ');
+
+    grouped.push({
+      text: `Récidiviste — ${recidiveSignaux.length} correspondance${recidiveSignaux.length>1?'s':''} détectée${recidiveSignaux.length>1?'s':''}`,
+      detail: `Signaux : ${details}`,
+      pts: `+${totalPts}`, risk: 'red'
+    });
+  }
+
+  return grouped;
+}
+
 // ── MODAL DÉTAIL RETOUR (ADMIN) ───────────────────────────
 let currentAdminRetour = null;
 
@@ -1549,29 +1604,47 @@ function openRetourAdmin(id){
     msgSection.style.display = 'none';
   }
 
-  // Signaux
+  // Signaux — groupés
   const sigBox = document.getElementById('mdr-signaux');
   if(signaux.length === 0){
     sigBox.innerHTML = `<div style="color:var(--g2);font-size:12px;padding:12px 14px;background:var(--s2);border-radius:8px;text-align:center">✓ Aucun signal de fraude détecté</div>`;
   } else {
-    sigBox.innerHTML = signaux.map(s=>`
+    sigBox.innerHTML = grouperSignauxAdmin(signaux, r).map(s=>`
       <div class="mdr-signal mdr-signal-${s.risk||'amber'}">
         <span style="font-size:15px">${s.risk==='red'?'🔴':'🟡'}</span>
-        <span style="flex:1;font-weight:500">${s.text}</span>
+        <div style="flex:1">
+          <div style="font-weight:500">${s.text}</div>
+          ${s.detail?`<div style="font-size:10.5px;color:${s.risk==='red'?'var(--red)':'var(--amber)'};opacity:.8;margin-top:3px">${s.detail}</div>`:''}
+        </div>
         <span style="font-family:var(--mono);font-size:12px;font-weight:700;color:${s.risk==='red'?'var(--red)':'var(--amber)'}">${s.pts}</span>
       </div>`).join('');
   }
 
-  // Récidive — chercher d'autres retours du même client
+  // Récidive — section historique réseau (admin voit le détail complet)
   const matches = detecterRecidive(r.client_prenom, r.client_nom, r.client_email, r.adresse_livraison, r.code_postal, r.ville)
     .filter(m => m.retour.id !== r.id);
+
+  // Grouper par type de correspondance
   const recSection = document.getElementById('mdr-recidive-section');
   if(matches.length > 0){
     recSection.style.display = 'block';
-    document.getElementById('mdr-recidive-list').innerHTML = matches.map(m=>`
+    // Grouper par type
+    const byType = {};
+    matches.forEach(m => {
+      if(!byType[m.type]) byType[m.type] = [];
+      byType[m.type].push(m);
+    });
+    const typeLabels = {
+      email_exact:'Email identique',email_similaire:'Alias email',
+      adresse_exacte:'Adresse identique',adresse_similaire:'Adresse similaire',
+      cp_nom:'Même CP + nom',ville_nom:'Même ville + nom',nom_similaire:'Nom similaire'
+    };
+    document.getElementById('mdr-recidive-list').innerHTML = Object.entries(byType).map(([type, items])=>`
       <div style="background:var(--red-dim);border:0.5px solid var(--red-b);border-radius:8px;padding:10px 13px;margin-bottom:6px;font-size:12px">
-        <div style="font-weight:600;color:var(--red);margin-bottom:3px">⚠ ${m.detail}</div>
-        <div style="color:var(--g1)">Score ${m.retour.score}/100 ${m.marchand?'· chez '+m.marchand.nom:''} · ${new Date(m.retour.created_at).toLocaleDateString('fr-FR')}</div>
+        <div style="font-weight:600;color:var(--red);margin-bottom:6px">⚠ ${typeLabels[type]||type} — ${items.length} occurrence${items.length>1?'s':''}</div>
+        ${items.map(m=>`<div style="color:var(--g1);margin-bottom:3px;padding:4px 8px;background:rgba(0,0,0,.2);border-radius:5px">
+          Score ${m.retour.score}/100 ${m.marchand?'· <strong style="color:var(--w)">'+m.marchand.nom+'</strong>':''} · ${new Date(m.retour.created_at).toLocaleDateString('fr-FR')}
+        </div>`).join('')}
       </div>`).join('');
   } else {
     recSection.style.display = 'none';
