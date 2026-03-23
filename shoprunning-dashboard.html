@@ -100,7 +100,15 @@ tr:hover td{background:rgba(255,255,255,.015)}
 .affil-code:hover{border-color:var(--red-b)}
 .affil-code-val{font-family:var(--mono);font-size:14px;font-weight:600;letter-spacing:.1em;color:var(--w);flex:1}
 
-/* ── MODAL RETOUR ── */
+/* ── DÉCISION FEEDBACK ── */
+.btn-decision{padding:4px 10px;border-radius:6px;font-family:var(--f);font-size:10.5px;font-weight:600;cursor:pointer;border:0.5px solid;transition:all .15s;white-space:nowrap}
+.btn-rembourse{background:var(--gd);border-color:var(--gb);color:var(--green)}
+.btn-rembourse:hover{background:rgba(34,197,94,.25)}
+.btn-fraude{background:var(--red-dim);border-color:var(--red-b);color:var(--red)}
+.btn-fraude:hover{background:rgba(232,40,26,.2)}
+.decision-tag{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;display:inline-flex;align-items:center;gap:3px}
+.decision-rembourse{background:var(--gd);color:var(--green);border:0.5px solid var(--gb)}
+.decision-fraude{background:var(--red-dim);color:var(--red);border:0.5px solid var(--red-b)}
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);z-index:300;display:none;align-items:center;justify-content:center}
 .modal-overlay.show{display:flex}
 .modal-retour{background:var(--s1);border:0.5px solid var(--b2);border-radius:16px;width:680px;max-width:95vw;max-height:90vh;overflow-y:auto;position:relative}
@@ -263,7 +271,7 @@ tr:hover td{background:rgba(255,255,255,.015)}
           </select>
         </div>
         <table>
-          <thead><tr><th>Client</th><th>Produit</th><th>Motif</th><th>Montant</th><th>Score RS</th><th>Signaux</th><th>Verdict</th><th>Action</th><th>Date</th></tr></thead>
+          <thead><tr><th>Client</th><th>Produit</th><th>Motif</th><th>Montant</th><th>Score RS</th><th>Signaux</th><th>Verdict</th><th>Décision</th><th>Date</th></tr></thead>
           <tbody id="tb-all"></tbody>
         </table>
       </div>
@@ -624,6 +632,20 @@ function renderRowFull(r){
   const motifLabel = {colis_vide:'Colis vide',jamais_recu:'Jamais reçu',produit_endommage:'Endommagé',mauvaise_taille:'Mauvaise taille',ne_correspond_pas:'Non conforme'}[r.motif]||r.motif||'—';
   const date = r.created_at ? new Date(r.created_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—';
   const sigs = (r.signaux||[]).length;
+
+  // Boutons de décision ou tag si déjà décidé
+  let decisionCell = '';
+  if(r.decision_finale === 'rembourse'){
+    decisionCell = `<span class="decision-tag decision-rembourse">✓ Remboursé</span>`;
+  } else if(r.decision_finale === 'fraude'){
+    decisionCell = `<span class="decision-tag decision-fraude">✗ Fraude</span>`;
+  } else {
+    decisionCell = `<div style="display:flex;gap:4px" onclick="event.stopPropagation()">
+      <button class="btn-decision btn-rembourse" onclick="enregistrerDecision('${r.id}','rembourse')">✓</button>
+      <button class="btn-decision btn-fraude" onclick="enregistrerDecision('${r.id}','fraude')">✗</button>
+    </div>`;
+  }
+
   return `<tr onclick="openRetour('${r.id}')" style="cursor:pointer">
     <td><div style="font-weight:500">${r.client_prenom||'—'} ${r.client_nom||''}</div><div style="font-size:10px;color:var(--g2)">${r.client_email||''}</div></td>
     <td style="font-size:11.5px;color:var(--g1)">${(r.produit||'—').slice(0,25)}</td>
@@ -632,7 +654,7 @@ function renderRowFull(r){
     <td><div style="width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:var(--mono);background:${sc>=50?'var(--red-dim)':sc>=30?'var(--ad)':'var(--gd)'};color:${sc>=50?'var(--red)':sc>=30?'var(--amber)':'var(--green)'};border:0.5px solid ${sc>=50?'var(--red-b)':sc>=30?'var(--ab)':'var(--gb)'}">${sc}</div></td>
     <td style="font-size:11px;color:var(--g1)">${sigs} signal${sigs>1?'s':''}</td>
     <td><span class="pill ${pillClass}">${r.verdict||'En attente'}</span></td>
-    <td style="font-size:11px;color:var(--g1);max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.action_recommandee||'—'}</td>
+    <td>${decisionCell}</td>
     <td style="font-size:11px;color:var(--g2);white-space:nowrap">${date}</td>
   </tr>`;
 }
@@ -755,7 +777,27 @@ function copyCode(){
   });
 }
 
-function filterRetours(){ renderAllTable(); }
+// ── DÉCISION FEEDBACK ─────────────────────────────────────
+async function enregistrerDecision(id, decision){
+  const { error } = await db.from('retours').update({
+    decision_finale: decision,
+    decision_date: new Date().toISOString(),
+  }).eq('id', id);
+
+  if(error){ toast('error','Erreur',error.message); return; }
+
+  // Mettre à jour localement
+  const idx = allRetours.findIndex(r=>r.id===id);
+  if(idx>=0){
+    allRetours[idx].decision_finale = decision;
+    allRetours[idx].decision_date = new Date().toISOString();
+  }
+
+  const label = decision==='rembourse' ? '✓ Remboursé' : '✗ Fraude confirmée';
+  toast(decision==='rembourse'?'success':'error', label, 'Feedback enregistré — merci !');
+  renderAllTable();
+  renderRecentTable();
+}
 
 function showNotifBadge(){
   const badge = document.getElementById('sb-nb-alertes');
